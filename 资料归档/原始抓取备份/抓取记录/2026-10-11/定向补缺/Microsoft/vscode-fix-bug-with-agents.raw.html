@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="awa-expId" content="tv-downloadv2:1447446;" />
+	<meta name="awa-env" content="prod" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="google-site-verification" content="hNs7DXrTySP_X-0P_AC0WulAXvUwgSXEmgfcO2r79dw" />
+
+	<!-- Twitter and Facebook OpenGraph Metadata-->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@code" />
+
+	<meta name="description" content="Fix a pagination bug in a Node.js API with an AI agent in VS Code by reproducing it, adding regression tests, and reviewing the fix." />
+<meta name="keywords" content="" />
+<meta name="ms.prod" content="vs-code" />
+<meta name="ms.TOCTitle" content="" />
+<meta name="ms.ContentId" content="b850af5c-5578-4981-a810-62050e0abfb8" />
+<meta name="ms.date" content="10/7/2026" />
+<meta name="ms.topic" content="conceptual" />
+<!-- Twitter and Facebook OpenGraph Metadata-->
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="og:url" content="https://code.visualstudio.com/docs/agents/guides/fix-a-bug-with-agents" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Tutorial: Fix an API bug with an agent" />
+<meta property="og:description" content="Fix a pagination bug in a Node.js API with an AI agent in VS Code by reproducing it, adding regression tests, and reviewing the fix." />
+
+<meta property="og:image" content="https://code.visualstudio.com/opengraphimg/generated/docs/agents/guides/fix-a-bug-with-agents.webp" />
+
+
+
+	<link rel="shortcut icon" href="/assets/favicon.ico" sizes="128x128" />
+	<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+
+	<title>Tutorial: Fix an API bug with an agent</title>
+
+	<link rel="stylesheet" href="/dist/style.css">
+
+	<script src="https://consentdeliveryfd.azurefd.net/mscc/lib/v2/wcp-consent.js"></script>
+	<script type="text/javascript" src="https://js.monitor.azure.com/scripts/c/ms.analytics-web-4.min.js"></script>
+	
+	<script type="text/javascript">
+	// Leave as var; siteConsent is initialized and referenced elsewhere.
+	var siteConsent = null;
+	
+	const GPC_DataSharingOptIn = false;
+	WcpConsent.onInitCallback(function () {
+		window.appInsights = new oneDS.ApplicationInsights();
+		window.appInsights.initialize({
+			instrumentationKey: "1a3eb3104447440391ad5f2a6ee06a0a-62879566-bc58-4741-9650-302bf2af703f-7103",
+			propertyConfiguration: {
+				userConsented: false,
+				gpcDataSharingOptIn: false,
+				callback: {
+					// Stable closure: the SDK calls this per-event, so it picks up the
+					// real consent state once WcpConsent.init() resolves (siteConsent
+					// is still null when this callback is registered).
+					userConsentDetails: function () {
+						return siteConsent ? siteConsent.getConsent() : undefined;
+					}
+				},
+			},
+			cookieCfg: {
+				ignoreCookies: ["MSCC"]
+			},
+			webAnalyticsConfiguration:{ // Web Analytics Plugin configuration
+				urlCollectQuery: true,
+				urlCollectHash: true,
+				autoCapture: {
+					scroll: true,
+					pageView: true,
+					onLoad: true,
+					onUnload: true,
+					click: true,
+					resize: true,
+					jsError: true
+				}
+			}
+		}, []);
+	
+		window.appInsights.getPropertyManager().getPropertiesContext().web.gpcDataSharingOptIn = GPC_DataSharingOptIn;
+	});
+	</script>
+	<link rel="alternate" type="application/atom+xml" title="RSS Feed for code.visualstudio.com" href="/feed.xml" />
+</head>
+
+<body >
+	<div class="sr-only" aria-hidden="true">
+		AI agents: See <a href="/llms.txt" tabindex="-1">llms.txt</a> for documentation discovery and navigation. Documentation articles are also available as Markdown by appending <code>.md</code> to the article URL.
+	</div>
+	<!-- Setting theme here to avoid FOUC -->
+	<script>
+		function setTheme(themeName) {
+			if (themeName === 'dark') {
+				document.documentElement.removeAttribute('data-theme'); // dark is default, so no data-theme attribute needed
+			}
+
+			if (themeName === 'light') {
+				document.documentElement.setAttribute('data-theme', themeName);
+			}
+			return;
+		}
+
+		// Determine initial theme: user preference or system preference
+		let theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+		setTheme(theme); // Apply the initial theme
+
+		// Listen for changes in the system theme preference
+		window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+			if (!localStorage.getItem('theme')) { // Only if no user preference is saved
+				setTheme(e.matches ? 'dark' : 'light');
+			}
+		});
+	</script>
+
+	<div id="main">
+		<div class="navbar-fixed-container">
+			<div class="navbar navbar-inverse navbar-fixed-top ">
+				<div id='cookie-banner'></div>		<nav role="navigation" aria-label="Top Level">
+					<div class="container">
+						<div class="nav navbar-header">
+							<a class="navbar-brand" href="/"><span>Visual Studio Code</span></a>
+						</div>
+						<div class="navbar-collapse collapse">
+							<ul class="nav navbar-nav navbar-left" data-m='{"cN":"top-navbar","aN":"navigation"}'>
+								<li class="nav-dropdown">
+									<a id="nav-features" href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" data-m='{"cN":"Features","aN":"navigation","cT":"toggle"}'>
+										Features <span class="nav-dropdown-caret" aria-hidden="true"></span>
+									</a>
+									<ul class="nav-dropdown-menu" role="menu">
+										<li role="none"><a role="menuitem" href="/features/agents" data-m='{"cN":"Agents","aN":"navigation - Features"}'>Agents</a></li>
+										<li role="none"><a role="menuitem" href="/features/customizations" data-m='{"cN":"Agent Customization","aN":"navigation - Features"}'>Agent Customization</a></li>
+										<li role="none"><a role="menuitem" href="/features/models" data-m='{"cN":"Models &amp; Agent Harnesses","aN":"navigation - Features"}'>Models &amp; Agent Harnesses</a></li>
+										<li role="none"><a role="menuitem" href="/features/enterprise" data-m='{"cN":"Enterprise","aN":"navigation - Features"}'>Enterprise</a></li>
+										<li role="none"><a role="menuitem" href="/features/extensibility" data-m='{"cN":"Extensibility","aN":"navigation - Features"}'>Extensibility</a></li>
+									</ul>
+								</li>
+								<li class="nav-dropdown active">
+									<a id="nav-docs" href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" data-m='{"cN":"Docs","aN":"navigation","cT":"toggle"}'>
+										Docs <span class="nav-dropdown-caret" aria-hidden="true"></span>
+									</a>
+									<ul class="nav-dropdown-menu" role="menu">
+										<li role="none"><a role="menuitem" href="/docs" data-m='{"cN":"Documentation","aN":"navigation - Docs"}'>Documentation</a></li>
+										<li role="none"><a role="menuitem" href="/api" data-m='{"cN":"API","aN":"navigation - Docs"}'>API</a></li>
+										<li role="none"><a role="menuitem" id="nav-faqs" href="/docs/supporting/faq" data-m='{"cN":"FAQ","aN":"navigation - Docs"}'>FAQ</a></li>
+									</ul>
+								</li>
+								<li ><a id="nav-updates" href="/updates" data-m='{"cN":"Release Notes"}'>Release Notes</a>
+								</li>
+								<li ><a id="nav-blogs" href="/blogs" data-m='{"cN":"Blog"}'>Blog</a></li>
+								<li ><a id="nav-learn" href="/learn" data-m='{"cN":"Learn"}'>Learn</a></li>
+								<li><a id="nav-events" href="https://aka.ms/vscode/live" target="_blank" rel="noopener" data-m='{"cN":"Events"}'>Events<span class="codicon codicon-link-external nav-external-icon" aria-hidden="true"></span></a></li>
+								<li class="nav-dropdown">
+									<a id="nav-resources" href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" data-m='{"cN":"Resources","aN":"navigation","cT":"toggle"}'>
+										Resources <span class="nav-dropdown-caret" aria-hidden="true"></span>
+									</a>
+									<ul class="nav-dropdown-menu" role="menu">
+										<li role="none"><a role="menuitem" href="https://marketplace.visualstudio.com/VSCode" target="_blank" rel="noopener"
+												id="nav-extensions" data-m='{"cN":"Extensions","aN":"navigation - Resources"}'>Extensions<span class="codicon codicon-link-external nav-external-icon" aria-hidden="true"></span></a></li>
+										<li role="none"><a role="menuitem" id="nav-mcp" href="/mcp" target="_blank" rel="noopener" data-m='{"cN":"MCP","aN":"navigation - Resources"}'>MCP<span class="codicon codicon-link-external nav-external-icon" aria-hidden="true"></span></a></li>
+									</ul>
+								</li>
+							</ul>
+							<ul class="nav navbar-nav navbar-right" role="presentation">
+								<li>
+									<a class="link-button" href="/download" id="nav-download">
+										<span>Download</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+						<div class="navbar-actions">
+							<div class="search" role="presentation">
+								<div class="nav-search search-control" role="button" tabindex="0" aria-label="Open search dialog">
+									<div class="input-group" role="presentation">
+										<span class="input-group-btn">
+											<span class="btn search-icon-container" aria-hidden="true">
+												<img class="search-icon-dark" src="/assets/icons/search-dark.svg" alt="" />
+												<img class="search-icon-light" src="/assets/icons/search.svg" alt="" />
+											</span>
+										</span>
+										<span class="search-box form-control" aria-hidden="true" role="presentation"></span>
+										<span class="search-shortcut-placeholder">Search</span>
+										<span class="search-shortcut-overlay"></span>
+									</div>
+								</div>					</div>
+							<button type="button" class="theme-switch" id="theme-toggle">
+								<img class="theme-icon-light" src="/assets/icons/theme-light.svg" alt="Switch to the dark theme" />
+								<img class="theme-icon-dark" src="/assets/icons/theme-dark.svg" alt="Switch to the light theme" />
+							</button>
+							<a class="link-button navbar-actions-download" href="/Download">
+								<span>Download</span>
+							</a>
+						</div>
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"
+							aria-label="Expand and Collapse Menu">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+					</div>
+				</nav>
+			</div>
+		</div>		<div data-announcement-version="2026-09-09-vscode-documentary-agent-host" data-rotation-interval-seconds="8" class="updates-banner ">
+			<div class="container banner-messages">
+				<p class="message active" data-banner-message aria-hidden="false" ><a href="https://aka.ms/the-story-of-vs-code?source=vsc-website-banner" target="_blank" rel="noopener">🎬 Watch The Story of VS Code!</a></p>
+				<p class="message " data-banner-message aria-hidden="true" inert><a href="https://aka.ms/VSCode/IG?source=vsc-website-banner" target="_blank" rel="noopener">VS Code is now on Instagram, follow @vscode.ig for updates, tips, and more.</a></p>
+				<p class="message " data-banner-message aria-hidden="true" inert><a href="https://gh.io/githubcopilotday?source=vsc-website-banner" target="_blank" rel="noopener">Rewatch GitHub Copilot Day.</a></p>
+			</div>
+			<button type="button" title="Dismiss this update" class="dismiss-btn" id="banner-dismiss-btn"><span class="sr-only">Dismiss this update</span><span aria-hidden="true" class="glyph-icon"></span></button>
+		</div>
+		<script>
+			// Restore dismissal and the session's random starting message before first paint.
+			(function () {
+				var banner = document.currentScript.previousElementSibling;
+				if (!banner) {
+					return;
+				}
+		
+				var version = banner.getAttribute('data-announcement-version');
+				try {
+					if (localStorage.getItem('dismissedAnnouncementVersion') === version) {
+						banner.classList.add('js-hidden');
+					}
+				} catch (error) {
+					console.warn('Unable to restore banner dismissal state.', error);
+				}
+		
+				var messages = banner.querySelectorAll('[data-banner-message]');
+				if (messages.length < 2) {
+					return;
+				}
+		
+				var storageKey = 'initialAnnouncementMessage:' + version;
+				var activeIndex;
+				try {
+					var storedIndex = sessionStorage.getItem(storageKey);
+					if (storedIndex !== null) {
+						activeIndex = Number(storedIndex);
+					}
+				} catch (error) {
+					console.warn('Unable to restore the initial banner message.', error);
+				}
+				if (!Number.isInteger(activeIndex) || activeIndex < 0 || activeIndex >= messages.length) {
+					activeIndex = Math.floor(Math.random() * messages.length);
+					try {
+						sessionStorage.setItem(storageKey, String(activeIndex));
+					} catch (error) {
+						console.warn('Unable to remember the initial banner message.', error);
+					}
+				}
+		
+				for (var index = 0; index < messages.length; index++) {
+					var isActive = index === activeIndex;
+					messages[index].classList.toggle('active', isActive);
+					messages[index].setAttribute('aria-hidden', String(!isActive));
+					messages[index].toggleAttribute('inert', !isActive);
+				}
+				banner.setAttribute('data-active-message-index', String(activeIndex));
+			})();
+		</script>
+		<!-- This div wraps around the entire site -->
+		<!-- The body itself should already have a main tag -->
+		<main id="main-content">
+			<div class="body-content docs docs-github-layout">
+    <div class="docs-layout-wrapper">
+        <!-- Left sidebar - Table of Contents -->
+        <aside class="docs-left-sidebar">
+            <nav id="docs-navbar" aria-label="Topics" class="docs-nav visible-md visible-lg" data-m='{"cN":"docs-left-nav","aN":"navigation"}'>
+              
+              <h4>Documentation</h4>
+              <ul class="nav" id="main-nav">
+                
+                <li>
+                  <a href="/docs" data-m='{&quot;cN&quot;:&quot;Overview&quot;}'>Overview</a>
+                </li>
+            
+                
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-0-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-0-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Get Started&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Get Started</a>
+              <ul id="docs-docs-0-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/getstarted/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/quickstart" data-m='{&quot;cN&quot;:&quot;Agents Quickstart&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Agents Quickstart</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/getting-started/editor-tutorial" data-m='{&quot;cN&quot;:&quot;Editor Tutorial&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Editor Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/getstarted/introvideos" data-m='{&quot;cN&quot;:&quot;Intro Videos&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Intro Videos</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel active expanded">
+              <a class="area" role="button" href="#docs-docs-1-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-1-articles" aria-expanded="true" data-m='{&quot;cN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Agents</a>
+              <ul id="docs-docs-1-articles" class="collapse in">
+                
+                <li>
+                  <a href="/docs/agents/overview" data-m='{&quot;cN&quot;:&quot;AI Overview&quot;,&quot;aN&quot;:&quot;Agents&quot;}'>AI Overview</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-1-articles" data-toggle="collapse" aria-controls="docs-docs-1-1-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Get started&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Get started</a>
+              <ul id="docs-docs-1-1-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/quickstart" data-m='{&quot;cN&quot;:&quot;Agents Quickstart&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Agents Quickstart</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/overview" data-m='{&quot;cN&quot;:&quot;Find a Guide&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Find a Guide</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/copilot" data-m='{&quot;cN&quot;:&quot;Set Up GitHub Copilot&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Set Up GitHub Copilot</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agents-tutorial" data-m='{&quot;cN&quot;:&quot;Agents Tutorial&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Agents Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/best-practices" data-m='{&quot;cN&quot;:&quot;Best Practices&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Best Practices</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-2-articles" data-toggle="collapse" aria-controls="docs-docs-1-2-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Concepts&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Concepts</a>
+              <ul id="docs-docs-1-2-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/concepts/agents" data-m='{&quot;cN&quot;:&quot;Agents&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agents</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/language-models" data-m='{&quot;cN&quot;:&quot;How Models Work&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>How Models Work</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/context" data-m='{&quot;cN&quot;:&quot;Context&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Context</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/tools" data-m='{&quot;cN&quot;:&quot;Tools&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Tools</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/sessions" data-m='{&quot;cN&quot;:&quot;Sessions and Chats&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Sessions and Chats</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/trust-and-safety" data-m='{&quot;cN&quot;:&quot;Trust &amp; Safety&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Trust &amp; Safety</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/customization" data-m='{&quot;cN&quot;:&quot;Agent Customization&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agent Customization</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/agent-harnesses" data-m='{&quot;cN&quot;:&quot;Agent Harnesses&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agent Harnesses</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/workspace-context" data-m='{&quot;cN&quot;:&quot;Workspace Context&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Workspace Context</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/agent-host" data-m='{&quot;cN&quot;:&quot;Agent Host Architecture&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agent Host Architecture</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Use Agents&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Use Agents</a>
+              <ul id="docs-docs-1-3-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/chat-view" data-m='{&quot;cN&quot;:&quot;Chat View and Layout&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Chat View and Layout</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agents-window" data-m='{&quot;cN&quot;:&quot;Agents Window&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Agents Window</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agent-harnesses" data-m='{&quot;cN&quot;:&quot;Choose an Agent Harness&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Choose an Agent Harness</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agents-window-configuration" data-m='{&quot;cN&quot;:&quot;Configure the Agents Window&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Configure the Agents Window</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/chat/chat-overview" data-m='{&quot;cN&quot;:&quot;Chat Interaction Controls&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Chat Interaction Controls</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-5-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Plan and Run Tasks&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Plan and Run Tasks</a>
+              <ul id="docs-docs-1-3-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/planning" data-m='{&quot;cN&quot;:&quot;Plan Work&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Plan Work</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/tools" data-m='{&quot;cN&quot;:&quot;Use Tools&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Use Tools</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/browser-tools" data-m='{&quot;cN&quot;:&quot;Browser Tools&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Browser Tools</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/subagents" data-m='{&quot;cN&quot;:&quot;Subagents&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Subagents</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/automations" data-m='{&quot;cN&quot;:&quot;Automations&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Automations</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-6-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Sessions and Results&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Sessions and Results</a>
+              <ul id="docs-docs-1-3-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/sessions/manage-sessions" data-m='{&quot;cN&quot;:&quot;Manage Sessions&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Manage Sessions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/sessions/session-history" data-m='{&quot;cN&quot;:&quot;Session History&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Session History</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/remote-agent-sessions" data-m='{&quot;cN&quot;:&quot;Remote Agent Sessions&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Remote Agent Sessions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/memory" data-m='{&quot;cN&quot;:&quot;Memory&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Memory</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/review-code-edits" data-m='{&quot;cN&quot;:&quot;Review &amp; Revert Changes&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Review &amp; Revert Changes</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/artifacts" data-m='{&quot;cN&quot;:&quot;Artifacts&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Artifacts</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-7-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Permissions and Security&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Permissions and Security</a>
+              <ul id="docs-docs-1-3-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/approvals" data-m='{&quot;cN&quot;:&quot;Approvals &amp; Permissions&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Permissions and Security&quot;}'>Approvals &amp; Permissions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agent-sandboxing" data-m='{&quot;cN&quot;:&quot;Agent Sandboxing&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Permissions and Security&quot;}'>Agent Sandboxing</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/security" data-m='{&quot;cN&quot;:&quot;AI Security&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Permissions and Security&quot;}'>AI Security</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-4-articles" data-toggle="collapse" aria-controls="docs-docs-1-4-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Customize agents&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Customize agents</a>
+              <ul id="docs-docs-1-4-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agent-customization/overview" data-m='{&quot;cN&quot;:&quot;Create and Manage&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Create and Manage</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/custom-instructions" data-m='{&quot;cN&quot;:&quot;Instructions&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Instructions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/agent-skills" data-m='{&quot;cN&quot;:&quot;Agent Skills&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Agent Skills</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/custom-agents" data-m='{&quot;cN&quot;:&quot;Custom Agents&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Custom Agents</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/language-models" data-m='{&quot;cN&quot;:&quot;Choose and Configure Models&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Choose and Configure Models</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/mcp-servers" data-m='{&quot;cN&quot;:&quot;MCP&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>MCP</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/hooks" data-m='{&quot;cN&quot;:&quot;Hooks&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Hooks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/agent-plugins" data-m='{&quot;cN&quot;:&quot;Plugins&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Plugins</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/prompt-files" data-m='{&quot;cN&quot;:&quot;Prompt Files&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Prompt Files</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/migrate-customizations" data-m='{&quot;cN&quot;:&quot;Migrate Existing Customizations&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Migrate Existing Customizations</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel active expanded">
+              <a class="area" role="button" href="#docs-docs-1-5-articles" data-toggle="collapse" aria-controls="docs-docs-1-5-articles" aria-expanded="true" data-m='{&quot;cN&quot;:&quot;Tutorials &amp; guides&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Tutorials &amp; guides</a>
+              <ul id="docs-docs-1-5-articles" class="collapse in">
+                
+                <li>
+                  <a href="/docs/agents/guides/explore-a-codebase" data-m='{&quot;cN&quot;:&quot;Explore a Codebase&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Explore a Codebase</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/add-a-feature" data-m='{&quot;cN&quot;:&quot;Add a Feature&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Add a Feature</a>
+                </li>
+            
+                <li class="active">
+                  <a href="/docs/agents/guides/fix-a-bug-with-agents" data-m='{&quot;cN&quot;:&quot;Fix a Bug&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}' aria-current="page" aria-label="Current Page: Fix a Bug">Fix a Bug</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/refactor-safely" data-m='{&quot;cN&quot;:&quot;Refactor Safely&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Refactor Safely</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/test-code-with-ai" data-m='{&quot;cN&quot;:&quot;Add Tests&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Add Tests</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/browser-agent-testing-guide" data-m='{&quot;cN&quot;:&quot;Test Web Apps&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Test Web Apps</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/delegate-two-tasks" data-m='{&quot;cN&quot;:&quot;Run Parallel Tasks&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Run Parallel Tasks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/get-agent-back-on-track" data-m='{&quot;cN&quot;:&quot;Get Back on Track&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Get Back on Track</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/customize-copilot-guide" data-m='{&quot;cN&quot;:&quot;Adapt Agents to Your Project&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Adapt Agents to Your Project</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/context-engineering-guide" data-m='{&quot;cN&quot;:&quot;Context Engineering&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Context Engineering</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/test-driven-development-guide" data-m='{&quot;cN&quot;:&quot;Test-Driven Development&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Test-Driven Development</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/notebooks-with-ai" data-m='{&quot;cN&quot;:&quot;Jupyter Notebooks&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Jupyter Notebooks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/optimize-usage" data-m='{&quot;cN&quot;:&quot;Reduce Credit Usage&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Reduce Credit Usage</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/prompt-examples" data-m='{&quot;cN&quot;:&quot;Prompt Examples&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Prompt Examples</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-6-articles" data-toggle="collapse" aria-controls="docs-docs-1-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Reference&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Reference</a>
+              <ul id="docs-docs-1-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/reference/ai-features-cheat-sheet" data-m='{&quot;cN&quot;:&quot;Cheat Sheet&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Cheat Sheet</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/tools-reference" data-m='{&quot;cN&quot;:&quot;Tools and Context&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Tools and Context</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/ai-settings" data-m='{&quot;cN&quot;:&quot;Settings Reference&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Settings Reference</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/chat-pet" data-m='{&quot;cN&quot;:&quot;VS Code Pet&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>VS Code Pet</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/mcp-configuration" data-m='{&quot;cN&quot;:&quot;MCP Configuration&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>MCP Configuration</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/hooks-reference" data-m='{&quot;cN&quot;:&quot;Hooks Reference&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Hooks Reference</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/monitoring-agents" data-m='{&quot;cN&quot;:&quot;OpenTelemetry Monitoring&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>OpenTelemetry Monitoring</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-7-articles" data-toggle="collapse" aria-controls="docs-docs-1-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Troubleshooting&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Troubleshooting</a>
+              <ul id="docs-docs-1-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/troubleshooting" data-m='{&quot;cN&quot;:&quot;Troubleshooting&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>Troubleshooting</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/chat-debug-view" data-m='{&quot;cN&quot;:&quot;Debug Chat Interactions&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>Debug Chat Interactions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/cache-explorer" data-m='{&quot;cN&quot;:&quot;Diagnose Prompt Caching&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>Diagnose Prompt Caching</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/faq" data-m='{&quot;cN&quot;:&quot;FAQ&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>FAQ</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-2-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-2-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Chat&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Chat</a>
+              <ul id="docs-docs-2-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/chat/chat-overview" data-m='{&quot;cN&quot;:&quot;Chat Interaction Controls&quot;,&quot;aN&quot;:&quot;Chat&quot;}'>Chat Interaction Controls</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/chat/inline-chat" data-m='{&quot;cN&quot;:&quot;Inline &amp; Quick Chat&quot;,&quot;aN&quot;:&quot;Chat&quot;}'>Inline &amp; Quick Chat</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/chat/copilot-chat-context" data-m='{&quot;cN&quot;:&quot;Add Prompt Context&quot;,&quot;aN&quot;:&quot;Chat&quot;}'>Add Prompt Context</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-3-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Editor</a>
+              <ul id="docs-docs-3-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/getting-started/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor&quot;}'>Overview</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-1-articles" data-toggle="collapse" aria-controls="docs-docs-3-1-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Getting Started&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Getting Started</a>
+              <ul id="docs-docs-3-1-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/getting-started/editor-tutorial" data-m='{&quot;cN&quot;:&quot;Editor Tutorial&quot;,&quot;aN&quot;:&quot;Editor - Getting Started&quot;}'>Editor Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/getting-started/userinterface" data-m='{&quot;cN&quot;:&quot;User Interface&quot;,&quot;aN&quot;:&quot;Editor - Getting Started&quot;}'>User Interface</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/getting-started/tips-and-tricks" data-m='{&quot;cN&quot;:&quot;Tips and Tricks&quot;,&quot;aN&quot;:&quot;Editor - Getting Started&quot;}'>Tips and Tricks</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-2-articles" data-toggle="collapse" aria-controls="docs-docs-3-2-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Write code&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Write code</a>
+              <ul id="docs-docs-3-2-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/codebasics" data-m='{&quot;cN&quot;:&quot;Basic Editing&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Basic Editing</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/intellisense" data-m='{&quot;cN&quot;:&quot;IntelliSense&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>IntelliSense</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/ai-powered-suggestions" data-m='{&quot;cN&quot;:&quot;Inline Suggestions&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Inline Suggestions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/copilot-smart-actions" data-m='{&quot;cN&quot;:&quot;Smart Actions&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Smart Actions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/editingevolved" data-m='{&quot;cN&quot;:&quot;Code Navigation&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Code Navigation</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/refactoring" data-m='{&quot;cN&quot;:&quot;Refactoring&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Refactoring</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/userdefinedsnippets" data-m='{&quot;cN&quot;:&quot;Snippets&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Snippets</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-2-7-articles" data-toggle="collapse" aria-controls="docs-docs-3-2-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Workspaces&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Workspaces</a>
+              <ul id="docs-docs-3-2-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/workspaces/workspaces" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor - Write code - Workspaces&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/workspaces/multi-root-workspaces" data-m='{&quot;cN&quot;:&quot;Multi-Root Workspaces&quot;,&quot;aN&quot;:&quot;Editor - Write code - Workspaces&quot;}'>Multi-Root Workspaces</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/workspaces/workspace-trust" data-m='{&quot;cN&quot;:&quot;Workspace Trust&quot;,&quot;aN&quot;:&quot;Editor - Write code - Workspaces&quot;}'>Workspace Trust</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-3-articles" data-toggle="collapse" aria-controls="docs-docs-3-3-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Configure the editor&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Configure the editor</a>
+              <ul id="docs-docs-3-3-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/configure/locales" data-m='{&quot;cN&quot;:&quot;Display Language&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Display Language</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/custom-layout" data-m='{&quot;cN&quot;:&quot;Layout&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Layout</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/keybindings" data-m='{&quot;cN&quot;:&quot;Keyboard Shortcuts&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Keyboard Shortcuts</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/settings" data-m='{&quot;cN&quot;:&quot;Settings&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Settings</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/settings-sync" data-m='{&quot;cN&quot;:&quot;Settings Sync&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Settings Sync</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-3-5-articles" data-toggle="collapse" aria-controls="docs-docs-3-3-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Extensions&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Extensions</a>
+              <ul id="docs-docs-3-3-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/configure/extensions/extensions" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Extensions&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/extensions/extension-marketplace" data-m='{&quot;cN&quot;:&quot;Extension Marketplace&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Extensions&quot;}'>Extension Marketplace</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/extensions/extension-runtime-security" data-m='{&quot;cN&quot;:&quot;Extension Runtime Security&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Extensions&quot;}'>Extension Runtime Security</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+                <li>
+                  <a href="/docs/configure/themes" data-m='{&quot;cN&quot;:&quot;Themes&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Themes</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/profiles" data-m='{&quot;cN&quot;:&quot;Profiles&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Profiles</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-3-8-articles" data-toggle="collapse" aria-controls="docs-docs-3-3-8-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Accessibility&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Accessibility</a>
+              <ul id="docs-docs-3-3-8-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/configure/accessibility/accessibility" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Accessibility&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/accessibility/voice" data-m='{&quot;cN&quot;:&quot;Voice Interactions&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Accessibility&quot;}'>Voice Interactions</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+                <li>
+                  <a href="/docs/configure/command-line" data-m='{&quot;cN&quot;:&quot;Command Line Interface&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Command Line Interface</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/telemetry" data-m='{&quot;cN&quot;:&quot;Telemetry&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Telemetry</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-4-articles" data-toggle="collapse" aria-controls="docs-docs-3-4-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Reference&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Reference</a>
+              <ul id="docs-docs-3-4-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/reference/default-keybindings" data-m='{&quot;cN&quot;:&quot;Default Keyboard Shortcuts&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Default Keyboard Shortcuts</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/reference/default-settings" data-m='{&quot;cN&quot;:&quot;Default Settings&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Default Settings</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/reference/variables-reference" data-m='{&quot;cN&quot;:&quot;Substitution Variables&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Substitution Variables</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/reference/tasks-appendix" data-m='{&quot;cN&quot;:&quot;Tasks Schema&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Tasks Schema</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-4-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-4-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Source Control&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Source Control</a>
+              <ul id="docs-docs-4-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/sourcecontrol/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/quickstart" data-m='{&quot;cN&quot;:&quot;Quickstart&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Quickstart</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/repos-remotes" data-m='{&quot;cN&quot;:&quot;Repositories &amp; Remotes&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Repositories &amp; Remotes</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/staging-commits" data-m='{&quot;cN&quot;:&quot;Staging, Commits &amp; Undo&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Staging, Commits &amp; Undo</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/history" data-m='{&quot;cN&quot;:&quot;History &amp; Blame&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>History &amp; Blame</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/branches-worktrees" data-m='{&quot;cN&quot;:&quot;Branches, Stashes &amp; Worktrees&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Branches, Stashes &amp; Worktrees</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/merge-conflicts" data-m='{&quot;cN&quot;:&quot;Merge Conflicts&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Merge Conflicts</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/github" data-m='{&quot;cN&quot;:&quot;Collaborate on GitHub&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Collaborate on GitHub</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/troubleshooting" data-m='{&quot;cN&quot;:&quot;Troubleshooting&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Troubleshooting</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/faq" data-m='{&quot;cN&quot;:&quot;FAQ&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>FAQ</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-5-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Terminal&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Terminal</a>
+              <ul id="docs-docs-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/terminal/getting-started" data-m='{&quot;cN&quot;:&quot;Get Started&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Get Started</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/basics" data-m='{&quot;cN&quot;:&quot;Terminal Basics&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Terminal Basics</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/profiles" data-m='{&quot;cN&quot;:&quot;Terminal Profiles&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Terminal Profiles</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/shell-integration" data-m='{&quot;cN&quot;:&quot;Shell Integration&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Shell Integration</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/appearance" data-m='{&quot;cN&quot;:&quot;Appearance&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Appearance</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/advanced" data-m='{&quot;cN&quot;:&quot;Advanced&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Advanced</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-6-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Debugging &amp; Testing&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Debugging &amp; Testing</a>
+              <ul id="docs-docs-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/debugtest/debugging" data-m='{&quot;cN&quot;:&quot;Debugging&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Debugging</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/debugging-configuration" data-m='{&quot;cN&quot;:&quot;Debug Configuration&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Debug Configuration</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/tasks" data-m='{&quot;cN&quot;:&quot;Tasks&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Tasks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/testing" data-m='{&quot;cN&quot;:&quot;Testing&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Testing</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/integrated-browser" data-m='{&quot;cN&quot;:&quot;Integrated Browser&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Integrated Browser</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/port-forwarding" data-m='{&quot;cN&quot;:&quot;Port Forwarding&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Port Forwarding</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-6-6-articles" data-toggle="collapse" aria-controls="docs-docs-6-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Guides &amp; Tutorials&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Guides &amp; Tutorials</a>
+              <ul id="docs-docs-6-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/guides/test-driven-development-guide" data-m='{&quot;cN&quot;:&quot;Test-Driven Development&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing - Guides &amp; Tutorials&quot;}'>Test-Driven Development</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/browser-agent-testing-guide" data-m='{&quot;cN&quot;:&quot;Test Web Apps&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing - Guides &amp; Tutorials&quot;}'>Test Web Apps</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-7-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Enterprise&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Enterprise</a>
+              <ul id="docs-docs-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/enterprise/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/policies" data-m='{&quot;cN&quot;:&quot;Enterprise Policies&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Enterprise Policies</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/manage-ai-settings" data-m='{&quot;cN&quot;:&quot;Manage AI Settings&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Manage AI Settings</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/extensions" data-m='{&quot;cN&quot;:&quot;Extensions&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Extensions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/telemetry" data-m='{&quot;cN&quot;:&quot;Telemetry&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Telemetry</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/updates" data-m='{&quot;cN&quot;:&quot;Updates&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Updates</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-8-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-8-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Remote&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Remote</a>
+              <ul id="docs-docs-8-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/remote/remote-overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/vscode-web" data-m='{&quot;cN&quot;:&quot;VS Code for the Web&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>VS Code for the Web</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/ssh" data-m='{&quot;cN&quot;:&quot;SSH&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>SSH</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/ssh-tutorial" data-m='{&quot;cN&quot;:&quot;SSH Tutorial&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>SSH Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/tunnels" data-m='{&quot;cN&quot;:&quot;Tunnels&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Tunnels</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/dev-containers" data-m='{&quot;cN&quot;:&quot;Dev Containers&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Dev Containers</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/wsl" data-m='{&quot;cN&quot;:&quot;WSL&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>WSL</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/wsl-tutorial" data-m='{&quot;cN&quot;:&quot;WSL Tutorial&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>WSL Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/codespaces" data-m='{&quot;cN&quot;:&quot;GitHub Codespaces&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>GitHub Codespaces</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/vscode-server" data-m='{&quot;cN&quot;:&quot;VS Code Server&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>VS Code Server</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/linux" data-m='{&quot;cN&quot;:&quot;Linux Prerequisites&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Linux Prerequisites</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/troubleshooting" data-m='{&quot;cN&quot;:&quot;Tips and Tricks&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Tips and Tricks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/faq" data-m='{&quot;cN&quot;:&quot;FAQ&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>FAQ</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-9-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-9-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Advanced Setup&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Advanced Setup</a>
+              <ul id="docs-docs-9-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/setup/copilot" data-m='{&quot;cN&quot;:&quot;GitHub Copilot Setup&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>GitHub Copilot Setup</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/linux" data-m='{&quot;cN&quot;:&quot;Linux&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Linux</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/mac" data-m='{&quot;cN&quot;:&quot;macOS&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>macOS</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/windows" data-m='{&quot;cN&quot;:&quot;Windows&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Windows</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/raspberry-pi" data-m='{&quot;cN&quot;:&quot;Raspberry Pi&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Raspberry Pi</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/network" data-m='{&quot;cN&quot;:&quot;Network&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Network</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/portable" data-m='{&quot;cN&quot;:&quot;Portable Mode&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Portable Mode</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/additional-components" data-m='{&quot;cN&quot;:&quot;Additional Components&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Additional Components</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/uninstall" data-m='{&quot;cN&quot;:&quot;Uninstall&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Uninstall</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+                <li>
+                  <a class="area" href="/docs/languages/overview" data-m='{&quot;cN&quot;:&quot;Languages &amp; Runtimes&quot;}'>Languages &amp; Runtimes</a>
+                </li>
+            
+                <li>
+                  <a class="area" href="/docs/extension-docs/overview" data-m='{&quot;cN&quot;:&quot;Extension Docs&quot;}'>Extension Docs</a>
+                </li>
+            
+              </ul>
+            </nav>
+            <nav id="small-nav" aria-label="Topics" class="docs-nav hidden-md hidden-lg">
+              <label class="faux-h4" for="small-nav-dropdown">Topics</label>
+              <select id="small-nav-dropdown" aria-label="topics">
+                
+                
+                <option value="/docs">Overview</option>
+            
+                <optgroup label="Get Started">
+                <option value="/docs/getstarted/overview">Overview</option>
+            
+                <option value="/docs/agents/quickstart">Agents Quickstart</option>
+            
+                <option value="/docs/editing/getting-started/editor-tutorial">Editor Tutorial</option>
+            
+                <option value="/docs/getstarted/introvideos">Intro Videos</option>
+            </optgroup><optgroup label="Agents">
+                <option value="/docs/agents/overview">AI Overview</option>
+            <option disabled>Get started</option>
+                <option value="/docs/agents/quickstart">    Agents Quickstart</option>
+            
+                <option value="/docs/agents/guides/overview">    Find a Guide</option>
+            
+                <option value="/docs/setup/copilot">    Set Up GitHub Copilot</option>
+            
+                <option value="/docs/agents/agents-tutorial">    Agents Tutorial</option>
+            
+                <option value="/docs/agents/best-practices">    Best Practices</option>
+            <option disabled>Concepts</option>
+                <option value="/docs/agents/concepts/agents">    Agents</option>
+            
+                <option value="/docs/agents/concepts/language-models">    How Models Work</option>
+            
+                <option value="/docs/agents/concepts/context">    Context</option>
+            
+                <option value="/docs/agents/concepts/tools">    Tools</option>
+            
+                <option value="/docs/agents/concepts/sessions">    Sessions and Chats</option>
+            
+                <option value="/docs/agents/concepts/trust-and-safety">    Trust &amp; Safety</option>
+            
+                <option value="/docs/agents/concepts/customization">    Agent Customization</option>
+            
+                <option value="/docs/agents/concepts/agent-harnesses">    Agent Harnesses</option>
+            
+                <option value="/docs/agents/reference/workspace-context">    Workspace Context</option>
+            
+                <option value="/docs/agents/concepts/agent-host">    Agent Host Architecture</option>
+            <option disabled>Use Agents</option>
+                <option value="/docs/agents/run/chat-view">    Chat View and Layout</option>
+            
+                <option value="/docs/agents/run/agents-window">    Agents Window</option>
+            
+                <option value="/docs/agents/run/agent-harnesses">    Choose an Agent Harness</option>
+            
+                <option value="/docs/agents/run/agents-window-configuration">    Configure the Agents Window</option>
+            
+                <option value="/docs/chat/chat-overview">    Chat Interaction Controls</option>
+            <option disabled>    Plan and Run Tasks</option>
+                <option value="/docs/agents/run/planning">        Plan Work</option>
+            
+                <option value="/docs/agents/run/tools">        Use Tools</option>
+            
+                <option value="/docs/agents/run/browser-tools">        Browser Tools</option>
+            
+                <option value="/docs/agents/run/subagents">        Subagents</option>
+            
+                <option value="/docs/agents/run/automations">        Automations</option>
+            <option disabled>    Sessions and Results</option>
+                <option value="/docs/agents/run/sessions/manage-sessions">        Manage Sessions</option>
+            
+                <option value="/docs/agents/run/sessions/session-history">        Session History</option>
+            
+                <option value="/docs/agents/run/remote-agent-sessions">        Remote Agent Sessions</option>
+            
+                <option value="/docs/agents/run/memory">        Memory</option>
+            
+                <option value="/docs/agents/run/review-code-edits">        Review &amp; Revert Changes</option>
+            
+                <option value="/docs/agents/run/artifacts">        Artifacts</option>
+            <option disabled>    Permissions and Security</option>
+                <option value="/docs/agents/run/approvals">        Approvals &amp; Permissions</option>
+            
+                <option value="/docs/agents/run/agent-sandboxing">        Agent Sandboxing</option>
+            
+                <option value="/docs/agents/run/security">        AI Security</option>
+            <option disabled>Customize agents</option>
+                <option value="/docs/agent-customization/overview">    Create and Manage</option>
+            
+                <option value="/docs/agent-customization/custom-instructions">    Instructions</option>
+            
+                <option value="/docs/agent-customization/agent-skills">    Agent Skills</option>
+            
+                <option value="/docs/agent-customization/custom-agents">    Custom Agents</option>
+            
+                <option value="/docs/agent-customization/language-models">    Choose and Configure Models</option>
+            
+                <option value="/docs/agent-customization/mcp-servers">    MCP</option>
+            
+                <option value="/docs/agent-customization/hooks">    Hooks</option>
+            
+                <option value="/docs/agent-customization/agent-plugins">    Plugins</option>
+            
+                <option value="/docs/agent-customization/prompt-files">    Prompt Files</option>
+            
+                <option value="/docs/agent-customization/migrate-customizations">    Migrate Existing Customizations</option>
+            <option disabled>Tutorials &amp; guides</option>
+                <option value="/docs/agents/guides/explore-a-codebase">    Explore a Codebase</option>
+            
+                <option value="/docs/agents/guides/add-a-feature">    Add a Feature</option>
+            
+                <option value="/docs/agents/guides/fix-a-bug-with-agents" selected>    Fix a Bug</option>
+            
+                <option value="/docs/agents/guides/refactor-safely">    Refactor Safely</option>
+            
+                <option value="/docs/agents/guides/test-code-with-ai">    Add Tests</option>
+            
+                <option value="/docs/agents/guides/browser-agent-testing-guide">    Test Web Apps</option>
+            
+                <option value="/docs/agents/guides/delegate-two-tasks">    Run Parallel Tasks</option>
+            
+                <option value="/docs/agents/guides/get-agent-back-on-track">    Get Back on Track</option>
+            
+                <option value="/docs/agents/guides/customize-copilot-guide">    Adapt Agents to Your Project</option>
+            
+                <option value="/docs/agents/guides/context-engineering-guide">    Context Engineering</option>
+            
+                <option value="/docs/agents/guides/test-driven-development-guide">    Test-Driven Development</option>
+            
+                <option value="/docs/agents/guides/notebooks-with-ai">    Jupyter Notebooks</option>
+            
+                <option value="/docs/agents/guides/optimize-usage">    Reduce Credit Usage</option>
+            
+                <option value="/docs/agents/guides/prompt-examples">    Prompt Examples</option>
+            <option disabled>Reference</option>
+                <option value="/docs/agents/reference/ai-features-cheat-sheet">    Cheat Sheet</option>
+            
+                <option value="/docs/agents/reference/tools-reference">    Tools and Context</option>
+            
+                <option value="/docs/agents/reference/ai-settings">    Settings Reference</option>
+            
+                <option value="/docs/agents/reference/chat-pet">    VS Code Pet</option>
+            
+                <option value="/docs/agents/reference/mcp-configuration">    MCP Configuration</option>
+            
+                <option value="/docs/agents/reference/hooks-reference">    Hooks Reference</option>
+            
+                <option value="/docs/agents/guides/monitoring-agents">    OpenTelemetry Monitoring</option>
+            <option disabled>Troubleshooting</option>
+                <option value="/docs/agents/agent-troubleshooting/troubleshooting">    Troubleshooting</option>
+            
+                <option value="/docs/agents/agent-troubleshooting/chat-debug-view">    Debug Chat Interactions</option>
+            
+                <option value="/docs/agents/agent-troubleshooting/cache-explorer">    Diagnose Prompt Caching</option>
+            
+                <option value="/docs/agents/agent-troubleshooting/faq">    FAQ</option>
+            </optgroup><optgroup label="Chat">
+                <option value="/docs/chat/chat-overview">Chat Interaction Controls</option>
+            
+                <option value="/docs/chat/inline-chat">Inline &amp; Quick Chat</option>
+            
+                <option value="/docs/chat/copilot-chat-context">Add Prompt Context</option>
+            </optgroup><optgroup label="Editor">
+                <option value="/docs/editing/getting-started/overview">Overview</option>
+            <option disabled>Getting Started</option>
+                <option value="/docs/editing/getting-started/editor-tutorial">    Editor Tutorial</option>
+            
+                <option value="/docs/editing/getting-started/userinterface">    User Interface</option>
+            
+                <option value="/docs/editing/getting-started/tips-and-tricks">    Tips and Tricks</option>
+            <option disabled>Write code</option>
+                <option value="/docs/editing/codebasics">    Basic Editing</option>
+            
+                <option value="/docs/editing/intellisense">    IntelliSense</option>
+            
+                <option value="/docs/editing/ai-powered-suggestions">    Inline Suggestions</option>
+            
+                <option value="/docs/editing/copilot-smart-actions">    Smart Actions</option>
+            
+                <option value="/docs/editing/editingevolved">    Code Navigation</option>
+            
+                <option value="/docs/editing/refactoring">    Refactoring</option>
+            
+                <option value="/docs/editing/userdefinedsnippets">    Snippets</option>
+            <option disabled>    Workspaces</option>
+                <option value="/docs/editing/workspaces/workspaces">        Overview</option>
+            
+                <option value="/docs/editing/workspaces/multi-root-workspaces">        Multi-Root Workspaces</option>
+            
+                <option value="/docs/editing/workspaces/workspace-trust">        Workspace Trust</option>
+            <option disabled>Configure the editor</option>
+                <option value="/docs/configure/locales">    Display Language</option>
+            
+                <option value="/docs/configure/custom-layout">    Layout</option>
+            
+                <option value="/docs/configure/keybindings">    Keyboard Shortcuts</option>
+            
+                <option value="/docs/configure/settings">    Settings</option>
+            
+                <option value="/docs/configure/settings-sync">    Settings Sync</option>
+            <option disabled>    Extensions</option>
+                <option value="/docs/configure/extensions/extensions">        Overview</option>
+            
+                <option value="/docs/configure/extensions/extension-marketplace">        Extension Marketplace</option>
+            
+                <option value="/docs/configure/extensions/extension-runtime-security">        Extension Runtime Security</option>
+            
+                <option value="/docs/configure/themes">    Themes</option>
+            
+                <option value="/docs/configure/profiles">    Profiles</option>
+            <option disabled>    Accessibility</option>
+                <option value="/docs/configure/accessibility/accessibility">        Overview</option>
+            
+                <option value="/docs/configure/accessibility/voice">        Voice Interactions</option>
+            
+                <option value="/docs/configure/command-line">    Command Line Interface</option>
+            
+                <option value="/docs/configure/telemetry">    Telemetry</option>
+            <option disabled>Reference</option>
+                <option value="/docs/reference/default-keybindings">    Default Keyboard Shortcuts</option>
+            
+                <option value="/docs/reference/default-settings">    Default Settings</option>
+            
+                <option value="/docs/reference/variables-reference">    Substitution Variables</option>
+            
+                <option value="/docs/reference/tasks-appendix">    Tasks Schema</option>
+            </optgroup><optgroup label="Source Control">
+                <option value="/docs/sourcecontrol/overview">Overview</option>
+            
+                <option value="/docs/sourcecontrol/quickstart">Quickstart</option>
+            
+                <option value="/docs/sourcecontrol/repos-remotes">Repositories &amp; Remotes</option>
+            
+                <option value="/docs/sourcecontrol/staging-commits">Staging, Commits &amp; Undo</option>
+            
+                <option value="/docs/sourcecontrol/history">History &amp; Blame</option>
+            
+                <option value="/docs/sourcecontrol/branches-worktrees">Branches, Stashes &amp; Worktrees</option>
+            
+                <option value="/docs/sourcecontrol/merge-conflicts">Merge Conflicts</option>
+            
+                <option value="/docs/sourcecontrol/github">Collaborate on GitHub</option>
+            
+                <option value="/docs/sourcecontrol/troubleshooting">Troubleshooting</option>
+            
+                <option value="/docs/sourcecontrol/faq">FAQ</option>
+            </optgroup><optgroup label="Terminal">
+                <option value="/docs/terminal/getting-started">Get Started</option>
+            
+                <option value="/docs/terminal/basics">Terminal Basics</option>
+            
+                <option value="/docs/terminal/profiles">Terminal Profiles</option>
+            
+                <option value="/docs/terminal/shell-integration">Shell Integration</option>
+            
+                <option value="/docs/terminal/appearance">Appearance</option>
+            
+                <option value="/docs/terminal/advanced">Advanced</option>
+            </optgroup><optgroup label="Debugging &amp; Testing">
+                <option value="/docs/debugtest/debugging">Debugging</option>
+            
+                <option value="/docs/debugtest/debugging-configuration">Debug Configuration</option>
+            
+                <option value="/docs/debugtest/tasks">Tasks</option>
+            
+                <option value="/docs/debugtest/testing">Testing</option>
+            
+                <option value="/docs/debugtest/integrated-browser">Integrated Browser</option>
+            
+                <option value="/docs/debugtest/port-forwarding">Port Forwarding</option>
+            <option disabled>Guides &amp; Tutorials</option>
+                <option value="/docs/agents/guides/test-driven-development-guide">    Test-Driven Development</option>
+            
+                <option value="/docs/agents/guides/browser-agent-testing-guide">    Test Web Apps</option>
+            </optgroup><optgroup label="Enterprise">
+                <option value="/docs/enterprise/overview">Overview</option>
+            
+                <option value="/docs/enterprise/policies">Enterprise Policies</option>
+            
+                <option value="/docs/enterprise/manage-ai-settings">Manage AI Settings</option>
+            
+                <option value="/docs/enterprise/extensions">Extensions</option>
+            
+                <option value="/docs/enterprise/telemetry">Telemetry</option>
+            
+                <option value="/docs/enterprise/updates">Updates</option>
+            </optgroup><optgroup label="Remote">
+                <option value="/docs/remote/remote-overview">Overview</option>
+            
+                <option value="/docs/remote/vscode-web">VS Code for the Web</option>
+            
+                <option value="/docs/remote/ssh">SSH</option>
+            
+                <option value="/docs/remote/ssh-tutorial">SSH Tutorial</option>
+            
+                <option value="/docs/remote/tunnels">Tunnels</option>
+            
+                <option value="/docs/remote/dev-containers">Dev Containers</option>
+            
+                <option value="/docs/remote/wsl">WSL</option>
+            
+                <option value="/docs/remote/wsl-tutorial">WSL Tutorial</option>
+            
+                <option value="/docs/remote/codespaces">GitHub Codespaces</option>
+            
+                <option value="/docs/remote/vscode-server">VS Code Server</option>
+            
+                <option value="/docs/remote/linux">Linux Prerequisites</option>
+            
+                <option value="/docs/remote/troubleshooting">Tips and Tricks</option>
+            
+                <option value="/docs/remote/faq">FAQ</option>
+            </optgroup><optgroup label="Advanced Setup">
+                <option value="/docs/setup/copilot">GitHub Copilot Setup</option>
+            
+                <option value="/docs/setup/linux">Linux</option>
+            
+                <option value="/docs/setup/mac">macOS</option>
+            
+                <option value="/docs/setup/windows">Windows</option>
+            
+                <option value="/docs/setup/raspberry-pi">Raspberry Pi</option>
+            
+                <option value="/docs/setup/network">Network</option>
+            
+                <option value="/docs/setup/portable">Portable Mode</option>
+            
+                <option value="/docs/setup/additional-components">Additional Components</option>
+            
+                <option value="/docs/setup/uninstall">Uninstall</option>
+            </optgroup>
+                <option value="/docs/languages/overview">Languages &amp; Runtimes</option>
+            
+                <option value="/docs/extension-docs/overview">Extension Docs</option>
+            
+              </select>
+            </nav>        </aside>
+        
+        <!-- Content wrapper contains main content + right sidebar -->
+        <div class="docs-content-wrapper">
+            <!-- Right sidebar - On This Page -->
+            <aside class="docs-right-sidebar hidden-xs">
+                <nav id="docs-subnavbar" aria-label="On Page">
+                    
+                    <h4><span class="sr-only">On this page there are 9 sections</span><span
+                            aria-hidden="true">On this page</span></h4>
+                    <ul class="nav">
+                        
+                        <li><a href="#_prerequisites">Prerequisites</a></li>
+                        
+                        <li><a href="#_set-up-the-sample-api">Set up the sample API</a></li>
+                        
+                        <li><a href="#_reproduce-the-bug">Reproduce the bug</a></li>
+                        
+                        <li><a href="#_ask-the-agent-to-investigate">Ask the agent to investigate</a></li>
+                        
+                        <li><a href="#_add-a-failing-regression-test">Add a failing regression test</a></li>
+                        
+                        <li><a href="#_implement-and-test-the-fix">Implement and test the fix</a></li>
+                        
+                        <li><a href="#_verify-page-boundaries">Verify page boundaries</a></li>
+                        
+                        <li><a href="#_review-the-change">Review the change</a></li>
+                        
+                        <li><a href="#_related-resources">Related resources</a></li>
+                        
+                    </ul>
+                    
+                </nav>
+                
+            </aside>
+            
+            <!-- Main article content -->
+            <main class="docs-main-content body">
+                
+                <h1>Tutorial: Fix an API bug with an agent</h1>
+                
+                
+
+
+
+
+<div class="docs-markdown-actions">
+	<div class="docs-markdown-dropdown" data-markdown-url="/docs/agents/guides/fix-a-bug-with-agents.md">
+		<button type="button" class="docs-markdown-btn-main" data-action="copy-markdown" aria-label="Copy as Markdown">
+			<span class="codicon codicon-copy" aria-hidden="true"></span>
+			<span>Copy as Markdown</span>
+		</button>
+		<button type="button" class="docs-markdown-btn-trigger" aria-haspopup="menu" aria-expanded="false" aria-label="More page actions">
+			<span class="codicon codicon-chevron-down docs-markdown-chevron" aria-hidden="true"></span>
+		</button>
+		<ul class="docs-markdown-menu" role="menu" aria-label="Page actions">
+			<li role="none">
+				<button type="button" role="menuitem" data-action="copy-markdown">
+					<span class="codicon codicon-copy" aria-hidden="true"></span>
+					<span>Copy as Markdown</span>
+				</button>
+			</li>
+			<li role="none">
+				<a role="menuitem" data-action="view-markdown" href="/docs/agents/guides/fix-a-bug-with-agents.md" target="_blank" rel="noopener noreferrer">
+					<span class="codicon codicon-file" aria-hidden="true"></span>
+					<span>View as Markdown</span>
+					<span class="codicon codicon-link-external" aria-hidden="true"></span>
+				</a>
+			</li>
+			<li class="docs-markdown-menu-separator" role="separator"></li>
+			<li role="none">
+				<a role="menuitem" data-action="ask-vscode" data-version="stable" href="vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Fguides%2Ffix-a-bug-with-agents%20and%20answer%20questions%20about%20the%20content.&amp;windowId=_blank">
+					<span class="codicon codicon-chat-sparkle" aria-hidden="true"></span>
+					<span>Ask in VS Code</span>
+				</a>
+			</li>
+			<li role="none">
+				<a role="menuitem" data-action="ask-vscode" data-version="insiders" href="vscode-insiders://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Fguides%2Ffix-a-bug-with-agents%20and%20answer%20questions%20about%20the%20content.&amp;windowId=_blank">
+					<span class="codicon codicon-chat-sparkle" aria-hidden="true"></span>
+					<span>Ask in VS Code Insiders</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<noscript>
+		<a class="docs-page-actions-noscript" href="vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Fguides%2Ffix-a-bug-with-agents%20and%20answer%20questions%20about%20the%20content.&amp;windowId=_blank">
+			<span class="codicon codicon-chat-sparkle" aria-hidden="true"></span>
+			<span>Ask in VS Code</span>
+		</a>
+	</noscript>
+</div>
+
+                <hr class="docs-article-header-divider" aria-hidden="true">
+                
+                
+<p>Most software work starts with existing code and a bug report, not an empty project. In this tutorial, you use an AI agent in Visual Studio Code to investigate why a paginated API skips records, add a regression test that proves the bug, implement a focused fix, and verify the result.</p>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>The sample API fits in one file and uses only built-in Node.js modules, so you can focus on the debugging workflow. The same process applies when request handling, application logic, and tests are spread across a larger project.</p>
+</div><h2 id="_prerequisites" data-needslink="_prerequisites">Prerequisites</h2>
+<p>To complete this tutorial, you need:</p>
+<ul>
+<li><a href="/download">Download and install Visual Studio Code</a>.</li>
+<li><a href="/docs/getstarted/overview#_enable-ai-features">Enable AI features in VS Code</a>.</li>
+<li>Install <a href="https://nodejs.org/en/download" class="external-link" target="_blank">Node.js 22 or later</a>.</li>
+<li>Install <a href="https://git-scm.com/downloads" class="external-link" target="_blank">Git</a> and configure it for commits.</li>
+</ul>
+<h2 id="_set-up-the-sample-api" data-needslink="_set-up-the-sample-api">Set up the sample API</h2>
+<p>Start with an API that has working tests but contains a pagination bug.</p>
+<ol>
+<li>
+<p>Create a folder named <code>pagination-bug</code> and initialize a Git repository in it:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">mkdir</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> pagination-bug</span></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">cd</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> pagination-bug</span></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">git</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> init</span></span>
+<span class="line"></span></code></pre>
+</li>
+<li>
+<p>In VS Code, select <strong>File</strong> &gt; <strong>Open Folder</strong>, and then open the <code>pagination-bug</code> folder.</p>
+</li>
+<li>
+<p>Create a file named <code>issues-api.js</code> and paste in the following code:</p>
+<pre class="shiki" data-lang="javascript" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> assert</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">require</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'node:assert/strict'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> http</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">require</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'node:http'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> { </span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">test</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> } = </span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">require</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'node:test'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> PORT</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">3000</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> PAGE_SIZE</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">10</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> issues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">Array</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">from</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">({ </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">length:</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658"> 35</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> }, (</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">_</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">index</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">=></span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> ({</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">  id:</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> index</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> + </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">1</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">  title:</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> `Issue </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">${</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">index</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> +</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658"> 1</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">}</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}));</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">function</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26"> getIssues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">requestUrl</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) {</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">  const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> url</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">new</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26"> URL</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">requestUrl</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`http://localhost:</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">${</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">PORT</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">}</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">  const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> pageParameter</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">url</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">searchParams</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">get</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'page'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">  const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> page</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">pageParameter</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> === </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">null</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> ? </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">0</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> : </span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">Number</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">pageParameter</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">  if</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> (</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">pageParameter</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> !== </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">null</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> &#x26;&#x26; (!</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">Number</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">isInteger</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">page</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) || </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">page</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> &#x3C; </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">1</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">)) {</span></span>
+<span class="line"><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">    return</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      status:</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658"> 400</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      body:</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> { </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">error:</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> 'page must be a positive integer'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    };</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">  const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> start</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">page</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> * </span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">PAGE_SIZE</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">  const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> requestedPage</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">pageParameter</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> === </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">null</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> ? </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">1</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> : </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">page</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">  return</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    status:</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658"> 200</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    body:</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      page:</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> requestedPage</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      pageSize:</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> PAGE_SIZE</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      total:</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> issues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">length</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      issues:</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> issues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">slice</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">start</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">start</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> + </span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">PAGE_SIZE</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">)</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  };</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">function</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26"> createServer</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">() {</span></span>
+<span class="line"><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">  return</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> http</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">createServer</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">((</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">request</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">response</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">=></span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">    const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> requestUrl</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">request</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">url</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> ?? </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'/'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">    const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> url</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">new</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26"> URL</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">requestUrl</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`http://localhost:</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">${</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">PORT</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">}</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">    let</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">    if</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> (</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">request</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">method</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> === </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'GET'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> &#x26;&#x26; </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">url</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">pathname</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> === </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'/issues'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">getIssues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">requestUrl</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    } </span><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">else</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">        status:</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658"> 404</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">        body:</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> { </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">error:</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> 'not found'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      };</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    response</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">writeHead</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">status</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, {</span></span>
+<span class="line"><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">      'Content-Type'</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">:</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> 'application/json'</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    });</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    response</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">end</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">JSON</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">stringify</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">body</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">null</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">2</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">));</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  });</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> command</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">process</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">argv</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">[</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">2</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">if</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> (</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">command</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> === </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'serve'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) {</span></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">  createServer</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">().</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">listen</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">PORT</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, () </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">=></span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    console</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">log</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`Issues API listening on http://localhost:</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">${</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1">PORT</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">}</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">`</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  });</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">} </span><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">else</span><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB"> if</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> (</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">command</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> === </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'test'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">) {</span></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">  test</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'default request returns the first page'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, () </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">=></span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">    const</span><span style="--shiki-dark:#4FC1FF;--shiki-light:#0070C1"> result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">getIssues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'/issues'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    assert</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">equal</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">status</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">200</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    assert</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">deepEqual</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">      result</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">body</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">issues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">map</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">issue</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF"> =></span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080"> issue</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">id</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">),</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      [</span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">1</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">2</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">3</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">4</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">5</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">6</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">7</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">8</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">9</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">10</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">]</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    );</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  });</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">  test</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'page numbers must be positive integers'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, () </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">=></span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">    assert</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">equal</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">getIssues</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'/issues?page=0'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">).</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">status</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">400</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  });</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">} </span><span style="--shiki-dark:#C586C0;--shiki-light:#AF00DB">else</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">  console</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">error</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">(</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">'Usage: node issues-api.js &#x3C;serve|test>'</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">);</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">  process</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">.</span><span style="--shiki-dark:#9CDCFE;--shiki-light:#001080">exitCode</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000"> = </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">1</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">;</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+</li>
+<li>
+<p>Run the existing tests:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">node</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> issues-api.js</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> test</span></span>
+<span class="line"></span></code></pre>
+<p>Both tests pass. A passing test suite is useful evidence, but it doesn't prove that untested behavior is correct.</p>
+</li>
+<li>
+<p>Commit the starting point so that you can distinguish the agent's changes from the sample code:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">git</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> add</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> issues-api.js</span></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">git</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> commit</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF"> -m</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> "Add pagination bug sample"</span></span>
+<span class="line"></span></code></pre>
+</li>
+</ol>
+<h2 id="_reproduce-the-bug" data-needslink="_reproduce-the-bug">Reproduce the bug</h2>
+<p>The bug report says:</p>
+<blockquote><p>Some issues disappear when paging through results. <code>GET /issues</code> returns issues 1-10, but <code>GET /issues?page=2</code> returns issues 21-30. Page two should return issues 11-20. Omitting <code>page</code> should behave the same as requesting <code>page=1</code>.</p>
+</blockquote><p>Verify the report before asking the agent to change the code.</p>
+<ol>
+<li>
+<p>Open the terminal (<span class="dynamic-keybinding" data-commandId="workbench.action.terminal.toggleTerminal" data-osx="⌃`" data-win="Ctrl+`" data-linux="Ctrl+`"><span class="keybinding">⌃`</span> (Windows, Linux <span class="keybinding">Ctrl+`</span>)</span>) and start the API:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">node</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> issues-api.js</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> serve</span></span>
+<span class="line"></span></code></pre>
+</li>
+<li>
+<p>Open another terminal and request the default page:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">node</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF"> -e</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> "fetch('http://localhost:3000/issues').then(r => r.json()).then(d => console.log(d.issues.map(i => i.id)))"</span></span>
+<span class="line"></span></code></pre>
+<p>The response contains the expected IDs:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>[ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]</span></span>
+<span class="line"><span></span></span></code></pre>
+</li>
+<li>
+<p>Request page two:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">node</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF"> -e</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> "fetch('http://localhost:3000/issues?page=2').then(r => r.json()).then(d => console.log(d.issues.map(i => i.id)))"</span></span>
+<span class="line"></span></code></pre>
+<p>The response confirms the reported gap:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>[ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 ]</span></span>
+<span class="line"><span></span></span></code></pre>
+</li>
+<li>
+<p>In the terminal that runs the API, press <span class="keybinding">Ctrl+C</span> to stop it.</p>
+</li>
+</ol>
+<p>You now have a reproducible symptom and an expected result. Providing both helps the agent investigate the actual defect instead of guessing what &quot;pagination is broken&quot; means.</p>
+<h2 id="_ask-the-agent-to-investigate" data-needslink="_ask-the-agent-to-investigate">Ask the agent to investigate</h2>
+<p>Start with investigation instead of immediately asking for a fix. This gives you a chance to review the agent's understanding before it edits the project.</p>
+<ol>
+<li>
+<p>Open the Chat view (<span class="dynamic-keybinding" data-commandId="workbench.action.chat.open" data-osx="⌃⌘I" data-win="Ctrl+Alt+I" data-linux="Ctrl+Alt+I"><span class="keybinding">⌃⌘I</span> (Windows, Linux <span class="keybinding">Ctrl+Alt+I</span>)</span>) and select <strong>Agent</strong> from the agent picker.</p>
+</li>
+<li>
+<p>Enter the following prompt:</p>
+<pre class="shiki" data-lang="prompt" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>Investigate this pagination bug. Do not edit files yet.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>GET /issues returns IDs 1-10, but GET /issues?page=2 returns</span></span>
+<span class="line"><span>IDs 21-30. The API uses one-based page numbers, so page 2</span></span>
+<span class="line"><span>should return IDs 11-20. Omitting page should match page=1.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Run the existing tests, trace the request through the relevant</span></span>
+<span class="line"><span>code, explain the cause with file references, and propose a</span></span>
+<span class="line"><span>regression test.</span></span>
+<span class="line"><span></span></span></code></pre>
+</li>
+<li>
+<p>Review the explanation before continuing. A convincing diagnosis should:</p>
+<ul>
+<li>Account for both observed responses.</li>
+<li>Connect the API's one-based page numbers to the zero-based array offset.</li>
+<li>Identify why the existing tests pass despite the defect.</li>
+<li>Avoid proposing unrelated changes to the response format or sample data.</li>
+</ul>
+</li>
+</ol>
+<p>If the explanation doesn't account for the observed IDs, provide the command output and ask the agent to investigate further.</p>
+<h2 id="_add-a-failing-regression-test" data-needslink="_add-a-failing-regression-test">Add a failing regression test</h2>
+<p>A regression test proves that the test suite can detect the reported bug. It also gives the agent a concrete success condition for the fix.</p>
+<ol>
+<li>
+<p>Ask the agent to add the test without changing the API implementation:</p>
+<pre class="shiki" data-lang="prompt" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>Add regression coverage in the existing test block, but do not</span></span>
+<span class="line"><span>change getIssues or other production code yet.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Verify that:</span></span>
+<span class="line"><span>- /issues?page=1 returns the same issue IDs as /issues</span></span>
+<span class="line"><span>- /issues?page=2 returns IDs 11-20</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Run the tests and confirm that the new coverage fails because the</span></span>
+<span class="line"><span>returned IDs are wrong, not because of a test setup error.</span></span>
+<span class="line"><span></span></span></code></pre>
+</li>
+<li>
+<p>Inspect the changed test code and the test output. The new assertions should fail with different expected and actual issue IDs. A test that only checks the HTTP status doesn't reproduce the reported problem.</p>
+ <!-- TODO: Add a screenshot showing the regression tests failing with the expected and actual issue IDs. -->
+</li>
+</ol>
+<p>If the agent also changes the implementation, <a href="/docs/agents/run/review-code-edits#_restore-a-checkpoint">restore the previous checkpoint</a> and repeat the request with a narrower scope.</p>
+<h2 id="_implement-and-test-the-fix" data-needslink="_implement-and-test-the-fix">Implement and test the fix</h2>
+<p>After the failing test establishes the expected behavior, ask the agent to correct the implementation.</p>
+<ol>
+<li>
+<p>Enter the following prompt:</p>
+<pre class="shiki" data-lang="prompt" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>Fix the root cause of the pagination bug with the smallest</span></span>
+<span class="line"><span>production-code change. Keep the public API one-based, preserve</span></span>
+<span class="line"><span>the existing response shape and validation, and do not add</span></span>
+<span class="line"><span>dependencies. Run the complete test suite after the change.</span></span>
+<span class="line"><span></span></span></code></pre>
+</li>
+<li>
+<p>Confirm that the regression coverage and the original tests pass.</p>
+</li>
+<li>
+<p>Review how the implementation handles page numbers. A correct solution uses one-based values at the API boundary and converts them to a zero-based offset when slicing the array. Equivalent implementations are valid if they preserve the same API contract and pass the tests.</p>
+</li>
+</ol>
+<p>If a test still fails, give the agent the complete failure output and ask it to explain the remaining mismatch before making another change.</p>
+<h2 id="_verify-page-boundaries" data-needslink="_verify-page-boundaries">Verify page boundaries</h2>
+<p>The regression test covers the reported case. Check adjacent and boundary cases to make sure the fix doesn't only work for page two.</p>
+<ol>
+<li>
+<p>Start the API again:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">node</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> issues-api.js</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> serve</span></span>
+<span class="line"></span></code></pre>
+</li>
+<li>
+<p>In another terminal, request the first, second, fourth, and fifth pages:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">node</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF"> -e</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> "(async () => { for (const p of [1, 2, 4, 5]) { const d = await fetch('http://localhost:3000/issues?page=' + p).then(r => r.json()); console.log('page ' + p + ':', d.issues.map(i => i.id)); } })()"</span></span>
+<span class="line"></span></code></pre>
+<p>Verify the following output:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>page 1: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]</span></span>
+<span class="line"><span>page 2: [ 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ]</span></span>
+<span class="line"><span>page 4: [ 31, 32, 33, 34, 35 ]</span></span>
+<span class="line"><span>page 5: []</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>The responses have no gaps or duplicate IDs, the final partial page is preserved, and a page beyond the data is empty.</p>
+</li>
+<li>
+<p>Stop the API by pressing <span class="keybinding">Ctrl+C</span>.</p>
+</li>
+</ol>
+<h2 id="_review-the-change" data-needslink="_review-the-change">Review the change</h2>
+<p>Before you commit an agent's work, inspect both the code and the evidence that supports it.</p>
+<ol>
+<li>
+<p>Open the <strong>Source Control</strong> view and select <code>issues-api.js</code> to inspect the diff.</p>
+</li>
+<li>
+<p>Check that:</p>
+<ul>
+<li>The regression test represents the documented API contract rather than the implementation details.</li>
+<li>You observed the regression test fail before the fix and pass afterward.</li>
+<li>The production change addresses the offset calculation without changing the response shape, validation, or sample data.</li>
+<li>The agent didn't add dependencies or unrelated refactoring.</li>
+<li>The complete test suite and manual boundary checks pass.</li>
+</ul>
+ <!-- TODO: Add a screenshot showing the focused production-code and regression-test changes in the Source Control diff. -->
+</li>
+<li>
+<p>If the diff contains unrelated changes, ask the agent to revert them and rerun the tests.</p>
+</li>
+<li>
+<p>Commit the verified fix:</p>
+<pre class="shiki" data-lang="bash" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">git</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> add</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> issues-api.js</span></span>
+<span class="line"><span style="--shiki-dark:#DCDCAA;--shiki-light:#795E26">git</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> commit</span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF"> -m</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515"> "Fix issue pagination"</span></span>
+<span class="line"></span></code></pre>
+</li>
+</ol>
+<p>You fixed a reproducible API defect by establishing the expected behavior before changing production code. This workflow gives you evidence for the diagnosis, protects the behavior with a regression test, and keeps the final change focused and reviewable.</p>
+<h2 id="_related-resources" data-needslink="_related-resources">Related resources</h2>
+<ul>
+<li>Explore more ways to <a href="/docs/agents/guides/test-code-with-ai">test with GitHub Copilot</a>.</li>
+<li>Review how to <a href="/docs/agents/run/review-code-edits">inspect, revise, and revert agent changes</a>.</li>
+</ul>
+
+                <div class="feedback" data-edit-url="https://vscode.dev/github/microsoft/vscode-docs/blob/main/docs/agents/guides/fix-a-bug-with-agents.md"></div>
+                
+                <div class="body-footer">10/7/2026</div>
+                
+            </main>
+        </div>
+        
+        <!-- Mobile connect widget -->
+        <div class="docs-mobile-widgets visible-xs">
+            <div class="connect-widget"></div>
+        </div>
+    </div>
+</div>
+		</main>
+	</div>
+
+	<div id="search-popup-overlay" class="search-popup-overlay" role="dialog" aria-modal="true" aria-label="Search">
+		<div class="search-popup-container">
+			<div class="search-popup-header">
+				<form class="search-popup-form">
+					<div class="input-group">
+						<input type="text" name="q" class="search-box form-control" placeholder="Search the website"
+							aria-label="Search text" role="combobox" aria-expanded="false"
+							aria-autocomplete="list" aria-controls="search-results-listbox"
+							aria-activedescendant="" />
+						<span class="input-group-btn">
+							<button tabindex="0" class="btn" type="submit" aria-label="Search">
+								<img class="search-icon-dark" src="/assets/icons/search-dark.svg" alt="Search" />
+								<img class="search-icon-light" src="/assets/icons/search.svg" alt="Search" />
+							</button>
+						</span>
+					</div>
+				</form>
+				<button class="search-popup-close" type="button" aria-label="Close search"><i class="codicon codicon-close" aria-hidden="true"></i></button>
+			</div>
+			<div class="search-popup-results">
+				<ul class="search-popup-results-list" id="search-results-listbox" role="listbox" aria-label="Search results"></ul>
+			</div>
+			<div class="sr-only" role="status" aria-live="polite" aria-atomic="true" id="search-popup-status"></div>
+		</div>
+	</div>
+
+
+	<footer role="contentinfo" class="container">
+		<div class="footer-container">
+			<div class="footer-row">
+				<div class="footer-social">
+					<ul class="links">
+						<li>
+							<a href="https://github.com/microsoft/vscode"><img src="/assets/icons/github-icon.svg" alt="VS Code on Github"></a>
+						</li>
+						<li>
+							<a href="https://go.microsoft.com/fwlink/?LinkID=533687"><img src="/assets/icons/x-icon.svg" class="x-icon" alt="Follow us on X"></a>
+						</li>
+						<li>
+							<a href="https://www.linkedin.com/showcase/vs-code"><img src="/assets/icons/linkedin-icon.svg" alt="VS Code on LinkedIn"></a>
+						</li>
+						<li>
+							<a href="https://bsky.app/profile/vscode.dev"><img src="/assets/icons/bluesky-icon.svg" alt="VS Code on Bluesky"></a>
+						</li>
+						<li>
+							<a href="https://www.reddit.com/r/vscode/"><img src="/assets/icons/reddit-icon.svg" alt="Join the VS Code community on Reddit"></a>
+						</li>
+						<li>
+							<a href="https://www.vscodepodcast.com"><img src="/assets/icons/podcast-icon.svg" alt="The VS Code Insiders Podcast"></a>
+						</li>
+						<li>
+							<a href="https://www.instagram.com/vscode.ig"><img src="/assets/icons/instagram-icon.svg" alt="VS Code on Instagram"></a>
+						</li>
+						<li>
+							<a href="https://www.tiktok.com/@vscode"><img src="/assets/icons/tiktok-icon.svg" alt="VS Code on TikTok"></a>
+						</li>
+						<li>
+							<a href="https://www.youtube.com/@code"><img src="/assets/icons/youtube-icon.svg" alt="VS Code on YouTube"></a>
+						</li>
+						<script>
+							function manageConsent() {
+								if (siteConsent && siteConsent.isConsentRequired) {
+									siteConsent.manageConsent();
+								}
+							}
+						</script>
+					</ul>
+					<a id="footer-microsoft-link" class="microsoft-logo" href="https://www.microsoft.com">
+						<img src="/assets/icons/microsoft.svg" alt="Microsoft homepage" />
+					</a>
+				</div>
+			</div>
+			<div class="footer-row">
+				<ul class="links">
+					<li><a id="footer-support-link" href="https://support.serviceshub.microsoft.com/supportforbusiness/create?sapId=d66407ed-3967-b000-4cfb-2c318cad363d"
+						target="_blank" rel="noopener" title="Get support for VS Code"
+						aria-label="Get support for VS Code (opens in new tab)">Support</a></li>
+					<li><a id="footer-privacy-link" href="https://go.microsoft.com/fwlink/?LinkId=521839"
+						target="_blank" rel="noopener" title="View the Microsoft privacy statement"
+						aria-label="Microsoft privacy statement (opens in new tab)">Privacy</a></li>
+					<li style="display: none;"><a id="footer-cookie-link" style="cursor: pointer;" onclick="manageConsent()"
+						target="_blank" rel="noopener">Manage Cookies</a></li>
+					<li><a id="footer-terms-link" href="https://www.microsoft.com/legal/terms-of-use"
+						target="_blank" rel="noopener" title="View the Microsoft Terms of Use"
+						aria-label="Microsoft Terms of Use (opens in new tab)">Terms of Use</a></li>
+					<li><a id="footer-license-link" href="/License"
+						target="_blank" rel="noopener" title="View the Visual Studio Code license"
+						aria-label="Visual Studio Code license (opens in new tab)">License</a></li>
+				</ul>
+			</div>
+			<div class="footer-row">
+				<ul class="links">
+					<li>
+						<svg class="privacy-choices" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 14" xml:space="preserve" height="16" width="43">
+							<title>Your Privacy Choices Opt-Out Icon</title>
+							<path d="M7.4 12.8h6.8l3.1-11.6H7.4C4.2 1.2 1.6 3.8 1.6 7s2.6 5.8 5.8 5.8z" style="fill-rule:evenodd;clip-rule:evenodd;fill:#fff"></path>
+							<path d="M22.6 0H7.4c-3.9 0-7 3.1-7 7s3.1 7 7 7h15.2c3.9 0 7-3.1 7-7s-3.2-7-7-7zm-21 7c0-3.2 2.6-5.8 5.8-5.8h9.9l-3.1 11.6H7.4c-3.2 0-5.8-2.6-5.8-5.8z" style="fill-rule:evenodd;clip-rule:evenodd;fill:#06f"></path>
+							<path d="M24.6 4c.2.2.2.6 0 .8L22.5 7l2.2 2.2c.2.2.2.6 0 .8-.2.2-.6.2-.8 0l-2.2-2.2-2.2 2.2c-.2.2-.6.2-.8 0-.2-.2-.2-.6 0-.8L20.8 7l-2.2-2.2c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0l2.2 2.2L23.8 4c.2-.2.6-.2.8 0z" style="fill:#fff"></path>
+							<path d="M12.7 4.1c.2.2.3.6.1.8L8.6 9.8c-.1.1-.2.2-.3.2-.2.1-.5.1-.7-.1L5.4 7.7c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0L8 8.6l3.8-4.5c.2-.2.6-.2.9 0z" style="fill:#06f"></path>
+						</svg>
+						<a id="footer-privacy-choices-link" href="https://aka.ms/YourCaliforniaPrivacyChoices"
+						target="_blank" rel="noopener" title="View Your Privacy Choices"
+						aria-label="Your Privacy Choices (opens in new tab)">Your Privacy Choices</a></li>
+					<li><a id="footer-consumer-health-privacy-link" href="https://go.microsoft.com/fwlink/?linkid=2259814"
+						target="_blank" rel="noopener" title="View the Microsoft Consumer Health Privacy policy"
+						aria-label="Microsoft Consumer Health Privacy policy (opens in new tab)">Consumer Health Privacy</a></li>
+				</ul>
+			</div>
+		</div>
+	</footer>
+	<script type="module">
+		document.addEventListener('DOMContentLoaded', () => {
+			const copilotDeepLinks = document.querySelectorAll('.copilot-deep-link');
+			if (copilotDeepLinks.length === 0) {
+				return;
+			}
+			if (window.innerWidth < 992) {
+				for (const link of copilotDeepLinks) {
+					link.href = 'https://aka.ms/vscode-activatecopilotfree';
+				}
+			}
+		});
+	</script>
+
+	<script src="/dist/index.js"></script>
+
+	
+
+	<script type="application/ld+json">
+		{
+			"@context" : "http://schema.org",
+			"@type" : "SoftwareApplication",
+			"name" : "Visual Studio Code",
+			"softwareVersion": "1.141",
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD"
+			},
+			"applicationCategory": "DeveloperApplication",
+			"applicationSubCategory": "AI Code Editor",
+			"description": "Visual Studio Code is a free, open source AI code editor for agent-first development. Build with AI agents, manage multi-agent workflows, and code across any environment.",
+			"alternateName": "VS Code",
+			"datePublished": "2021-11-03",
+			"operatingSystem": "Mac, Linux, Windows",
+			"logo": "https://code.visualstudio.com/assets/apple-touch-icon.png",
+			"screenshot": "https://code.visualstudio.com/assets/images/product-screenshot.png",
+			"releaseNotes": "https://code.visualstudio.com/updates",
+			"downloadUrl": "https://code.visualstudio.com/download",
+			"license": "https://code.visualstudio.com/license",
+			"softwareRequirements": "https://code.visualstudio.com/docs/supporting/requirements",
+			"url" : "https://code.visualstudio.com",
+			"author": {
+				"@type": "Organization",
+				"name": "Microsoft"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "Microsoft"
+			},
+			"maintainer": {
+				"@type": "Organization",
+				"name": "Microsoft"
+			},
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": "https://code.visualstudio.com/Search?q={search_term_string}",
+				"query-input": "required name=search_term_string"
+			},
+			"sameAs" : [
+				"https://en.wikipedia.org/wiki/Visual_Studio_Code",
+				"https://twitter.com/code",
+				"https://www.youtube.com/code",
+				"https://www.tiktok.com/@vscode",
+				"https://github.com/microsoft/vscode"
+			]
+		}
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Idea Assessment Quickstart | Spec Kit Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Idea Assessment Quickstart | Spec Kit Documentation ">
+      
+      
+      <link rel="icon" href="../images/spec-kit-logo.webp">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/github/spec-kit/blob/main/docs/guides/assessment.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/spec-kit-logo.webp" alt="Spec Kit">
+            Spec Kit
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="idea-assessment-quickstart">Idea Assessment Quickstart</h1>
+
+<p>Use this process to decide whether an idea deserves investment before committing
+to a solution. It works for software ideas and non-software decisions alike.
+No existing source code is required.</p>
+<p>The bundled, opt-in <strong>assess</strong> extension provides five stages:
+<strong>intake → research → define → shape → decide</strong>. The result is an evidence-backed
+<code>go</code>, <code>needs-clarification</code>, or <code>kill</code> decision, not an implementation.</p>
+<h2 id="set-up">Set up</h2>
+<p><a href="../installation.html">Install Spec Kit and initialize a project</a>. An empty project
+is enough, or you can use an
+<a href="existing-projects.html">existing repository</a> when the idea relates to its code.
+In a terminal at the initialized project root, install the extension:</p>
+<pre><code class="lang-bash">specify extension add assess
+</code></pre>
+<p>Then launch your coding agent in that directory. The examples below use
+GitHub Copilot's default skills mode (<code>--integration copilot</code>). Other agents
+use their own
+<a href="../reference/integrations.html#command-invocation">command invocation syntax</a>.
+Invoke each <code>/speckit-assess-*</code> skill separately in your agent's chat, reviewing
+the artifact before moving on. These are agent skills, not terminal commands;
+the terminal command above only installs the extension.</p>
+<h2 id="1-capture-the-idea">1. Capture the idea</h2>
+<pre><code class="lang-text">/speckit-assess-intake &quot;Let users work offline and sync when they reconnect.&quot; slug=offline-mode
+</code></pre>
+<p>You can also supply a URL, ticket, or codebase pointer. The agent captures the
+input in <code>.specify/assessments/offline-mode/intake.md</code>.
+The slug is the shared handle for all five stages.</p>
+<h2 id="2-research-the-evidence">2. Research the evidence</h2>
+<pre><code class="lang-text">/speckit-assess-research slug=offline-mode
+</code></pre>
+<p>The agent gathers supporting and opposing evidence in <code>research.md</code>. Review
+sources and confidence levels: uncited assumptions are not established facts.
+This stage should challenge the idea, not just build a case for it.</p>
+<h2 id="3-define-the-problem">3. Define the problem</h2>
+<pre><code class="lang-text">/speckit-assess-define slug=offline-mode
+</code></pre>
+<p>The agent writes <code>problem.md</code>, describing the affected users, problem, goals,
+non-goals, success metrics, and cost of doing nothing.</p>
+<h2 id="4-shape-possible-solutions">4. Shape possible solutions</h2>
+<pre><code class="lang-text">/speckit-assess-shape slug=offline-mode
+</code></pre>
+<p>The agent compares concept-level options, constraints, appetite, and trade-offs
+in <code>concept.md</code>. Detailed architecture, implementation tasks, and source changes
+are deliberately outside this process.</p>
+<h2 id="5-make-the-decision">5. Make the decision</h2>
+<pre><code class="lang-text">/speckit-assess-decide slug=offline-mode
+</code></pre>
+<p>The agent records the scorecard, rationale, and verdict in <code>decision.md</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>What it means</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>go</code></td>
+<td>The problem and evidence are adequate and a concept is recommended</td>
+<td>Decide whether to act; optionally hand a software idea to SDD</td>
+</tr>
+<tr>
+<td><code>needs-clarification</code></td>
+<td>Specific unknowns still block a defensible decision</td>
+<td>Refine the affected artifacts with the missing information</td>
+</tr>
+<tr>
+<td><code>kill</code></td>
+<td>The idea is not worth pursuing now</td>
+<td>Keep the recorded rationale; stopping is a successful outcome</td>
+</tr>
+</tbody>
+</table>
+<p>All five artifacts live under <code>.specify/assessments/offline-mode/</code>. None of the
+assessment commands modify source code.</p>
+<h2 id="resolve-unknowns-by-refining-the-artifacts">Resolve unknowns by refining the artifacts</h2>
+<p>The usual flow runs each command once. When an artifact contains
+<code>[NEEDS CLARIFICATION: ...]</code>, edit that Markdown file directly or ask the agent
+in free-form chat to incorporate the missing information:</p>
+<pre><code class="lang-text">Update .specify/assessments/offline-mode/problem.md with these confirmed success metrics: &lt;your metrics&gt;. Update any dependent wording and revise decision.md if this resolves the blocker. Preserve source and confidence tags.
+</code></pre>
+<p>Do not automatically regenerate the entire stage. Ask the agent to review
+whether the new facts clear the blocker and revise the downstream scorecard,
+verdict, or handoff accordingly. Rerunning a command is an exception, such as
+replacing a discarded draft, and existing artifacts must not be overwritten
+without confirmation.</p>
+<h2 id="optional-handoff-to-sdd">Optional handoff to SDD</h2>
+<p>Assessment is standalone: it does not automatically invoke SDD or insert itself
+into the specification process. If you choose to build a software idea with a
+<code>go</code> verdict, establish your project constitution if needed, then pass the
+decision's handoff summary to the specification command:</p>
+<pre><code class="lang-text">/speckit-specify Use the handoff summary in .specify/assessments/offline-mode/decision.md to specify the approved offline-mode concept.
+</code></pre>
+<p>Continue with the <a href="../quickstart.html">SDD quickstart</a>. For stage prerequisites,
+slug rules, and evidence requirements, see the
+<a href="../reference/agentic-assessment.html">idea assessment command reference</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/github/spec-kit/blob/main/docs/guides/assessment.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Spec Kit - A specification-driven development toolkit
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

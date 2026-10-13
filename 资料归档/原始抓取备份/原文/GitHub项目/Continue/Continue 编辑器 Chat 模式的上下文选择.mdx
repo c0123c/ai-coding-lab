@@ -1,0 +1,53 @@
+---
+vendor: "Continue"
+repository: "continuedev/continue"
+path: "docs/ide-extensions/chat/context-selection.mdx"
+source_url: "https://github.com/continuedev/continue/blob/main/docs/ide-extensions/chat/context-selection.mdx"
+raw_url: "https://raw.githubusercontent.com/continuedev/continue/main/docs/ide-extensions/chat/context-selection.mdx"
+resolved_url: "https://raw.githubusercontent.com/continuedev/continue/main/docs/ide-extensions/chat/context-selection.mdx"
+tree_snapshot_sha: "5522c6f44ca0ac3528b37244818fbfa39b5af470"
+sha256_body: "cd1ba7b03ad053fe61fb661f901a741afa535806b97ce75a6747c0f933f604b7"
+archive: "01_资料来源/官方资料/审计记录/官方GitHub相关正文_2026-10-10/official-github-pages-0004.jsonl.gz:22"
+---
+
+---
+title: "Chat Mode Context Selection"
+sidebarTitle: "Context Selection"
+description: "Learn how Continue selects relevant context for your chat requests, including text input, highlighted code, active files."
+---
+
+## How to Use Text Input
+
+Typing a question or instructions into the input box is the only required context.
+
+## How to Include Highlighted Code
+
+The highlighted code you've selected by pressing cmd/ctrl + L (VS Code) or cmd/ctrl + J (JetBrains) will be included in your prompt.
+
+## How to Include the Active File
+
+You can include the currently open file as context by pressing opt/alt + enter when you send your request.
+
+## How to Include a Specific File
+
+You can include a specific file in your current workspace by typing '@Files' and selecting the file.
+
+## Codebase Search
+
+For better codebase awareness, see our [guide on making agent mode aware of codebases and documentation](/guides/codebase-documentation-awareness).
+
+## How to Include Documentation Sites
+
+For better documentation awareness, see our [guide on making agent mode aware of codebases and documentation](/guides/codebase-documentation-awareness).
+
+## How to Include Terminal Contents
+
+You can include the contents of the terminal in your IDE by typing '@Terminal'.
+
+## How to Include Git Diff
+
+You can include all of the changes you've made to your current branch by typing '@Git Diff'.
+
+## How to Use Other Context Providers
+
+You can see a full list of built-in context providers [here](/customize/deep-dives/custom-providers).

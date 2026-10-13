@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Spec-Driven Development Quickstart | Spec Kit Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Spec-Driven Development Quickstart | Spec Kit Documentation ">
+      
+      
+      <link rel="icon" href="images/spec-kit-logo.webp">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/github/spec-kit/blob/main/docs/quickstart.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="images/spec-kit-logo.webp" alt="Spec Kit">
+            Spec Kit
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<p><a id="quick-start-guide"></a></p>
+<h1 id="spec-driven-development-quickstart">Spec-Driven Development Quickstart</h1>
+<p>This guide will help you get started with Spec-Driven Development using Spec Kit. Throughout, we illustrate each step with a running example: <strong>Taskify</strong>, a small team productivity platform.</p>
+<p>Use SDD to build a feature or application from a specification. For a repair,
+follow the <a href="guides/bugfix.html">bug-fixing quickstart</a>; to decide whether an idea
+deserves investment, follow the <a href="guides/assessment.html">idea assessment quickstart</a>.
+These are independent processes, not prerequisites for this guide.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Automation scripts are provided as Bash (<code>.sh</code>), PowerShell (<code>.ps1</code>), and Python (<code>.py</code>) variants. Interactive <code>specify init</code> prompts you to choose one; non-interactive runs (no TTY, or <code>--non-interactive</code>) default to a shell variant for your OS. Pass <code>--script sh|ps|py</code> to select explicitly.</p>
+</div>
+<p>The process steps here use GitHub Copilot's default skills mode (<code>/speckit-*</code>).
+For other agents or modes, see
+<a href="reference/integrations.html#command-invocation">Command invocation</a>.
+Invoke each <code>/speckit-*</code> skill separately in your agent's chat and review the
+result before moving to the next step. These are agent skills, not terminal
+commands; only CLI installation and project setup use the terminal.</p>
+<h2 id="recommended-process">Recommended Process</h2>
+<div class="TIP">
+<h5>Tip</h5>
+<p><strong>Context Awareness</strong>: Spec Kit tracks the active feature by the feature directory recorded in <code>.specify/feature.json</code> (overridable with the <code>SPECIFY_FEATURE_DIRECTORY</code> environment variable). Commands resolve the feature from that state, <strong>not</strong> from the checked-out Git branch — no Git required. The opt-in <strong>git</strong> extension adds numbered feature branches (e.g. <code>001-feature-name</code>) for organizing work in version control, but the active feature is still whichever directory that state points to; <code>git checkout</code> alone does not change it. To point commands at a different feature, update <code>.specify/feature.json</code> (or set <code>SPECIFY_FEATURE_DIRECTORY</code>).</p>
+</div>
+<p>After installing Spec Kit, each skill below is a step in the process. Two paths are common:</p>
+<p>Establish a constitution once per project with <code>/speckit-constitution</code> before
+starting either path.</p>
+<p><strong>Shorter path</strong> — for smaller features:</p>
+<ol>
+<li><code>/speckit-specify</code></li>
+<li><code>/speckit-plan</code></li>
+<li><code>/speckit-tasks</code></li>
+<li><code>/speckit-implement</code></li>
+<li><code>/speckit-converge</code></li>
+</ol>
+<p><strong>Full path</strong> — for production features, adding <code>/speckit-clarify</code>, <code>/speckit-checklist</code>, and <code>/speckit-analyze</code> as quality gates:</p>
+<ol>
+<li><code>/speckit-constitution</code> (once per project)</li>
+<li><code>/speckit-specify</code></li>
+<li><code>/speckit-clarify</code></li>
+<li><code>/speckit-plan</code></li>
+<li><code>/speckit-checklist</code></li>
+<li><code>/speckit-tasks</code></li>
+<li><code>/speckit-analyze</code></li>
+<li><code>/speckit-implement</code></li>
+<li><code>/speckit-converge</code></li>
+</ol>
+<h3 id="install-specify">Install Specify</h3>
+<p><strong>In your terminal</strong>, install the CLI from PyPI (requires <a href="install/uv.html">uv</a>), then initialize your project:</p>
+<pre><code class="lang-bash">uv tool install specify-cli
+specify init taskify --integration copilot
+cd taskify
+</code></pre>
+<p><code>init</code> lets you pick your coding agent interactively, or pass it explicitly with <code>--integration</code> (e.g. <code>--integration copilot</code>). For CI and AI agent harnesses, add <code>--non-interactive</code> so unspecified choices use documented defaults instead of hanging on an arrow-key picker.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Prefer <code>pipx</code>, one-time <code>uvx</code> runs, a pinned release, or an offline/air-gapped setup? See the <a href="installation.html">Installation Guide</a> for all supported methods.
+Adding Spec Kit to a repository that already contains code? Follow
+<a href="guides/existing-projects.html">Adopting Spec Kit in an Existing Project</a> before
+starting the workflow below.</p>
+</div>
+<p>Launch your coding agent in the project directory. Invoke the following skills
+in its chat, one at a time.</p>
+<p><a id="step-1-speckitconstitution--set-the-ground-rules"></a></p>
+<h3 id="step-1-speckit-constitution--set-the-ground-rules">Step 1: <code>/speckit-constitution</code> — set the ground rules</h3>
+<p>Establishes the project's guiding principles, which every later step is evaluated against. Run it once up front, passing your principles as arguments.</p>
+<pre><code class="lang-text">/speckit-constitution Taskify is a &quot;Security-First&quot; application. All user inputs must be validated. We use a microservices architecture. Code must be fully documented.
+</code></pre>
+<p><a id="step-2-speckitspecify--describe-what-to-build"></a></p>
+<h3 id="step-2-speckit-specify--describe-what-to-build">Step 2: <code>/speckit-specify</code> — describe what to build</h3>
+<p>Creates the feature specification from a natural-language description. Focus on the <strong>what</strong> and <strong>why</strong>, not the tech stack.</p>
+<pre><code class="lang-text">/speckit-specify Develop Taskify, a team productivity platform where predefined users create projects, assign tasks, comment, and move tasks across Kanban columns (To Do, In Progress, In Review, Done). Five users (one product manager, four engineers), three sample projects, no login for this first phase.
+</code></pre>
+<p><a id="step-3-speckitclarify--resolve-ambiguities"></a></p>
+<h3 id="step-3-speckit-clarify--resolve-ambiguities">Step 3: <code>/speckit-clarify</code> — resolve ambiguities</h3>
+<p>Asks targeted questions about anything underspecified and folds your answers back into the spec, so you're not planning on top of ambiguity. Run it before planning, optionally with a focus area.</p>
+<pre><code class="lang-text">/speckit-clarify Focus on task card behavior — status changes, comment permissions, and user assignment.
+</code></pre>
+<p><a id="step-4-speckitplan--choose-the-tech-stack"></a></p>
+<h3 id="step-4-speckit-plan--choose-the-tech-stack">Step 4: <code>/speckit-plan</code> — choose the tech stack</h3>
+<p>Generates the design artifacts from the spec. This is where implementation detail belongs — provide your tech stack and architecture.</p>
+<pre><code class="lang-text">/speckit-plan Use .NET Aspire with Postgres. The frontend is Blazor Server with drag-and-drop boards and real-time updates. Expose REST APIs for projects, tasks, and notifications.
+</code></pre>
+<p><a id="step-5-speckitchecklist--validate-the-spec"></a></p>
+<h3 id="step-5-speckit-checklist--validate-the-spec">Step 5: <code>/speckit-checklist</code> — validate the spec</h3>
+<p>Generates a custom quality checklist — &quot;unit tests for your requirements&quot; — to confirm the spec is complete, clear, and consistent before you break the work down. These custom checklists are reviewer-owned requirements-quality review artifacts: mark an item <code>[x]</code> only when the reviewer determines that requirement-quality criterion is satisfied. Checked custom items do not mean implementation work is complete.</p>
+<pre><code class="lang-text">/speckit-checklist
+</code></pre>
+<p><a id="step-6-speckittasks--break-the-work-down"></a></p>
+<h3 id="step-6-speckit-tasks--break-the-work-down">Step 6: <code>/speckit-tasks</code> — break the work down</h3>
+<p>Generates an actionable, dependency-ordered <code>tasks.md</code> from the design artifacts.</p>
+<pre><code class="lang-text">/speckit-tasks
+</code></pre>
+<p><a id="step-7-speckitanalyze--check-consistency"></a></p>
+<h3 id="step-7-speckit-analyze--check-consistency">Step 7: <code>/speckit-analyze</code> — check consistency</h3>
+<p>Reports conflicts, gaps, and ambiguities across <code>spec.md</code>, <code>plan.md</code>, and <code>tasks.md</code>. It's read-only — if it flags issues, fix them at the source and re-run before implementing.</p>
+<pre><code class="lang-text">/speckit-analyze
+</code></pre>
+<p><a id="step-8-speckitimplement--build-it"></a></p>
+<h3 id="step-8-speckit-implement--build-it">Step 8: <code>/speckit-implement</code> — build it</h3>
+<p>Executes the tasks in <code>tasks.md</code> in dependency order. Before implementation, it reads checklist checkbox state as a gate and asks before proceeding if any checklist items are unchecked; it does not change any checklist files or markers. The built-in <code>checklists/requirements.md</code> checklist is maintained by <code>/speckit-specify</code> and <code>/speckit-clarify</code>, while custom checklists remain reviewer-owned. Run it once to build everything, or scope it to one phase at a time for large features.</p>
+<pre><code class="lang-text">/speckit-implement
+</code></pre>
+<p><a id="step-9-speckitconverge--verify-completeness"></a></p>
+<h3 id="step-9-speckit-converge--verify-completeness">Step 9: <code>/speckit-converge</code> — verify completeness</h3>
+<p>Checks the codebase against the spec, plan, and tasks. If it finds gaps, it appends new tasks to <code>tasks.md</code>; run <code>/speckit-implement</code> and converge again until it reports <strong>Converged</strong>. Otherwise you're done — proceed to review or open a PR.</p>
+<pre><code class="lang-text">/speckit-converge
+</code></pre>
+<div class="TIP">
+<h5>Tip</h5>
+<p>For a full reference on each command — arguments, output, phased implementation, and how they interact — see <a href="reference/agentic-sdd.html">Agentic SDD</a>.</p>
+</div>
+<h2 id="key-principles">Key Principles</h2>
+<ul>
+<li><strong>Be explicit</strong> about what you're building and why</li>
+<li><strong>Don't focus on tech stack</strong> during specification phase</li>
+<li><strong>Iterate and refine</strong> your specifications before implementation</li>
+<li><strong>Validate</strong> requirements and plans before coding begins</li>
+<li><strong>Let the coding agent handle</strong> the implementation details</li>
+</ul>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li>See the <a href="reference/agentic-sdd.html">Agentic SDD</a> reference for full detail on every command</li>
+<li>Learn how to <a href="guides/customization.html">customize the process</a> with extensions, presets, workflows, and bundles</li>
+<li>Read the <a href="https://github.com/github/spec-kit/blob/main/spec-driven.md">complete methodology</a> for in-depth guidance</li>
+<li>Compare the <a href="https://github.com/github/spec-kit/tree/main/templates">core templates</a> with
+<a href="community/walkthroughs.html">community walkthroughs</a> to see how Spec-Driven Development is used in real projects</li>
+<li>Explore the <a href="https://github.com/github/spec-kit">source code on GitHub</a></li>
+</ul>
+<h2 id="video-overview">Video Overview</h2>
+<p>For a visual introduction, watch the
+<a href="https://www.youtube.com/watch?v=a9eR1xsfvHg">Spec Kit video overview</a>.
+Use the commands in this guide for the current workflow and invocation syntax.</p>
+<p><a href="https://www.youtube.com/watch?v=a9eR1xsfvHg"><img src="https://raw.githubusercontent.com/github/spec-kit/main/media/spec-kit-video-header.jpg" alt="Spec Kit video overview"></a></p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/github/spec-kit/blob/main/docs/quickstart.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Spec Kit - A specification-driven development toolkit
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

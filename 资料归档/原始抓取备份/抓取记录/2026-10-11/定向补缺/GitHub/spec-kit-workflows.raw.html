@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Workflows | Spec Kit Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Workflows | Spec Kit Documentation ">
+      
+      
+      <link rel="icon" href="../images/spec-kit-logo.webp">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/github/spec-kit/blob/main/docs/reference/workflows.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/spec-kit-logo.webp" alt="Spec Kit">
+            Spec Kit
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="workflows">Workflows</h1>
+
+<p>Workflows automate multi-step Spec-Driven Development processes — chaining commands, prompts, shell steps, and human checkpoints into repeatable sequences. They support conditional logic, loops, fan-out/fan-in, and can be paused and resumed from the exact point of interruption.</p>
+<h2 id="run-a-workflow">Run a Workflow</h2>
+<pre><code class="lang-bash">specify workflow run &lt;source&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-i</code> / <code>--input</code></td>
+<td>Pass input values as <code>key=value</code> (repeatable)</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit the run outcome as a single JSON object</td>
+</tr>
+</tbody>
+</table>
+<p>Runs a workflow from a catalog ID, URL, or local file path. Inputs declared by the workflow can be provided via <code>--input</code> or will be prompted interactively.</p>
+<p>Example:</p>
+<pre><code class="lang-bash">specify workflow run speckit -i spec=&quot;Build a kanban board with drag-and-drop task management&quot;
+</code></pre>
+<p>With <code>--json</code>, a single machine-readable object is printed instead of formatted text (the default output is unchanged when the flag is omitted):</p>
+<pre><code class="lang-bash">specify workflow run my-pipeline.yml --json
+</code></pre>
+<pre><code class="lang-json">{
+  &quot;run_id&quot;: &quot;662bf791&quot;,
+  &quot;workflow_id&quot;: &quot;build-and-review&quot;,
+  &quot;status&quot;: &quot;paused&quot;,
+  &quot;current_step_id&quot;: &quot;review&quot;,
+  &quot;current_step_index&quot;: 0
+}
+</code></pre>
+<p><code>workflow_id</code> is the <code>workflow.id</code> declared inside the YAML, not the file name. The object is printed exactly as shown — pretty-printed with two-space indentation, on plain stdout with no Rich markup — so it always parses. While the workflow runs under <code>--json</code>, any progress a step would print (for example a gate prompt, or output from a prompt step's CLI subprocess) is redirected to stderr, so stdout carries only the JSON object. Read the object from stdout; leave stderr attached to the terminal or capture it separately.</p>
+<p>For <code>failed</code> and <code>aborted</code> runs, the payload includes an <code>error</code> field carrying the terminal step's error message:</p>
+<pre><code class="lang-json">{
+  &quot;run_id&quot;: &quot;662bf791&quot;,
+  &quot;workflow_id&quot;: &quot;build-and-review&quot;,
+  &quot;status&quot;: &quot;failed&quot;,
+  &quot;current_step_id&quot;: &quot;boom&quot;,
+  &quot;current_step_index&quot;: 0,
+  &quot;error&quot;: &quot;Command exited with code 3&quot;
+}
+</code></pre>
+<p><code>completed</code> and <code>paused</code> runs omit the <code>error</code> field. The error is persisted in the run's <code>state.json</code>, so <code>specify workflow status &lt;run_id&gt; --json</code> surfaces the same message after the fact.</p>
+<blockquote>
+<p><strong>Note:</strong> Most workflow commands require a project already initialized with <code>specify init</code>. The exception is <code>specify workflow run &lt;local-file.{yml,yaml}&gt;</code>, which can run outside a project; in that case, run state is stored under the current directory's <code>.specify/workflows/runs/&lt;run_id&gt;/</code>.</p>
+</blockquote>
+<h2 id="resume-a-workflow">Resume a Workflow</h2>
+<pre><code class="lang-bash">specify workflow resume &lt;run_id&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-i</code> / <code>--input</code></td>
+<td>Updated input values as <code>key=value</code> (repeatable)</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit the resume outcome as a single JSON object</td>
+</tr>
+</tbody>
+</table>
+<p>Resumes a paused or failed workflow run from the exact step where it stopped. Useful after responding to a gate step or fixing an issue that caused a failure.</p>
+<p>Supplied <code>--input</code> values are merged over the run's stored inputs and re-validated against the workflow's input types, then the blocked step is re-run with the updated values. This lets a run continue with information that only became available after it paused, or with a corrected value after a failure:</p>
+<pre><code class="lang-bash">specify workflow resume &lt;run_id&gt; --input cmd=&quot;exit 0&quot;
+</code></pre>
+<h2 id="workflow-status">Workflow Status</h2>
+<pre><code class="lang-bash">specify workflow status [&lt;run_id&gt;]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--json</code></td>
+<td>Emit run status (or the runs list) as a JSON object</td>
+</tr>
+</tbody>
+</table>
+<p>Shows the status of a specific run, or lists all runs if no ID is given. Run states: <code>created</code>, <code>running</code>, <code>completed</code>, <code>paused</code>, <code>failed</code>, <code>aborted</code>.</p>
+<h2 id="list-installed-workflows">List Installed Workflows</h2>
+<pre><code class="lang-bash">specify workflow list
+</code></pre>
+<p>Lists workflows installed in the current project.</p>
+<h2 id="install-a-workflow">Install a Workflow</h2>
+<pre><code class="lang-bash">specify workflow add &lt;source&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--dev</code></td>
+<td>Install from a local YAML file, package directory, or archive</td>
+</tr>
+<tr>
+<td><code>--from &lt;url&gt;</code></td>
+<td>Install from a custom URL (<code>&lt;source&gt;</code> names the expected workflow ID)</td>
+</tr>
+<tr>
+<td><code>--version &lt;version&gt;</code></td>
+<td>Install an exact advertised catalog release (<code>&lt;source&gt;</code> must be a workflow ID)</td>
+</tr>
+</tbody>
+</table>
+<p>Installs a workflow from the catalog, an HTTPS URL, a local YAML file, a
+directory containing <code>workflow.yml</code>, or a <code>.zip</code>, <code>.tar.gz</code>, or <code>.tgz</code>
+archive. Archives may contain <code>workflow.yml</code> at the root or inside one
+top-level directory.</p>
+<p>Directory and archive installs preserve the complete workflow package,
+including scripts and other companion files. ZIP, <code>.tar.gz</code>, and <code>.tgz</code>
+archives follow the same validation and installation behavior.</p>
+<p>Catalog entries keep the current release's <code>version</code>, <code>url</code>, optional <code>sha256</code>,
+and optional <code>requires</code> at the top level. An optional <code>releases</code> mapping
+advertises historical versions without changing what unqualified <code>add</code>,
+<code>search</code>, <code>info</code>, or <code>update</code> select:</p>
+<pre><code class="lang-json">{
+  &quot;id&quot;: &quot;example&quot;,
+  &quot;version&quot;: &quot;2.0.0&quot;,
+  &quot;url&quot;: &quot;https://example.com/example-2.0.0.zip&quot;,
+  &quot;releases&quot;: {
+    &quot;1.0.0&quot;: {
+      &quot;url&quot;: &quot;https://example.com/example-1.0.0.zip&quot;,
+      &quot;sha256&quot;: &quot;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&quot;,
+      &quot;requires&quot;: {&quot;speckit_version&quot;: &quot;&gt;=1.0.0&quot;}
+    }
+  }
+}
+</code></pre>
+<p>Each historical release needs its own URL and SHA-256 digest; <code>requires</code> is
+optional and, when present, must match the downloaded workflow definition.
+Advertised versions use the workflow definition's <code>X.Y.Z</code> version format;
+<code>--version</code> also accepts equivalent spellings such as <code>v1.0</code> when selecting an
+advertised <code>1.0.0</code> release.
+The requested version must exist in the highest-priority catalog that provides
+the workflow. A missing version does not fall back to another source, and
+discovery-only catalogs cannot be installed from. The downloaded workflow ID,
+version, and declared digest are verified before installation. <code>--version</code> does
+not apply to local paths, direct URLs, or <code>--from</code> installations.</p>
+<h2 id="workflow-overlays">Workflow Overlays</h2>
+<p>Workflow overlays let a project extend or override an installed workflow without editing the installed <code>workflow.yml</code>.  This keeps local customizations safe across <code>specify bundle update</code> or <code>specify workflow add</code> upgrades.</p>
+<p>When <code>specify workflow run &lt;workflow-id&gt;</code> loads a workflow, the engine composes the base workflow with all enabled overlays for that workflow id.  The result is validated like any other workflow definition.</p>
+<h3 id="how-overlays-work">How Overlays Work</h3>
+<p>An overlay is a YAML file that declares a set of edit operations against the step list of a base workflow. Overlays use lower-wins precedence: higher priority numbers are applied first and lower numbers last. Equal-priority overlays are applied alphabetically by ID, with the last ID winning conflicts.</p>
+<p>Project overlay files live at:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.specify/workflows/overlays/&lt;id&gt;/*.yml</code></td>
+<td>Project-local customizations</td>
+</tr>
+</tbody>
+</table>
+<h3 id="overlay-file-format">Overlay File Format</h3>
+<p>The recommended edit format uses the operation name as the key and the anchor step id as the value:</p>
+<pre><code class="lang-yaml">id: &quot;my-overlay&quot;
+extends: &quot;speckit&quot;
+priority: 10
+enabled: true
+edits:
+  - insert_after: implement
+    step:
+      id: run-lint
+      type: shell
+      run: &quot;ruff check src/&quot;
+
+  - replace: review-spec
+    step:
+      id: review-spec
+      type: gate
+      message: &quot;Review the generated spec (overlay override).&quot;
+      options: [approve, reject]
+      on_reject: abort
+</code></pre>
+<p>The explicit form is also supported:</p>
+<pre><code class="lang-yaml">edits:
+  - operation: insert_after
+    anchor: implement
+    step:
+      id: run-lint
+      type: shell
+      run: &quot;ruff check src/&quot;
+</code></pre>
+<h4 id="fields">Fields</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>yes</td>
+<td>Identifier for this overlay. Used in <code>specify workflow overlay *</code> commands. Must be lowercase letters, digits, and hyphens only; no dots, underscores, path separators, or <code>overlays</code>.</td>
+</tr>
+<tr>
+<td><code>extends</code></td>
+<td>yes</td>
+<td>The workflow id this overlay applies to. Uses the same safe-id format as <code>id</code>; <code>overlays</code>, <code>runs</code>, and <code>steps</code> are reserved.</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>no</td>
+<td>Integer; defaults to <code>10</code>. Lower values have higher precedence and win conflicts. Missing or invalid values fall back to <code>10</code>.</td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>no</td>
+<td>Boolean. Defaults to <code>true</code>. Disabled overlays are ignored.</td>
+</tr>
+<tr>
+<td><code>edits</code></td>
+<td>yes</td>
+<td>Non-empty list of edit operations.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="edit-operations">Edit Operations</h4>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th><code>step</code> required</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>insert_after</code></td>
+<td>yes</td>
+<td>Insert <code>step</code> immediately after the anchor step.</td>
+</tr>
+<tr>
+<td><code>insert_before</code></td>
+<td>yes</td>
+<td>Insert <code>step</code> immediately before the anchor step.</td>
+</tr>
+<tr>
+<td><code>replace</code></td>
+<td>yes</td>
+<td>Replace the anchor step with <code>step</code>.</td>
+</tr>
+<tr>
+<td><code>remove</code></td>
+<td>no</td>
+<td>Remove the anchor step from the list.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>anchor</code> is the <code>id</code> of a step in the base workflow.  Anchors are resolved recursively inside <code>then</code>, <code>else</code>, <code>steps</code>, <code>cases.*</code>, and <code>default</code> blocks, so nested base steps can also be targeted.  Fan-out templates (<code>step</code> inside a <code>fan-out</code> step) are <strong>not</strong> valid anchors.</p>
+<p>Step ids must not contain <code>:</code> — that character is reserved for engine-generated nested ids.</p>
+<h3 id="overlay-cli-commands">Overlay CLI Commands</h3>
+<h4 id="add-a-project-overlay">Add a Project Overlay</h4>
+<pre><code class="lang-bash">specify workflow overlay add &lt;path-to-overlay.yml&gt; --priority &lt;n&gt;
+</code></pre>
+<p>Validates the overlay file and copies it to <code>.specify/workflows/overlays/&lt;extends&gt;/&lt;id&gt;.yml</code>. <code>--priority</code> defaults to <code>10</code> and overrides the <code>priority</code> field in the file.</p>
+<h4 id="list-overlays">List Overlays</h4>
+<pre><code class="lang-bash">specify workflow overlay list &lt;workflow-id&gt;
+</code></pre>
+<p>Shows all overlays for the workflow, ordered by resolver precedence. Disabled overlays are marked as disabled in the listing and are ignored during workflow resolution.</p>
+<h4 id="change-priority">Change Priority</h4>
+<pre><code class="lang-bash">specify workflow overlay set-priority &lt;workflow-id&gt; &lt;overlay-id&gt; &lt;n&gt;
+</code></pre>
+<h4 id="enable-or-disable">Enable or Disable</h4>
+<pre><code class="lang-bash">specify workflow overlay disable &lt;workflow-id&gt; &lt;overlay-id&gt;
+specify workflow overlay enable &lt;workflow-id&gt; &lt;overlay-id&gt;
+</code></pre>
+<h4 id="remove">Remove</h4>
+<pre><code class="lang-bash">specify workflow overlay remove &lt;workflow-id&gt; &lt;overlay-id&gt;
+</code></pre>
+<p>Removes the project overlay file.</p>
+<h4 id="inspect-the-composed-workflow">Inspect the Composed Workflow</h4>
+<pre><code class="lang-bash">specify workflow resolve &lt;workflow-id&gt;
+</code></pre>
+<p>Prints the layer stack (base + overlays) and the source attribution for each step after composition.  Useful for debugging which overlay contributed or overrode a step.</p>
+<h3 id="example-adding-automated-linting-after-implementation">Example: Adding Automated Linting after Implementation</h3>
+<p>Given the built-in <code>speckit</code> workflow, create <code>project-overlay.yml</code>:</p>
+<pre><code class="lang-yaml">id: &quot;add-lint&quot;
+extends: &quot;speckit&quot;
+priority: 10
+edits:
+  - insert_after: implement
+    step:
+      id: run-lint
+      type: shell
+      run: &quot;ruff check src/&quot;
+</code></pre>
+<p>Install it:</p>
+<pre><code class="lang-bash">specify workflow overlay add project-overlay.yml --priority 10
+</code></pre>
+<p>Run the workflow:</p>
+<pre><code class="lang-bash">specify workflow run speckit -i spec=&quot;Build a kanban board&quot;
+</code></pre>
+<p>The composed workflow will now run the full SDD cycle and execute <code>ruff check src/</code> automatically after the <code>implement</code> step.</p>
+<h3 id="example-replacing-a-gate">Example: Replacing a Gate</h3>
+<pre><code class="lang-yaml">id: &quot;skip-plan-review&quot;
+extends: &quot;speckit&quot;
+priority: 5
+edits:
+  - replace: review-plan
+    step:
+      id: review-plan
+      type: command
+      command: speckit.plan
+      input:
+        args: &quot;{{ inputs.spec }}&quot;
+</code></pre>
+<p>Lower priority values have higher precedence. Change this overlay to <code>priority: 5</code> if it must win a conflict with the <code>add-lint</code> overlay above. It replaces the <code>review-plan</code> gate with a non-interactive command.</p>
+<h3 id="workflow-slots-upstream-extension-points">Workflow slots (upstream extension points)</h3>
+<p>Workflow authors can declare a named, no-op workflow slot with <code>type: slot</code>:</p>
+<pre><code class="lang-yaml">- id: post-implement
+  type: slot
+  name: &quot;Post-implementation checks&quot;
+</code></pre>
+<p>The step <code>id</code> is the unique overlay anchor; <code>name</code> is a required non-blank,
+human-readable label only. An unfilled slot completes as a <code>skipped</code> step with
+<code>output: {slot: &lt;name&gt;}</code>, so subsequent steps continue normally.</p>
+<p>Fill a slot with a schema-valid overlay <code>replace</code> edit anchored on the step
+<code>id</code>, not its <code>name</code>:</p>
+<pre><code class="lang-yaml">id: fill-post-implement
+extends: my-workflow
+edits:
+  - replace: post-implement
+    step:
+      id: post-implement
+      type: shell
+      run: &quot;echo Run project-specific checks&quot;
+</code></pre>
+<p>Reuse the slot's <code>id</code> when later expressions or <code>fan-in.wait_for</code> refer to it.
+The replacement must also preserve every output key those later steps consume:
+an unfilled workflow slot supplies only <code>steps.&lt;id&gt;.output.slot</code>. Slot steps are
+not supported inside <code>fan-out.step</code> templates because runtime-multiplied
+templates cannot be overlay anchors.</p>
+<h3 id="interaction-with-bundles-and-updates">Interaction with Bundles and Updates</h3>
+<p><code>specify workflow add &lt;local-directory&gt;</code> installs the complete local workflow
+package into <code>.specify/workflows/&lt;id&gt;/</code>. Archive installs preserve the same
+package contents.</p>
+<p>When an installed workflow is refreshed or reinstalled, project overlays in <code>.specify/workflows/overlays/&lt;id&gt;/</code> are preserved because they live outside the installed workflow directory.</p>
+<h3 id="limitations">Limitations</h3>
+<ul>
+<li>Overlays operate on the step list only.  They cannot change workflow metadata (name, description, inputs, <code>requires</code>) or expression logic.</li>
+<li>Fan-out templates cannot be used as anchors.</li>
+<li>An overlay that targets a step id that does not exist in the base workflow will raise a validation error when the workflow is resolved.</li>
+<li>Overlays cannot target steps added by other overlays.</li>
+<li>Overlays cannot add new inputs or change the input schema of the base workflow.</li>
+</ul>
+<h2 id="update-workflows">Update Workflows</h2>
+<pre><code class="lang-bash">specify workflow update [workflow_id]
+</code></pre>
+<p>Updates one installed catalog workflow — or all of them when no ID is given — to the latest catalog version. Prompts for confirmation and keeps the installed copy if a download or validation fails.</p>
+<h2 id="enable-or-disable-a-workflow">Enable or Disable a Workflow</h2>
+<pre><code class="lang-bash">specify workflow enable &lt;workflow_id&gt;
+specify workflow disable &lt;workflow_id&gt;
+</code></pre>
+<p>Disabled workflows stay installed and listed (marked <code>[disabled]</code>) but refuse to run until re-enabled.</p>
+<h2 id="remove-a-workflow">Remove a Workflow</h2>
+<pre><code class="lang-bash">specify workflow remove &lt;workflow_id&gt;
+</code></pre>
+<p>Removes an installed workflow from the project.</p>
+<h2 id="search-available-workflows">Search Available Workflows</h2>
+<pre><code class="lang-bash">specify workflow search [query]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--tag</code></td>
+<td>Filter by tag</td>
+</tr>
+<tr>
+<td><code>--author</code></td>
+<td>Filter by author</td>
+</tr>
+</tbody>
+</table>
+<p>Searches all active catalogs for workflows matching the query.</p>
+<h2 id="workflow-info">Workflow Info</h2>
+<pre><code class="lang-bash">specify workflow info &lt;workflow_id&gt;
+specify workflow info &lt;workflow_id&gt; --versions
+</code></pre>
+<p>Shows detailed information about a workflow, including its steps, inputs, and requirements.
+<code>--versions</code> lists the current catalog version followed by advertised historical
+versions and indicates whether the winning catalog is installable or
+discovery-only (not installable). It also works when a different version is
+installed locally.</p>
+<h2 id="catalog-management">Catalog Management</h2>
+<p>Workflow catalogs control where <code>search</code> and <code>add</code> look for workflows. Catalogs are checked in priority order.</p>
+<blockquote>
+<p><strong>A project's <code>.specify/workflow-catalogs.yml</code> can point <code>add</code> and <code>search</code> at a catalog you didn't choose.</strong> Before running a workflow from an unfamiliar project, run <code>specify workflow catalog list</code> (and <code>specify workflow step catalog list</code> for the step catalogs its steps can pull in) — a project supplying that config is not evidence its workflows or steps were vetted. Maintainers do not audit <code>run</code> fields; read a workflow's shell steps yourself before running it (see <a href="#who-maintains-workflows">Who maintains workflows?</a>).</p>
+</blockquote>
+<h3 id="list-catalogs">List Catalogs</h3>
+<pre><code class="lang-bash">specify workflow catalog list
+</code></pre>
+<p>Shows all active catalog sources.</p>
+<h3 id="add-a-catalog">Add a Catalog</h3>
+<pre><code class="lang-bash">specify workflow catalog add &lt;url&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name &lt;name&gt;</code></td>
+<td>Optional name for the catalog</td>
+</tr>
+</tbody>
+</table>
+<p>Adds a custom catalog URL to the project's <code>.specify/workflow-catalogs.yml</code>.</p>
+<p>Re-adding the same workflow or step catalog URL with the same name succeeds without changing the configuration; a different name is rejected.</p>
+<h3 id="remove-a-catalog">Remove a Catalog</h3>
+<pre><code class="lang-bash">specify workflow catalog remove &lt;index&gt;
+</code></pre>
+<p>Removes a catalog by its index in the catalog list.</p>
+<h3 id="catalog-resolution-order">Catalog Resolution Order</h3>
+<p>Catalogs are resolved in this order (first match wins):</p>
+<ol>
+<li><strong>Environment variable</strong> — <code>SPECKIT_WORKFLOW_CATALOG_URL</code> overrides all catalogs</li>
+<li><strong>Project config</strong> — <code>.specify/workflow-catalogs.yml</code></li>
+<li><strong>User config</strong> — <code>~/.specify/workflow-catalogs.yml</code></li>
+<li><strong>Built-in defaults</strong> — official catalog + community catalog</li>
+</ol>
+<h2 id="workflow-definition">Workflow Definition</h2>
+<p>Workflows are defined in YAML files. Here is the built-in <strong>Full SDD Cycle</strong> workflow that ships with Spec Kit:</p>
+<pre><code class="lang-yaml">schema_version: &quot;1.0&quot;
+workflow:
+  id: &quot;speckit&quot;
+  name: &quot;Full SDD Cycle&quot;
+  version: &quot;1.0.1&quot;
+  author: &quot;GitHub&quot;
+  description: &quot;Runs specify → plan → tasks → implement with review gates&quot;
+
+requires:
+  speckit_version: &quot;&gt;=0.8.5&quot;
+  integrations:
+    any:
+      - &quot;alquimia&quot;
+      - &quot;claude&quot;
+      - &quot;copilot&quot;
+      - &quot;gemini&quot;
+      - &quot;opencode&quot;
+
+inputs:
+  spec:
+    type: string
+    required: true
+    prompt: &quot;Describe what you want to build&quot;
+  integration:
+    type: string
+    default: &quot;auto&quot;
+    prompt: &quot;Integration to use (e.g. claude, copilot, gemini; 'auto' uses the project's initialized integration)&quot;
+
+steps:
+  - id: specify
+    command: speckit.specify
+    integration: &quot;{{ inputs.integration }}&quot;
+    input:
+      args: &quot;{{ inputs.spec }}&quot;
+
+  - id: review-spec
+    type: gate
+    message: &quot;Review the generated spec before planning.&quot;
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: plan
+    command: speckit.plan
+    integration: &quot;{{ inputs.integration }}&quot;
+    input:
+      args: &quot;{{ inputs.spec }}&quot;
+
+  - id: review-plan
+    type: gate
+    message: &quot;Review the plan before generating tasks.&quot;
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: tasks
+    command: speckit.tasks
+    integration: &quot;{{ inputs.integration }}&quot;
+    input:
+      args: &quot;{{ inputs.spec }}&quot;
+
+  - id: implement
+    command: speckit.implement
+    integration: &quot;{{ inputs.integration }}&quot;
+    input:
+      args: &quot;{{ inputs.spec }}&quot;
+</code></pre>
+<p>This produces the following execution flow:</p>
+<pre><code class="lang-mermaid">flowchart TB
+    A[&quot;specify&lt;br/&gt;(command)&quot;] --&gt; B{&quot;review-spec&lt;br/&gt;(gate)&quot;}
+    B -- approve --&gt; C[&quot;plan&lt;br/&gt;(command)&quot;]
+    B -- reject --&gt; X1[&quot;⏹ Abort&quot;]
+    C --&gt; D{&quot;review-plan&lt;br/&gt;(gate)&quot;}
+    D -- approve --&gt; E[&quot;tasks&lt;br/&gt;(command)&quot;]
+    D -- reject --&gt; X2[&quot;⏹ Abort&quot;]
+    E --&gt; F[&quot;implement&lt;br/&gt;(command)&quot;]
+
+    style A fill:#49a,color:#fff
+    style B fill:#a94,color:#fff
+    style C fill:#49a,color:#fff
+    style D fill:#a94,color:#fff
+    style E fill:#49a,color:#fff
+    style F fill:#49a,color:#fff
+    style X1 fill:#999,color:#fff
+    style X2 fill:#999,color:#fff
+</code></pre>
+<p>Run it with:</p>
+<pre><code class="lang-bash">specify workflow run speckit -i spec=&quot;Build a kanban board with drag-and-drop task management&quot;
+</code></pre>
+<h2 id="step-types">Step Types</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>command</code></td>
+<td>Invoke a Spec Kit command (e.g., <code>speckit.plan</code>)</td>
+</tr>
+<tr>
+<td><code>prompt</code></td>
+<td>Send an arbitrary prompt to the AI coding agent</td>
+</tr>
+<tr>
+<td><code>shell</code></td>
+<td>Execute a shell command and capture output</td>
+</tr>
+<tr>
+<td><code>init</code></td>
+<td>Bootstrap a project (like <code>specify init</code>)</td>
+</tr>
+<tr>
+<td><code>slot</code></td>
+<td>Named workflow slot; skipped when unfilled</td>
+</tr>
+<tr>
+<td><code>gate</code></td>
+<td>Pause for human approval before continuing</td>
+</tr>
+<tr>
+<td><code>if</code></td>
+<td>Conditional branching (then/else)</td>
+</tr>
+<tr>
+<td><code>switch</code></td>
+<td>Multi-branch dispatch on an expression</td>
+</tr>
+<tr>
+<td><code>while</code></td>
+<td>Loop while a condition is true</td>
+</tr>
+<tr>
+<td><code>do-while</code></td>
+<td>Execute at least once, then loop on condition</td>
+</tr>
+<tr>
+<td><code>fan-out</code></td>
+<td>Dispatch a step for each item in a list</td>
+</tr>
+<tr>
+<td><code>fan-in</code></td>
+<td>Aggregate results from a fan-out step</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Security note:</strong> a <code>shell</code> step runs a local command with <strong>your</strong> privileges. There is no capability sandbox — <code>requires</code> is an advisory pre-condition block (spec-kit version, integrations), not a runtime gate, so it does <strong>not</strong> restrict what a step can do. In particular there is no <code>requires.permissions</code> capability gate: it is rejected by validation precisely because it would imply a sandbox that does not exist. Review any catalog or downloaded workflow before running it, and use a <code>gate</code> step to require explicit approval before sensitive or destructive shell commands.</p>
+</blockquote>
+<h3 id="custom-step-packages">Custom step packages</h3>
+<p>Custom step types are installed with <code>specify workflow step</code>. A step is a
+directory package containing metadata and executable Python:</p>
+<pre><code class="lang-text">my-step/
+├── step.yml        # required, at the package root
+├── __init__.py     # required, at the package root
+└── helpers.py      # optional nested modules and data files
+</code></pre>
+<p><code>step.yml</code> declares the step's identity. <code>step.type_key</code> must exactly match the
+<code>&lt;step_id&gt;</code> passed on the command line — the ID is never inferred from package
+content:</p>
+<pre><code class="lang-yaml">step:
+  type_key: my-step
+  name: My Step
+  version: 0.1.0
+  author: you
+  description: What this step does
+</code></pre>
+<p><code>__init__.py</code> must define a <code>StepBase</code> subclass whose <code>type_key</code> matches:</p>
+<pre><code class="lang-python">from specify_cli.workflows.base import StepBase, StepResult
+
+
+class MyStep(StepBase):
+    type_key = &quot;my-step&quot;
+
+    def execute(self, config, context):
+        return StepResult(output={&quot;ok&quot;: True})
+</code></pre>
+<h4 id="install-from-a-local-directory">Install from a local directory</h4>
+<pre><code class="lang-bash">specify workflow step add my-step --dev /path/to/my-step
+</code></pre>
+<p><code>--dev</code> takes a <strong>directory</strong> (not an archive, not a bare <code>step.yml</code>) that is a
+complete package. This needs no catalog, server, or network, which makes it the
+supported local-authoring loop:</p>
+<pre><code class="lang-bash">specify workflow step add my-step --dev ./my-step
+specify workflow step list
+specify workflow step info my-step
+# edit ./my-step, then replace the installed copy:
+specify workflow step add my-step --dev ./my-step --force
+specify workflow step remove my-step
+</code></pre>
+<h4 id="install-from-an-archive-url">Install from an archive URL</h4>
+<pre><code class="lang-bash">specify workflow step add my-step --from https://example.com/my-step.zip
+</code></pre>
+<p><code>--from</code> accepts a <code>.zip</code>, <code>.tar.gz</code>, or <code>.tgz</code> archive (a bare <code>step.yml</code>
+URL is <strong>not</strong> a package). The archive may place <code>step.yml</code> and <code>__init__.py</code>
+at its root or under exactly one top-level directory; unrelated top-level
+siblings are rejected. Because a step package contains executable Python, a
+direct URL install shows a default-deny trust confirmation before any network
+request; declining cancels with no request and no error. HTTPS is required
+(HTTP is permitted only for loopback hosts), redirects must remain secure, and
+downloads are size-bounded.</p>
+<h4 id="install-from-the-catalog">Install from the catalog</h4>
+<pre><code class="lang-bash">specify workflow step add my-step
+</code></pre>
+<p>Catalog installs resolve individual file URLs from the active step catalogs and
+then go through the same validation and commit path as <code>--dev</code> and <code>--from</code>.
+Discovery-only catalogs cannot be installed from.</p>
+<h5 id="catalog-release-history">Catalog release history</h5>
+<p><code>specify workflow step info &lt;id&gt; --versions</code> lists the current and historical
+releases in the winning catalog. <code>specify workflow step add &lt;id&gt; --version &lt;v&gt;</code>
+selects the exact catalog release; without <code>--version</code>, <code>add</code> installs the
+advertised current release. The requested version never falls back to a
+lower-priority catalog, and discovery-only sources remain non-installable.
+<code>--version</code> cannot be combined with direct <code>--dev</code> or <code>--from</code> installs.</p>
+<p>Existing single-version catalog entries continue to work. Keep the current
+release's <code>version</code>, <code>step_yml_url</code> (or <code>url</code>), <code>init_url</code>, and optional files
+at the top level. An optional <code>releases</code> mapping adds historical versions:</p>
+<pre><code class="lang-json">{
+  &quot;steps&quot;: {
+    &quot;my-step&quot;: {
+      &quot;version&quot;: &quot;2.0&quot;,
+      &quot;step_yml_url&quot;: &quot;https://example.com/my-step/2.0/step.yml&quot;,
+      &quot;releases&quot;: {
+        &quot;1.0&quot;: {
+          &quot;step_yml_url&quot;: &quot;https://example.com/my-step/1.0/step.yml&quot;,
+          &quot;init_url&quot;: &quot;https://example.com/my-step/1.0/__init__.py&quot;,
+          &quot;extra_files&quot;: {&quot;helper.py&quot;: &quot;https://example.com/my-step/1.0/helper.py&quot;},
+          &quot;sha256&quot;: {
+            &quot;step.yml&quot;: &quot;&lt;64 hex digits&gt;&quot;,
+            &quot;__init__.py&quot;: &quot;&lt;64 hex digits&gt;&quot;,
+            &quot;helper.py&quot;: &quot;&lt;64 hex digits&gt;&quot;
+          }
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<p>Each historical release must supply its own step URL and SHA-256 digest for
+every downloaded file. <code>init_url</code> can be omitted when derived from a
+<code>step_yml_url</code> ending in <code>step.yml</code>. To select the current version explicitly,
+its top-level entry must likewise supply the per-file <code>sha256</code> mapping.
+Release-specific files and requirements are not inherited from the current
+release. Repeated or malformed versions are rejected; equivalent PEP 440
+spellings such as <code>v1.0</code> and <code>1.0</code> select the same advertised release. The
+downloaded <code>step.yml</code> must declare the selected step ID and version. An
+unqualified legacy catalog install does not require digests or a step version.
+Only one version of each step ID can be installed at a time; use <code>--force</code> to
+replace a previous installation after reviewing the selected package.</p>
+<h4 id="replacement-and-force">Replacement and force</h4>
+<pre><code class="lang-bash">specify workflow step add my-step --dev ./my-step --force
+specify workflow step add my-step --from https://example.com/my-step.zip --force
+</code></pre>
+<p><code>--force</code> first stages and validates the replacement before touching the
+existing installation, and can replace both a registered install and a leftover
+unregistered directory. Validation and staging failures leave the previous
+package untouched. If removing the old directory fails, the replacement is not
+published. If publishing the replacement or updating the registry fails after
+the old directory has been removed, the installation may be left incomplete:
+rerun the command with the original source and <code>--force</code> to reinstall. No
+automatic rollback is attempted.</p>
+<h4 id="package-validation">Package validation</h4>
+<p>Every source is validated identically before anything is committed:</p>
+<ul>
+<li><code>step.yml</code> and <code>__init__.py</code> must be regular, non-symlink files at the package
+root.</li>
+<li>The package tree is copied recursively (relative imports, nested helper
+modules, and data files are supported). A symlinked package root, any
+descendant symlink, and any filesystem object that is not a regular file or
+directory are rejected.</li>
+<li><code>.git</code>, <code>__pycache__</code>, and <code>.DS_Store</code> entries are skipped without being
+inspected: they are not copied, excluded directories are not entered, and
+they do not count toward any limit.</li>
+<li>The installed-package policy permits at most <strong>512 retained entries</strong> (files
+and directories combined), at most <strong>32 levels</strong> of directory nesting, and
+<strong>50 MiB</strong> of retained content.</li>
+<li>Archive URLs also pass transport/extraction safety limits before package
+validation: at most 512 archive entries, 50 MiB downloaded or extracted, and
+10 MiB per archive member. Catalog files have a 50 MiB per-response bound.</li>
+<li>Installation validates and copies the package but does <strong>not</strong> import or
+execute <code>__init__.py</code>. Installed custom step modules are loaded during startup
+of <code>workflow add</code>, <code>workflow run</code>, and <code>workflow resume</code>, before any particular
+custom step necessarily executes.</li>
+</ul>
+<blockquote>
+<p><strong>Security note:</strong> Loading a custom step runs its Python with <strong>your</strong>
+privileges. Only install and retain step packages from sources you trust.</p>
+</blockquote>
+<h4 id="listing-running-and-removing">Listing, running, and removing</h4>
+<p>Installed custom steps appear in <code>specify workflow step list</code> and are loaded
+automatically by <code>workflow add</code>, <code>workflow run</code>, and <code>workflow resume</code>. Remove
+one with:</p>
+<pre><code class="lang-bash">specify workflow step remove my-step
+</code></pre>
+<h4 id="registry-provenance">Registry provenance</h4>
+<p>Each installed step records only the <em>kind</em> of its source — <code>catalog</code>
+(optionally with the catalog name), <code>local</code>, or <code>url</code>. Local paths and source
+URLs are never persisted. <code>specify workflow step info &lt;id&gt;</code> shows the source.</p>
+<h4 id="bundle-local-limitation">Bundle-local limitation</h4>
+<p>A bundle's <code>provides.steps</code> still resolves only through the active step
+catalogs. Bundle-local <code>steps/&lt;id&gt;/</code> payloads and relative
+<code>provides.steps[].source</code> overrides are <strong>not</strong> resolved in this release, so
+such steps are not installable offline. See the <a href="bundles.html">Bundles reference</a>.</p>
+<h3 id="per-step-integration-configuration">Per-Step Integration Configuration</h3>
+<p>Command steps may pass structured runtime configuration to integrations that
+support it:</p>
+<pre><code class="lang-yaml">- id: implement-with-docker-agent
+  type: command
+  command: speckit.implement
+  integration: docker-agent
+  integration_args:
+    - &quot;{{ inputs.agent_config }}&quot;
+  integration_options:
+    agent: root
+    safety: balanced
+  model: &quot;openai/gpt-5&quot;
+  input:
+    args: &quot;{{ inputs.spec }}&quot;
+</code></pre>
+<p><code>integration_args</code> is an ordered list of strings. <code>integration_options</code> is a
+mapping with string keys. Values in both fields are resolved with the workflow
+expression mechanism and validated by the selected integration; unsupported,
+unknown, or malformed values fail with an actionable error. Docker Agent uses
+its single positional argument as the agent configuration reference and accepts
+<code>agent</code> and <code>safety</code> as named integration options. Configure its model through
+the command step's top-level <code>model</code> field.</p>
+<p>When Docker Agent <code>integration_args</code> supplies an agent reference for a command
+step, it takes precedence over <code>SPECKIT_INTEGRATION_DOCKER_AGENT_EXTRA_ARGS</code>;
+the entire legacy environment value is ignored for that step. Without a per-step
+agent reference, the legacy environment behavior is unchanged.</p>
+<p>Resolved runtime configuration is recorded in workflow run state. When a failed
+or paused command is resumed, the complete dispatch configuration is re-resolved
+from the current inputs, so values supplied with <code>workflow resume --input</code> take
+effect consistently. A resume without updated inputs reproduces the same values.</p>
+<h2 id="expressions">Expressions</h2>
+<p>Steps can reference inputs and previous step outputs using <code>{{ expression }}</code> syntax:</p>
+<table>
+<thead>
+<tr>
+<th>Namespace</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>inputs.spec</code></td>
+<td>Workflow input values</td>
+</tr>
+<tr>
+<td><code>steps.specify.output.file</code></td>
+<td>Output from a previous step</td>
+</tr>
+<tr>
+<td><code>item</code></td>
+<td>Current item in a fan-out iteration</td>
+</tr>
+<tr>
+<td><code>context.run_id</code></td>
+<td>Current workflow run ID</td>
+</tr>
+<tr>
+<td><code>context.workflow_dir</code></td>
+<td>Resolved absolute path to the workflow source directory. Empty string for string-loaded workflows.</td>
+</tr>
+</tbody>
+</table>
+<p>Available filters: <code>default</code>, <code>join</code>, <code>contains</code>, <code>map</code>, <code>from_json</code>, <code>to_json</code>, <code>upper</code>, <code>lower</code>, <code>split</code>, <code>length</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Filter</th>
+<th>Example</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>default</code></td>
+<td><code>{{ val \| default('fb') }}</code></td>
+<td>Fallback for <code>None</code> or an empty string</td>
+</tr>
+<tr>
+<td><code>join</code></td>
+<td><code>{{ list \| join(', ') }}</code></td>
+<td>Join list elements into a string</td>
+</tr>
+<tr>
+<td><code>contains</code></td>
+<td><code>{{ text \| contains('sub') }}</code></td>
+<td>Substring or membership check</td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td><code>{{ list \| map('attr') }}</code></td>
+<td>Extract an attribute from each item</td>
+</tr>
+<tr>
+<td><code>from_json</code></td>
+<td><code>{{ out \| from_json }}</code></td>
+<td>Parse a JSON string into a typed value</td>
+</tr>
+<tr>
+<td><code>to_json</code></td>
+<td><code>{{ obj \| to_json }}</code></td>
+<td>Serialize a value to a JSON string — the inverse of <code>from_json</code>; mapping keys must be strings</td>
+</tr>
+<tr>
+<td><code>upper</code></td>
+<td><code>{{ text \| upper }}</code></td>
+<td>Uppercase a string</td>
+</tr>
+<tr>
+<td><code>lower</code></td>
+<td><code>{{ text \| lower }}</code></td>
+<td>Lowercase a string</td>
+</tr>
+<tr>
+<td><code>split</code></td>
+<td><code>{{ csv \| split(',') }}</code></td>
+<td>Split a string on a separator into a list of strings</td>
+</tr>
+<tr>
+<td><code>length</code></td>
+<td><code>{{ items \| length }}</code></td>
+<td>Number of elements in a list, or characters in a string</td>
+</tr>
+</tbody>
+</table>
+<p><code>default</code> falls back only for <code>None</code> and the empty string. Other falsy values — <code>0</code>, <code>false</code>, <code>[]</code>, <code>{}</code> — are passed through unchanged, so <code>{{ count | default(10) }}</code> still yields <code>0</code> for a zero count. Falsy is not the same as empty here.</p>
+<p>Notes on the newer filters:</p>
+<ul>
+<li><p><strong>Types are validated, not coerced.</strong> <code>upper</code> and <code>lower</code> accept strings only, <code>split</code> requires both a string value and a non-empty string separator, and <code>length</code> accepts lists and strings but rejects mappings. Anything else raises a <code>ValueError</code> naming the problem. Coercion is deliberately not performed: a type mismatch nearly always means the workflow is wired to the wrong variable, and a coerced result would hide that. A filter given the wrong number of arguments (<code>| upper('x')</code>, <code>| split</code> with no separator, <code>| split(',', 1)</code>) is reported as a known filter misused, which is distinct from an entirely unknown filter name: a call carrying more than one argument falls through to that same unsupported-form error rather than being evaluated as a single expression. The older filters (<code>join</code>, <code>map</code>, <code>contains</code>) are more permissive and unchanged: <code>join</code> stringifies unsupported values and <code>map</code>/<code>contains</code> return fallbacks rather than raising.</p>
+</li>
+<li><p><strong><code>to_json</code> output is deterministic.</strong> Object keys are sorted and non-ASCII characters are left as-is rather than escaped, so the same value always serializes to the same bytes. That buys reproducibility only — it does <strong>not</strong> make the result safe to pass through a shell, because <a href="#interpolation-and-shell-safety">interpolation adds no quoting or escaping</a>. Do not interpolate unconstrained JSON into a <code>run</code> field.</p>
+</li>
+<li><p><strong><code>to_json</code> rejects non-finite floats.</strong> <code>NaN</code>, <code>Infinity</code>, and <code>-Infinity</code> raise a <code>ValueError</code> naming <code>to_json</code> instead of serializing to bare tokens. None of the three is valid JSON, so emitting them would hand a standards-compliant downstream parser a string it must reject.</p>
+</li>
+<li><p><strong><code>to_json</code> requires string mapping keys.</strong> JSON objects have string keys, so a mapping with any other key type — <code>{1: &quot;a&quot;}</code>, <code>{True: &quot;a&quot;}</code> — raises a <code>ValueError</code> naming the key type instead. Left to <code>json.dumps</code>, an integer key would be coerced to <code>&quot;1&quot;</code> and collide with an existing <code>&quot;1&quot;</code> key, while mixed key types would fail <code>sort_keys</code> with an ordering <code>TypeError</code> reported only as &quot;not JSON-serializable&quot;.</p>
+</li>
+<li><p><strong>Trailing comparisons after a filter are rejected.</strong> The parser splits on the top-level <code>|</code> before looking for operators, so <code>{{ items | length &gt; 0 }}</code> raises rather than evaluating. The count does not exist until <code>length</code> runs, so there is no way to write that comparison; the supported branching form is the filter's own truthiness in a <code>condition:</code>, since <code>length</code> returns <code>0</code> for an empty input:</p>
+<pre><code class="lang-yaml">condition: &quot;{{ inputs.items | length }}&quot;   # 0 is False, any non-zero count is True
+</code></pre>
+</li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-yaml">condition: &quot;{{ steps.test.output.exit_code == 0 }}&quot;
+args: &quot;{{ inputs.spec }}&quot;
+message: &quot;{{ status | default('pending') }}&quot;
+tag_count: &quot;{{ inputs.tags | split(',') | length }}&quot;
+shell_flag: &quot;{{ inputs.branch | upper }}&quot;
+</code></pre>
+<h3 id="interpolation-and-shell-safety">Interpolation and shell safety</h3>
+<p>Expressions are resolved by <strong>plain string substitution</strong> — the value of <code>{{ ... }}</code> is spliced into the surrounding text exactly as-is, with no quoting or escaping added. That is convenient for building <code>args</code> and <code>message</code> strings, but it has an important consequence for <code>shell</code> steps: a <code>run</code> field is handed to the system shell (<code>/bin/sh -c</code> on POSIX), so any interpolated value is interpreted as <strong>shell syntax</strong>, not just data.</p>
+<p>If an interpolated value can contain characters like <code>;</code>, <code>|</code>, <code>&amp;</code>, <code>$( )</code>, backticks, or quotes, it can change or extend the command that actually runs. This matters most when the value is not fully under the workflow author's control:</p>
+<ul>
+<li><strong>Workflow <code>inputs.*</code></strong> — supplied by whoever runs the workflow.</li>
+<li><strong>A prior step's output</strong>, e.g. <code>{{ steps.plan.output.stdout }}</code> — for a <code>prompt</code> step this is <strong>text produced by the AI agent</strong>, which can in turn be influenced by files, tickets, or web content the agent read. Treat agent output as untrusted when it flows into a <code>shell</code> step.</li>
+</ul>
+<p>There is <strong>no shell-escaping filter</strong> in the expression language and <strong>no sandbox</strong> around a <code>shell</code> step, so none of the practices below can be treated as a guarantee that a hostile value is neutralised. The only reliable control is to constrain what an interpolated value <em>can</em> be, and to keep values you cannot constrain out of <code>run</code> fields entirely. Scrutinise every <code>run</code> field that interpolates a value you do not control, and at minimum:</p>
+<ul>
+<li><p><strong>Constrain the value at the source with <code>enum</code>/an allowlist.</strong> When <code>inputs.*</code> feeds a <code>run</code> field, restrict it to a fixed set of known-safe values so a caller cannot supply arbitrary shell text at all. This is the strongest control the engine offers — prefer it over any downstream mitigation.</p>
+<pre><code class="lang-yaml">inputs:
+  target:
+    type: string
+    enum: [staging, production]   # caller cannot inject arbitrary text
+</code></pre>
+</li>
+<li><p><strong>Keep unconstrained values out of <code>run</code>.</strong> If a value cannot be constrained to an allowlist — most agent/<code>prompt</code> output — do not interpolate it into a <code>run</code> field. Branch on it with <code>if</code>/<code>switch</code> against fixed conditions, or act on it in a <code>command</code>/<code>prompt</code> step rather than a shell command built from it.</p>
+</li>
+<li><p><strong>Quoting is not a security boundary.</strong> Surrounding a substitution with quotes (<code>'{{ inputs.x }}'</code>) helps the shell treat a <em>trusted</em> value as a single argument and avoids word-splitting on spaces, but a value that itself contains the matching quote character can still break out and inject shell syntax. Quote for correctness on constrained values; never rely on quoting to make an <em>unconstrained</em> substitution safe.</p>
+</li>
+<li><p><strong>Gates do not inspect the next step, and <code>message</code> is printed verbatim.</strong> A <code>gate</code> step renders only its own <code>message</code>/<code>show_file</code> — it does not display, resolve, or sanitise the command that follows it, and approval never neutralises an injectable interpolation. Do <strong>not</strong> interpolate raw untrusted data into <code>message</code>: it is printed as-is with no control-character stripping, so agent or caller output could inject terminal/ANSI escapes that alter or hide the approval prompt. Keep <code>message</code> to trusted, constrained text, and surface untrusted material for review via <code>show_file</code> instead — its path and contents are control/ANSI-stripped before display.</p>
+</li>
+</ul>
+<p>A <code>shell</code> step is an arbitrary-command primitive by design; these practices reduce exposure and keep <em>which</em> command runs under the author's control, but they do not eliminate the risk of interpolating values you do not fully control.</p>
+<h2 id="shell-step-environment-variables">Shell Step Environment Variables</h2>
+<p>Shell steps automatically receive the following environment variables:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SPECKIT_WORKFLOW_DIR</code></td>
+<td>Resolved absolute path to the workflow source directory (same value as <code>{{ context.workflow_dir }}</code>). Not set when the workflow has no source path.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="input-types">Input Types</h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Coercion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string</code></td>
+<td>Pass-through</td>
+</tr>
+<tr>
+<td><code>number</code></td>
+<td><code>&quot;42&quot;</code> → <code>42</code>, <code>&quot;3.14&quot;</code> → <code>3.14</code></td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td><code>&quot;true&quot;</code> / <code>&quot;1&quot;</code> / <code>&quot;yes&quot;</code> → <code>True</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="state-and-resume">State and Resume</h2>
+<p>Each workflow run persists its state at <code>.specify/workflows/runs/&lt;run_id&gt;/</code>:</p>
+<ul>
+<li><code>state.json</code> — current run state and step progress</li>
+<li><code>inputs.json</code> — resolved input values</li>
+<li><code>log.jsonl</code> — step-by-step execution log</li>
+</ul>
+<p>This enables <code>specify workflow resume</code> to continue from the exact step where a run was paused (e.g., at a gate) or failed.</p>
+<h3 id="gate-verdict-inputs">Gate Verdict Inputs</h3>
+<p><code>verdict_input</code> binds a gate's verdict to a named workflow input. The input must be declared in the workflow's <code>inputs</code> block; <code>specify workflow validate</code> reports an undeclared reference.</p>
+<p><code>verdict_input</code> is not supported inside a <code>fan-out</code> template. Fan-out items
+share workflow inputs, while workflow state can represent only one paused
+gate. Place a gate before the fan-out to approve the whole batch, or after a
+fan-in to review the aggregated results.</p>
+<p><strong>Input value semantics:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Non-empty string, matches an option (case-insensitive)</td>
+<td>Gate auto-decides; <code>output.choice</code> is set to the configured option spelling</td>
+</tr>
+<tr>
+<td>Non-empty string, no match</td>
+<td>Gate fails immediately</td>
+</tr>
+<tr>
+<td>Non-string</td>
+<td>Gate fails immediately</td>
+</tr>
+<tr>
+<td>Missing or empty</td>
+<td>Gate prompts on a TTY; pauses otherwise</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Default value semantics:</strong> A non-empty <code>default</code> is consumed as a verdict on the first run — matching an option auto-decides the gate, not matching fails it immediately.</p>
+<pre><code class="lang-yaml">inputs:
+  spec_verdict:
+    type: string
+    default: &quot;&quot;
+steps:
+  - id: review-spec
+    type: gate
+    message: &quot;Approve the specification?&quot;
+    options: [approve, reject]
+    on_reject: retry
+    verdict_input: spec_verdict
+</code></pre>
+<p>Supply a verdict when resuming:</p>
+<pre><code class="lang-bash">specify workflow resume &lt;run_id&gt; --input spec_verdict=approve
+</code></pre>
+<p>For <code>on_reject: retry</code>, a bound reject verdict is consumed before the gate
+pauses: the named stored input is reset to <code>&quot;&quot;</code>. A later resume therefore
+prompts or pauses again until another verdict is supplied. Approve, abort, and
+skip outcomes leave the input unchanged.</p>
+<p>Because of that reset, a verdict input used with <code>on_reject: retry</code> must accept
+<code>&quot;&quot;</code>. If it declares an <code>enum</code>, include the empty string — otherwise the reset
+value violates the input's own <code>enum</code> and the run can no longer be resumed with
+any input. <code>specify workflow add</code> reports this as a validation error.</p>
+<pre><code class="lang-yaml">inputs:
+  spec_verdict:
+    type: string
+    enum: [&quot;&quot;, approve, reject]
+    default: &quot;&quot;
+</code></pre>
+<h2 id="faq">FAQ</h2>
+<h3 id="what-happens-when-a-workflow-hits-a-gate-step">What happens when a workflow hits a gate step?</h3>
+<p>The workflow pauses and waits for human input. Run <code>specify workflow resume &lt;run_id&gt;</code> after reviewing to continue.</p>
+<h3 id="can-i-run-the-same-workflow-multiple-times">Can I run the same workflow multiple times?</h3>
+<p>Yes. Each run gets a unique ID and its own state directory. Use <code>specify workflow status</code> to see all runs.</p>
+<h3 id="who-maintains-workflows">Who maintains workflows?</h3>
+<p>Most workflows are independently created and maintained by their respective authors. The Spec Kit maintainers do not review, audit, endorse, or support workflow code. Review a workflow's source before installing and use at your own discretion.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/github/spec-kit/blob/main/docs/reference/workflows.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Spec Kit - A specification-driven development toolkit
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

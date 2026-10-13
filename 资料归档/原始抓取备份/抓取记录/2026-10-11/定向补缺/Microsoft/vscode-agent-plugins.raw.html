@@ -1,0 +1,2701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="awa-expId" content="tv-downloadv2:1447446;" />
+	<meta name="awa-env" content="prod" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="google-site-verification" content="hNs7DXrTySP_X-0P_AC0WulAXvUwgSXEmgfcO2r79dw" />
+
+	<!-- Twitter and Facebook OpenGraph Metadata-->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@code" />
+
+	<meta name="description" content="Discover and manage agent plugins in VS Code, including skills, tools, hooks, and automation templates." />
+<meta name="keywords" content="" />
+<meta name="ms.prod" content="vs-code" />
+<meta name="ms.TOCTitle" content="" />
+<meta name="ms.ContentId" content="f9b2c4e3-8a7d-4e1f-b5c3-2d9a6f8e4b71" />
+<meta name="ms.date" content="10/7/2026" />
+<meta name="ms.topic" content="conceptual" />
+<!-- Twitter and Facebook OpenGraph Metadata-->
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="og:url" content="https://code.visualstudio.com/docs/agent-customization/agent-plugins" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Agent plugins in VS Code" />
+<meta property="og:description" content="Discover and manage agent plugins in VS Code, including skills, tools, hooks, and automation templates." />
+
+<meta property="og:image" content="https://code.visualstudio.com/opengraphimg/generated/docs/agent-customization/agent-plugins.webp" />
+
+
+
+	<link rel="shortcut icon" href="/assets/favicon.ico" sizes="128x128" />
+	<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+
+	<title>Agent plugins in VS Code</title>
+
+	<link rel="stylesheet" href="/dist/style.css">
+
+	<script src="https://consentdeliveryfd.azurefd.net/mscc/lib/v2/wcp-consent.js"></script>
+	<script type="text/javascript" src="https://js.monitor.azure.com/scripts/c/ms.analytics-web-4.min.js"></script>
+	
+	<script type="text/javascript">
+	// Leave as var; siteConsent is initialized and referenced elsewhere.
+	var siteConsent = null;
+	
+	const GPC_DataSharingOptIn = false;
+	WcpConsent.onInitCallback(function () {
+		window.appInsights = new oneDS.ApplicationInsights();
+		window.appInsights.initialize({
+			instrumentationKey: "1a3eb3104447440391ad5f2a6ee06a0a-62879566-bc58-4741-9650-302bf2af703f-7103",
+			propertyConfiguration: {
+				userConsented: false,
+				gpcDataSharingOptIn: false,
+				callback: {
+					// Stable closure: the SDK calls this per-event, so it picks up the
+					// real consent state once WcpConsent.init() resolves (siteConsent
+					// is still null when this callback is registered).
+					userConsentDetails: function () {
+						return siteConsent ? siteConsent.getConsent() : undefined;
+					}
+				},
+			},
+			cookieCfg: {
+				ignoreCookies: ["MSCC"]
+			},
+			webAnalyticsConfiguration:{ // Web Analytics Plugin configuration
+				urlCollectQuery: true,
+				urlCollectHash: true,
+				autoCapture: {
+					scroll: true,
+					pageView: true,
+					onLoad: true,
+					onUnload: true,
+					click: true,
+					resize: true,
+					jsError: true
+				}
+			}
+		}, []);
+	
+		window.appInsights.getPropertyManager().getPropertiesContext().web.gpcDataSharingOptIn = GPC_DataSharingOptIn;
+	});
+	</script>
+	<link rel="alternate" type="application/atom+xml" title="RSS Feed for code.visualstudio.com" href="/feed.xml" />
+</head>
+
+<body >
+	<div class="sr-only" aria-hidden="true">
+		AI agents: See <a href="/llms.txt" tabindex="-1">llms.txt</a> for documentation discovery and navigation. Documentation articles are also available as Markdown by appending <code>.md</code> to the article URL.
+	</div>
+	<!-- Setting theme here to avoid FOUC -->
+	<script>
+		function setTheme(themeName) {
+			if (themeName === 'dark') {
+				document.documentElement.removeAttribute('data-theme'); // dark is default, so no data-theme attribute needed
+			}
+
+			if (themeName === 'light') {
+				document.documentElement.setAttribute('data-theme', themeName);
+			}
+			return;
+		}
+
+		// Determine initial theme: user preference or system preference
+		let theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+		setTheme(theme); // Apply the initial theme
+
+		// Listen for changes in the system theme preference
+		window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+			if (!localStorage.getItem('theme')) { // Only if no user preference is saved
+				setTheme(e.matches ? 'dark' : 'light');
+			}
+		});
+	</script>
+
+	<div id="main">
+		<div class="navbar-fixed-container">
+			<div class="navbar navbar-inverse navbar-fixed-top ">
+				<div id='cookie-banner'></div>		<nav role="navigation" aria-label="Top Level">
+					<div class="container">
+						<div class="nav navbar-header">
+							<a class="navbar-brand" href="/"><span>Visual Studio Code</span></a>
+						</div>
+						<div class="navbar-collapse collapse">
+							<ul class="nav navbar-nav navbar-left" data-m='{"cN":"top-navbar","aN":"navigation"}'>
+								<li class="nav-dropdown">
+									<a id="nav-features" href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" data-m='{"cN":"Features","aN":"navigation","cT":"toggle"}'>
+										Features <span class="nav-dropdown-caret" aria-hidden="true"></span>
+									</a>
+									<ul class="nav-dropdown-menu" role="menu">
+										<li role="none"><a role="menuitem" href="/features/agents" data-m='{"cN":"Agents","aN":"navigation - Features"}'>Agents</a></li>
+										<li role="none"><a role="menuitem" href="/features/customizations" data-m='{"cN":"Agent Customization","aN":"navigation - Features"}'>Agent Customization</a></li>
+										<li role="none"><a role="menuitem" href="/features/models" data-m='{"cN":"Models &amp; Agent Harnesses","aN":"navigation - Features"}'>Models &amp; Agent Harnesses</a></li>
+										<li role="none"><a role="menuitem" href="/features/enterprise" data-m='{"cN":"Enterprise","aN":"navigation - Features"}'>Enterprise</a></li>
+										<li role="none"><a role="menuitem" href="/features/extensibility" data-m='{"cN":"Extensibility","aN":"navigation - Features"}'>Extensibility</a></li>
+									</ul>
+								</li>
+								<li class="nav-dropdown active">
+									<a id="nav-docs" href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" data-m='{"cN":"Docs","aN":"navigation","cT":"toggle"}'>
+										Docs <span class="nav-dropdown-caret" aria-hidden="true"></span>
+									</a>
+									<ul class="nav-dropdown-menu" role="menu">
+										<li role="none"><a role="menuitem" href="/docs" data-m='{"cN":"Documentation","aN":"navigation - Docs"}'>Documentation</a></li>
+										<li role="none"><a role="menuitem" href="/api" data-m='{"cN":"API","aN":"navigation - Docs"}'>API</a></li>
+										<li role="none"><a role="menuitem" id="nav-faqs" href="/docs/supporting/faq" data-m='{"cN":"FAQ","aN":"navigation - Docs"}'>FAQ</a></li>
+									</ul>
+								</li>
+								<li ><a id="nav-updates" href="/updates" data-m='{"cN":"Release Notes"}'>Release Notes</a>
+								</li>
+								<li ><a id="nav-blogs" href="/blogs" data-m='{"cN":"Blog"}'>Blog</a></li>
+								<li ><a id="nav-learn" href="/learn" data-m='{"cN":"Learn"}'>Learn</a></li>
+								<li><a id="nav-events" href="https://aka.ms/vscode/live" target="_blank" rel="noopener" data-m='{"cN":"Events"}'>Events<span class="codicon codicon-link-external nav-external-icon" aria-hidden="true"></span></a></li>
+								<li class="nav-dropdown">
+									<a id="nav-resources" href="#" class="nav-dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false" data-m='{"cN":"Resources","aN":"navigation","cT":"toggle"}'>
+										Resources <span class="nav-dropdown-caret" aria-hidden="true"></span>
+									</a>
+									<ul class="nav-dropdown-menu" role="menu">
+										<li role="none"><a role="menuitem" href="https://marketplace.visualstudio.com/VSCode" target="_blank" rel="noopener"
+												id="nav-extensions" data-m='{"cN":"Extensions","aN":"navigation - Resources"}'>Extensions<span class="codicon codicon-link-external nav-external-icon" aria-hidden="true"></span></a></li>
+										<li role="none"><a role="menuitem" id="nav-mcp" href="/mcp" target="_blank" rel="noopener" data-m='{"cN":"MCP","aN":"navigation - Resources"}'>MCP<span class="codicon codicon-link-external nav-external-icon" aria-hidden="true"></span></a></li>
+									</ul>
+								</li>
+							</ul>
+							<ul class="nav navbar-nav navbar-right" role="presentation">
+								<li>
+									<a class="link-button" href="/download" id="nav-download">
+										<span>Download</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+						<div class="navbar-actions">
+							<div class="search" role="presentation">
+								<div class="nav-search search-control" role="button" tabindex="0" aria-label="Open search dialog">
+									<div class="input-group" role="presentation">
+										<span class="input-group-btn">
+											<span class="btn search-icon-container" aria-hidden="true">
+												<img class="search-icon-dark" src="/assets/icons/search-dark.svg" alt="" />
+												<img class="search-icon-light" src="/assets/icons/search.svg" alt="" />
+											</span>
+										</span>
+										<span class="search-box form-control" aria-hidden="true" role="presentation"></span>
+										<span class="search-shortcut-placeholder">Search</span>
+										<span class="search-shortcut-overlay"></span>
+									</div>
+								</div>					</div>
+							<button type="button" class="theme-switch" id="theme-toggle">
+								<img class="theme-icon-light" src="/assets/icons/theme-light.svg" alt="Switch to the dark theme" />
+								<img class="theme-icon-dark" src="/assets/icons/theme-dark.svg" alt="Switch to the light theme" />
+							</button>
+							<a class="link-button navbar-actions-download" href="/Download">
+								<span>Download</span>
+							</a>
+						</div>
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"
+							aria-label="Expand and Collapse Menu">
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+					</div>
+				</nav>
+			</div>
+		</div>		<div data-announcement-version="2026-09-09-vscode-documentary-agent-host" data-rotation-interval-seconds="8" class="updates-banner ">
+			<div class="container banner-messages">
+				<p class="message active" data-banner-message aria-hidden="false" ><a href="https://aka.ms/the-story-of-vs-code?source=vsc-website-banner" target="_blank" rel="noopener">🎬 Watch The Story of VS Code!</a></p>
+				<p class="message " data-banner-message aria-hidden="true" inert><a href="https://aka.ms/VSCode/IG?source=vsc-website-banner" target="_blank" rel="noopener">VS Code is now on Instagram, follow @vscode.ig for updates, tips, and more.</a></p>
+				<p class="message " data-banner-message aria-hidden="true" inert><a href="https://gh.io/githubcopilotday?source=vsc-website-banner" target="_blank" rel="noopener">Rewatch GitHub Copilot Day.</a></p>
+			</div>
+			<button type="button" title="Dismiss this update" class="dismiss-btn" id="banner-dismiss-btn"><span class="sr-only">Dismiss this update</span><span aria-hidden="true" class="glyph-icon"></span></button>
+		</div>
+		<script>
+			// Restore dismissal and the session's random starting message before first paint.
+			(function () {
+				var banner = document.currentScript.previousElementSibling;
+				if (!banner) {
+					return;
+				}
+		
+				var version = banner.getAttribute('data-announcement-version');
+				try {
+					if (localStorage.getItem('dismissedAnnouncementVersion') === version) {
+						banner.classList.add('js-hidden');
+					}
+				} catch (error) {
+					console.warn('Unable to restore banner dismissal state.', error);
+				}
+		
+				var messages = banner.querySelectorAll('[data-banner-message]');
+				if (messages.length < 2) {
+					return;
+				}
+		
+				var storageKey = 'initialAnnouncementMessage:' + version;
+				var activeIndex;
+				try {
+					var storedIndex = sessionStorage.getItem(storageKey);
+					if (storedIndex !== null) {
+						activeIndex = Number(storedIndex);
+					}
+				} catch (error) {
+					console.warn('Unable to restore the initial banner message.', error);
+				}
+				if (!Number.isInteger(activeIndex) || activeIndex < 0 || activeIndex >= messages.length) {
+					activeIndex = Math.floor(Math.random() * messages.length);
+					try {
+						sessionStorage.setItem(storageKey, String(activeIndex));
+					} catch (error) {
+						console.warn('Unable to remember the initial banner message.', error);
+					}
+				}
+		
+				for (var index = 0; index < messages.length; index++) {
+					var isActive = index === activeIndex;
+					messages[index].classList.toggle('active', isActive);
+					messages[index].setAttribute('aria-hidden', String(!isActive));
+					messages[index].toggleAttribute('inert', !isActive);
+				}
+				banner.setAttribute('data-active-message-index', String(activeIndex));
+			})();
+		</script>
+		<!-- This div wraps around the entire site -->
+		<!-- The body itself should already have a main tag -->
+		<main id="main-content">
+			<div class="body-content docs docs-github-layout">
+    <div class="docs-layout-wrapper">
+        <!-- Left sidebar - Table of Contents -->
+        <aside class="docs-left-sidebar">
+            <nav id="docs-navbar" aria-label="Topics" class="docs-nav visible-md visible-lg" data-m='{"cN":"docs-left-nav","aN":"navigation"}'>
+              
+              <h4>Documentation</h4>
+              <ul class="nav" id="main-nav">
+                
+                <li>
+                  <a href="/docs" data-m='{&quot;cN&quot;:&quot;Overview&quot;}'>Overview</a>
+                </li>
+            
+                
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-0-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-0-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Get Started&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Get Started</a>
+              <ul id="docs-docs-0-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/getstarted/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/quickstart" data-m='{&quot;cN&quot;:&quot;Agents Quickstart&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Agents Quickstart</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/getting-started/editor-tutorial" data-m='{&quot;cN&quot;:&quot;Editor Tutorial&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Editor Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/getstarted/introvideos" data-m='{&quot;cN&quot;:&quot;Intro Videos&quot;,&quot;aN&quot;:&quot;Get Started&quot;}'>Intro Videos</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel active expanded">
+              <a class="area" role="button" href="#docs-docs-1-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-1-articles" aria-expanded="true" data-m='{&quot;cN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Agents</a>
+              <ul id="docs-docs-1-articles" class="collapse in">
+                
+                <li>
+                  <a href="/docs/agents/overview" data-m='{&quot;cN&quot;:&quot;AI Overview&quot;,&quot;aN&quot;:&quot;Agents&quot;}'>AI Overview</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-1-articles" data-toggle="collapse" aria-controls="docs-docs-1-1-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Get started&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Get started</a>
+              <ul id="docs-docs-1-1-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/quickstart" data-m='{&quot;cN&quot;:&quot;Agents Quickstart&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Agents Quickstart</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/overview" data-m='{&quot;cN&quot;:&quot;Find a Guide&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Find a Guide</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/copilot" data-m='{&quot;cN&quot;:&quot;Set Up GitHub Copilot&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Set Up GitHub Copilot</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agents-tutorial" data-m='{&quot;cN&quot;:&quot;Agents Tutorial&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Agents Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/best-practices" data-m='{&quot;cN&quot;:&quot;Best Practices&quot;,&quot;aN&quot;:&quot;Agents - Get started&quot;}'>Best Practices</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-2-articles" data-toggle="collapse" aria-controls="docs-docs-1-2-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Concepts&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Concepts</a>
+              <ul id="docs-docs-1-2-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/concepts/agents" data-m='{&quot;cN&quot;:&quot;Agents&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agents</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/language-models" data-m='{&quot;cN&quot;:&quot;How Models Work&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>How Models Work</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/context" data-m='{&quot;cN&quot;:&quot;Context&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Context</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/tools" data-m='{&quot;cN&quot;:&quot;Tools&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Tools</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/sessions" data-m='{&quot;cN&quot;:&quot;Sessions and Chats&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Sessions and Chats</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/trust-and-safety" data-m='{&quot;cN&quot;:&quot;Trust &amp; Safety&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Trust &amp; Safety</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/customization" data-m='{&quot;cN&quot;:&quot;Agent Customization&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agent Customization</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/agent-harnesses" data-m='{&quot;cN&quot;:&quot;Agent Harnesses&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agent Harnesses</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/workspace-context" data-m='{&quot;cN&quot;:&quot;Workspace Context&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Workspace Context</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/concepts/agent-host" data-m='{&quot;cN&quot;:&quot;Agent Host Architecture&quot;,&quot;aN&quot;:&quot;Agents - Concepts&quot;}'>Agent Host Architecture</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Use Agents&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Use Agents</a>
+              <ul id="docs-docs-1-3-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/chat-view" data-m='{&quot;cN&quot;:&quot;Chat View and Layout&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Chat View and Layout</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agents-window" data-m='{&quot;cN&quot;:&quot;Agents Window&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Agents Window</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agent-harnesses" data-m='{&quot;cN&quot;:&quot;Choose an Agent Harness&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Choose an Agent Harness</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agents-window-configuration" data-m='{&quot;cN&quot;:&quot;Configure the Agents Window&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Configure the Agents Window</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/chat/chat-overview" data-m='{&quot;cN&quot;:&quot;Chat Interaction Controls&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;}'>Chat Interaction Controls</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-5-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Plan and Run Tasks&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Plan and Run Tasks</a>
+              <ul id="docs-docs-1-3-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/planning" data-m='{&quot;cN&quot;:&quot;Plan Work&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Plan Work</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/tools" data-m='{&quot;cN&quot;:&quot;Use Tools&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Use Tools</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/browser-tools" data-m='{&quot;cN&quot;:&quot;Browser Tools&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Browser Tools</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/subagents" data-m='{&quot;cN&quot;:&quot;Subagents&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Subagents</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/automations" data-m='{&quot;cN&quot;:&quot;Automations&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Plan and Run Tasks&quot;}'>Automations</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-6-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Sessions and Results&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Sessions and Results</a>
+              <ul id="docs-docs-1-3-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/sessions/manage-sessions" data-m='{&quot;cN&quot;:&quot;Manage Sessions&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Manage Sessions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/sessions/session-history" data-m='{&quot;cN&quot;:&quot;Session History&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Session History</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/remote-agent-sessions" data-m='{&quot;cN&quot;:&quot;Remote Agent Sessions&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Remote Agent Sessions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/memory" data-m='{&quot;cN&quot;:&quot;Memory&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Memory</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/review-code-edits" data-m='{&quot;cN&quot;:&quot;Review &amp; Revert Changes&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Review &amp; Revert Changes</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/artifacts" data-m='{&quot;cN&quot;:&quot;Artifacts&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Sessions and Results&quot;}'>Artifacts</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-3-7-articles" data-toggle="collapse" aria-controls="docs-docs-1-3-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Permissions and Security&quot;,&quot;aN&quot;:&quot;Agents - Use Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Permissions and Security</a>
+              <ul id="docs-docs-1-3-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/run/approvals" data-m='{&quot;cN&quot;:&quot;Approvals &amp; Permissions&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Permissions and Security&quot;}'>Approvals &amp; Permissions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/agent-sandboxing" data-m='{&quot;cN&quot;:&quot;Agent Sandboxing&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Permissions and Security&quot;}'>Agent Sandboxing</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/run/security" data-m='{&quot;cN&quot;:&quot;AI Security&quot;,&quot;aN&quot;:&quot;Agents - Use Agents - Permissions and Security&quot;}'>AI Security</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel active expanded">
+              <a class="area" role="button" href="#docs-docs-1-4-articles" data-toggle="collapse" aria-controls="docs-docs-1-4-articles" aria-expanded="true" data-m='{&quot;cN&quot;:&quot;Customize agents&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Customize agents</a>
+              <ul id="docs-docs-1-4-articles" class="collapse in">
+                
+                <li>
+                  <a href="/docs/agent-customization/overview" data-m='{&quot;cN&quot;:&quot;Create and Manage&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Create and Manage</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/custom-instructions" data-m='{&quot;cN&quot;:&quot;Instructions&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Instructions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/agent-skills" data-m='{&quot;cN&quot;:&quot;Agent Skills&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Agent Skills</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/custom-agents" data-m='{&quot;cN&quot;:&quot;Custom Agents&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Custom Agents</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/language-models" data-m='{&quot;cN&quot;:&quot;Choose and Configure Models&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Choose and Configure Models</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/mcp-servers" data-m='{&quot;cN&quot;:&quot;MCP&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>MCP</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/hooks" data-m='{&quot;cN&quot;:&quot;Hooks&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Hooks</a>
+                </li>
+            
+                <li class="active">
+                  <a href="/docs/agent-customization/agent-plugins" data-m='{&quot;cN&quot;:&quot;Plugins&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}' aria-current="page" aria-label="Current Page: Plugins">Plugins</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/prompt-files" data-m='{&quot;cN&quot;:&quot;Prompt Files&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Prompt Files</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agent-customization/migrate-customizations" data-m='{&quot;cN&quot;:&quot;Migrate Existing Customizations&quot;,&quot;aN&quot;:&quot;Agents - Customize agents&quot;}'>Migrate Existing Customizations</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-5-articles" data-toggle="collapse" aria-controls="docs-docs-1-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Tutorials &amp; guides&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Tutorials &amp; guides</a>
+              <ul id="docs-docs-1-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/guides/explore-a-codebase" data-m='{&quot;cN&quot;:&quot;Explore a Codebase&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Explore a Codebase</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/add-a-feature" data-m='{&quot;cN&quot;:&quot;Add a Feature&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Add a Feature</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/fix-a-bug-with-agents" data-m='{&quot;cN&quot;:&quot;Fix a Bug&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Fix a Bug</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/refactor-safely" data-m='{&quot;cN&quot;:&quot;Refactor Safely&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Refactor Safely</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/test-code-with-ai" data-m='{&quot;cN&quot;:&quot;Add Tests&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Add Tests</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/browser-agent-testing-guide" data-m='{&quot;cN&quot;:&quot;Test Web Apps&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Test Web Apps</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/delegate-two-tasks" data-m='{&quot;cN&quot;:&quot;Run Parallel Tasks&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Run Parallel Tasks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/get-agent-back-on-track" data-m='{&quot;cN&quot;:&quot;Get Back on Track&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Get Back on Track</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/customize-copilot-guide" data-m='{&quot;cN&quot;:&quot;Adapt Agents to Your Project&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Adapt Agents to Your Project</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/context-engineering-guide" data-m='{&quot;cN&quot;:&quot;Context Engineering&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Context Engineering</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/test-driven-development-guide" data-m='{&quot;cN&quot;:&quot;Test-Driven Development&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Test-Driven Development</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/notebooks-with-ai" data-m='{&quot;cN&quot;:&quot;Jupyter Notebooks&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Jupyter Notebooks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/optimize-usage" data-m='{&quot;cN&quot;:&quot;Reduce Credit Usage&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Reduce Credit Usage</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/prompt-examples" data-m='{&quot;cN&quot;:&quot;Prompt Examples&quot;,&quot;aN&quot;:&quot;Agents - Tutorials &amp; guides&quot;}'>Prompt Examples</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-6-articles" data-toggle="collapse" aria-controls="docs-docs-1-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Reference&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Reference</a>
+              <ul id="docs-docs-1-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/reference/ai-features-cheat-sheet" data-m='{&quot;cN&quot;:&quot;Cheat Sheet&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Cheat Sheet</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/tools-reference" data-m='{&quot;cN&quot;:&quot;Tools and Context&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Tools and Context</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/ai-settings" data-m='{&quot;cN&quot;:&quot;Settings Reference&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Settings Reference</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/chat-pet" data-m='{&quot;cN&quot;:&quot;VS Code Pet&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>VS Code Pet</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/mcp-configuration" data-m='{&quot;cN&quot;:&quot;MCP Configuration&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>MCP Configuration</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/reference/hooks-reference" data-m='{&quot;cN&quot;:&quot;Hooks Reference&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>Hooks Reference</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/monitoring-agents" data-m='{&quot;cN&quot;:&quot;OpenTelemetry Monitoring&quot;,&quot;aN&quot;:&quot;Agents - Reference&quot;}'>OpenTelemetry Monitoring</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-1-7-articles" data-toggle="collapse" aria-controls="docs-docs-1-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Troubleshooting&quot;,&quot;aN&quot;:&quot;Agents&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Troubleshooting</a>
+              <ul id="docs-docs-1-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/troubleshooting" data-m='{&quot;cN&quot;:&quot;Troubleshooting&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>Troubleshooting</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/chat-debug-view" data-m='{&quot;cN&quot;:&quot;Debug Chat Interactions&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>Debug Chat Interactions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/cache-explorer" data-m='{&quot;cN&quot;:&quot;Diagnose Prompt Caching&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>Diagnose Prompt Caching</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/agent-troubleshooting/faq" data-m='{&quot;cN&quot;:&quot;FAQ&quot;,&quot;aN&quot;:&quot;Agents - Troubleshooting&quot;}'>FAQ</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-2-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-2-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Chat&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Chat</a>
+              <ul id="docs-docs-2-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/chat/chat-overview" data-m='{&quot;cN&quot;:&quot;Chat Interaction Controls&quot;,&quot;aN&quot;:&quot;Chat&quot;}'>Chat Interaction Controls</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/chat/inline-chat" data-m='{&quot;cN&quot;:&quot;Inline &amp; Quick Chat&quot;,&quot;aN&quot;:&quot;Chat&quot;}'>Inline &amp; Quick Chat</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/chat/copilot-chat-context" data-m='{&quot;cN&quot;:&quot;Add Prompt Context&quot;,&quot;aN&quot;:&quot;Chat&quot;}'>Add Prompt Context</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-3-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Editor</a>
+              <ul id="docs-docs-3-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/getting-started/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor&quot;}'>Overview</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-1-articles" data-toggle="collapse" aria-controls="docs-docs-3-1-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Getting Started&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Getting Started</a>
+              <ul id="docs-docs-3-1-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/getting-started/editor-tutorial" data-m='{&quot;cN&quot;:&quot;Editor Tutorial&quot;,&quot;aN&quot;:&quot;Editor - Getting Started&quot;}'>Editor Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/getting-started/userinterface" data-m='{&quot;cN&quot;:&quot;User Interface&quot;,&quot;aN&quot;:&quot;Editor - Getting Started&quot;}'>User Interface</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/getting-started/tips-and-tricks" data-m='{&quot;cN&quot;:&quot;Tips and Tricks&quot;,&quot;aN&quot;:&quot;Editor - Getting Started&quot;}'>Tips and Tricks</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-2-articles" data-toggle="collapse" aria-controls="docs-docs-3-2-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Write code&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Write code</a>
+              <ul id="docs-docs-3-2-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/codebasics" data-m='{&quot;cN&quot;:&quot;Basic Editing&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Basic Editing</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/intellisense" data-m='{&quot;cN&quot;:&quot;IntelliSense&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>IntelliSense</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/ai-powered-suggestions" data-m='{&quot;cN&quot;:&quot;Inline Suggestions&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Inline Suggestions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/copilot-smart-actions" data-m='{&quot;cN&quot;:&quot;Smart Actions&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Smart Actions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/editingevolved" data-m='{&quot;cN&quot;:&quot;Code Navigation&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Code Navigation</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/refactoring" data-m='{&quot;cN&quot;:&quot;Refactoring&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Refactoring</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/userdefinedsnippets" data-m='{&quot;cN&quot;:&quot;Snippets&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;}'>Snippets</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-2-7-articles" data-toggle="collapse" aria-controls="docs-docs-3-2-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Workspaces&quot;,&quot;aN&quot;:&quot;Editor - Write code&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Workspaces</a>
+              <ul id="docs-docs-3-2-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/editing/workspaces/workspaces" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor - Write code - Workspaces&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/workspaces/multi-root-workspaces" data-m='{&quot;cN&quot;:&quot;Multi-Root Workspaces&quot;,&quot;aN&quot;:&quot;Editor - Write code - Workspaces&quot;}'>Multi-Root Workspaces</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/editing/workspaces/workspace-trust" data-m='{&quot;cN&quot;:&quot;Workspace Trust&quot;,&quot;aN&quot;:&quot;Editor - Write code - Workspaces&quot;}'>Workspace Trust</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-3-articles" data-toggle="collapse" aria-controls="docs-docs-3-3-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Configure the editor&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Configure the editor</a>
+              <ul id="docs-docs-3-3-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/configure/locales" data-m='{&quot;cN&quot;:&quot;Display Language&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Display Language</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/custom-layout" data-m='{&quot;cN&quot;:&quot;Layout&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Layout</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/keybindings" data-m='{&quot;cN&quot;:&quot;Keyboard Shortcuts&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Keyboard Shortcuts</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/settings" data-m='{&quot;cN&quot;:&quot;Settings&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Settings</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/settings-sync" data-m='{&quot;cN&quot;:&quot;Settings Sync&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Settings Sync</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-3-5-articles" data-toggle="collapse" aria-controls="docs-docs-3-3-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Extensions&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Extensions</a>
+              <ul id="docs-docs-3-3-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/configure/extensions/extensions" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Extensions&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/extensions/extension-marketplace" data-m='{&quot;cN&quot;:&quot;Extension Marketplace&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Extensions&quot;}'>Extension Marketplace</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/extensions/extension-runtime-security" data-m='{&quot;cN&quot;:&quot;Extension Runtime Security&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Extensions&quot;}'>Extension Runtime Security</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+                <li>
+                  <a href="/docs/configure/themes" data-m='{&quot;cN&quot;:&quot;Themes&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Themes</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/profiles" data-m='{&quot;cN&quot;:&quot;Profiles&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Profiles</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-3-8-articles" data-toggle="collapse" aria-controls="docs-docs-3-3-8-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Accessibility&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Accessibility</a>
+              <ul id="docs-docs-3-3-8-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/configure/accessibility/accessibility" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Accessibility&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/accessibility/voice" data-m='{&quot;cN&quot;:&quot;Voice Interactions&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor - Accessibility&quot;}'>Voice Interactions</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+                <li>
+                  <a href="/docs/configure/command-line" data-m='{&quot;cN&quot;:&quot;Command Line Interface&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Command Line Interface</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/configure/telemetry" data-m='{&quot;cN&quot;:&quot;Telemetry&quot;,&quot;aN&quot;:&quot;Editor - Configure the editor&quot;}'>Telemetry</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-3-4-articles" data-toggle="collapse" aria-controls="docs-docs-3-4-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Reference&quot;,&quot;aN&quot;:&quot;Editor&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Reference</a>
+              <ul id="docs-docs-3-4-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/reference/default-keybindings" data-m='{&quot;cN&quot;:&quot;Default Keyboard Shortcuts&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Default Keyboard Shortcuts</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/reference/default-settings" data-m='{&quot;cN&quot;:&quot;Default Settings&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Default Settings</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/reference/variables-reference" data-m='{&quot;cN&quot;:&quot;Substitution Variables&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Substitution Variables</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/reference/tasks-appendix" data-m='{&quot;cN&quot;:&quot;Tasks Schema&quot;,&quot;aN&quot;:&quot;Editor - Reference&quot;}'>Tasks Schema</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-4-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-4-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Source Control&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Source Control</a>
+              <ul id="docs-docs-4-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/sourcecontrol/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/quickstart" data-m='{&quot;cN&quot;:&quot;Quickstart&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Quickstart</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/repos-remotes" data-m='{&quot;cN&quot;:&quot;Repositories &amp; Remotes&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Repositories &amp; Remotes</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/staging-commits" data-m='{&quot;cN&quot;:&quot;Staging, Commits &amp; Undo&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Staging, Commits &amp; Undo</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/history" data-m='{&quot;cN&quot;:&quot;History &amp; Blame&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>History &amp; Blame</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/branches-worktrees" data-m='{&quot;cN&quot;:&quot;Branches, Stashes &amp; Worktrees&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Branches, Stashes &amp; Worktrees</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/merge-conflicts" data-m='{&quot;cN&quot;:&quot;Merge Conflicts&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Merge Conflicts</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/github" data-m='{&quot;cN&quot;:&quot;Collaborate on GitHub&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Collaborate on GitHub</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/troubleshooting" data-m='{&quot;cN&quot;:&quot;Troubleshooting&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>Troubleshooting</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/sourcecontrol/faq" data-m='{&quot;cN&quot;:&quot;FAQ&quot;,&quot;aN&quot;:&quot;Source Control&quot;}'>FAQ</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-5-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-5-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Terminal&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Terminal</a>
+              <ul id="docs-docs-5-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/terminal/getting-started" data-m='{&quot;cN&quot;:&quot;Get Started&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Get Started</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/basics" data-m='{&quot;cN&quot;:&quot;Terminal Basics&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Terminal Basics</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/profiles" data-m='{&quot;cN&quot;:&quot;Terminal Profiles&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Terminal Profiles</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/shell-integration" data-m='{&quot;cN&quot;:&quot;Shell Integration&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Shell Integration</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/appearance" data-m='{&quot;cN&quot;:&quot;Appearance&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Appearance</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/terminal/advanced" data-m='{&quot;cN&quot;:&quot;Advanced&quot;,&quot;aN&quot;:&quot;Terminal&quot;}'>Advanced</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-6-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Debugging &amp; Testing&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Debugging &amp; Testing</a>
+              <ul id="docs-docs-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/debugtest/debugging" data-m='{&quot;cN&quot;:&quot;Debugging&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Debugging</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/debugging-configuration" data-m='{&quot;cN&quot;:&quot;Debug Configuration&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Debug Configuration</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/tasks" data-m='{&quot;cN&quot;:&quot;Tasks&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Tasks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/testing" data-m='{&quot;cN&quot;:&quot;Testing&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Testing</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/integrated-browser" data-m='{&quot;cN&quot;:&quot;Integrated Browser&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Integrated Browser</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/debugtest/port-forwarding" data-m='{&quot;cN&quot;:&quot;Port Forwarding&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;}'>Port Forwarding</a>
+                </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-6-6-articles" data-toggle="collapse" aria-controls="docs-docs-6-6-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Guides &amp; Tutorials&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Guides &amp; Tutorials</a>
+              <ul id="docs-docs-6-6-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/agents/guides/test-driven-development-guide" data-m='{&quot;cN&quot;:&quot;Test-Driven Development&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing - Guides &amp; Tutorials&quot;}'>Test-Driven Development</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/agents/guides/browser-agent-testing-guide" data-m='{&quot;cN&quot;:&quot;Test Web Apps&quot;,&quot;aN&quot;:&quot;Debugging &amp; Testing - Guides &amp; Tutorials&quot;}'>Test Web Apps</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-7-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-7-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Enterprise&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Enterprise</a>
+              <ul id="docs-docs-7-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/enterprise/overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/policies" data-m='{&quot;cN&quot;:&quot;Enterprise Policies&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Enterprise Policies</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/manage-ai-settings" data-m='{&quot;cN&quot;:&quot;Manage AI Settings&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Manage AI Settings</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/extensions" data-m='{&quot;cN&quot;:&quot;Extensions&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Extensions</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/telemetry" data-m='{&quot;cN&quot;:&quot;Telemetry&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Telemetry</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/enterprise/updates" data-m='{&quot;cN&quot;:&quot;Updates&quot;,&quot;aN&quot;:&quot;Enterprise&quot;}'>Updates</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-8-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-8-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Remote&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Remote</a>
+              <ul id="docs-docs-8-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/remote/remote-overview" data-m='{&quot;cN&quot;:&quot;Overview&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Overview</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/vscode-web" data-m='{&quot;cN&quot;:&quot;VS Code for the Web&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>VS Code for the Web</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/ssh" data-m='{&quot;cN&quot;:&quot;SSH&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>SSH</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/ssh-tutorial" data-m='{&quot;cN&quot;:&quot;SSH Tutorial&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>SSH Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/tunnels" data-m='{&quot;cN&quot;:&quot;Tunnels&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Tunnels</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/dev-containers" data-m='{&quot;cN&quot;:&quot;Dev Containers&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Dev Containers</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/wsl" data-m='{&quot;cN&quot;:&quot;WSL&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>WSL</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/wsl-tutorial" data-m='{&quot;cN&quot;:&quot;WSL Tutorial&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>WSL Tutorial</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/codespaces" data-m='{&quot;cN&quot;:&quot;GitHub Codespaces&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>GitHub Codespaces</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/vscode-server" data-m='{&quot;cN&quot;:&quot;VS Code Server&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>VS Code Server</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/linux" data-m='{&quot;cN&quot;:&quot;Linux Prerequisites&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Linux Prerequisites</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/troubleshooting" data-m='{&quot;cN&quot;:&quot;Tips and Tricks&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>Tips and Tricks</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/remote/faq" data-m='{&quot;cN&quot;:&quot;FAQ&quot;,&quot;aN&quot;:&quot;Remote&quot;}'>FAQ</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+            <li class="panel collapsed">
+              <a class="area" role="button" href="#docs-docs-9-articles" data-parent="#main-nav" data-toggle="collapse" aria-controls="docs-docs-9-articles" aria-expanded="false" data-m='{&quot;cN&quot;:&quot;Advanced Setup&quot;,&quot;cT&quot;:&quot;toggle&quot;}'>Advanced Setup</a>
+              <ul id="docs-docs-9-articles" class="collapse">
+                
+                <li>
+                  <a href="/docs/setup/copilot" data-m='{&quot;cN&quot;:&quot;GitHub Copilot Setup&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>GitHub Copilot Setup</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/linux" data-m='{&quot;cN&quot;:&quot;Linux&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Linux</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/mac" data-m='{&quot;cN&quot;:&quot;macOS&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>macOS</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/windows" data-m='{&quot;cN&quot;:&quot;Windows&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Windows</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/raspberry-pi" data-m='{&quot;cN&quot;:&quot;Raspberry Pi&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Raspberry Pi</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/network" data-m='{&quot;cN&quot;:&quot;Network&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Network</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/portable" data-m='{&quot;cN&quot;:&quot;Portable Mode&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Portable Mode</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/additional-components" data-m='{&quot;cN&quot;:&quot;Additional Components&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Additional Components</a>
+                </li>
+            
+                <li>
+                  <a href="/docs/setup/uninstall" data-m='{&quot;cN&quot;:&quot;Uninstall&quot;,&quot;aN&quot;:&quot;Advanced Setup&quot;}'>Uninstall</a>
+                </li>
+            
+              </ul>
+            </li>
+            
+                <li>
+                  <a class="area" href="/docs/languages/overview" data-m='{&quot;cN&quot;:&quot;Languages &amp; Runtimes&quot;}'>Languages &amp; Runtimes</a>
+                </li>
+            
+                <li>
+                  <a class="area" href="/docs/extension-docs/overview" data-m='{&quot;cN&quot;:&quot;Extension Docs&quot;}'>Extension Docs</a>
+                </li>
+            
+              </ul>
+            </nav>
+            <nav id="small-nav" aria-label="Topics" class="docs-nav hidden-md hidden-lg">
+              <label class="faux-h4" for="small-nav-dropdown">Topics</label>
+              <select id="small-nav-dropdown" aria-label="topics">
+                
+                
+                <option value="/docs">Overview</option>
+            
+                <optgroup label="Get Started">
+                <option value="/docs/getstarted/overview">Overview</option>
+            
+                <option value="/docs/agents/quickstart">Agents Quickstart</option>
+            
+                <option value="/docs/editing/getting-started/editor-tutorial">Editor Tutorial</option>
+            
+                <option value="/docs/getstarted/introvideos">Intro Videos</option>
+            </optgroup><optgroup label="Agents">
+                <option value="/docs/agents/overview">AI Overview</option>
+            <option disabled>Get started</option>
+                <option value="/docs/agents/quickstart">    Agents Quickstart</option>
+            
+                <option value="/docs/agents/guides/overview">    Find a Guide</option>
+            
+                <option value="/docs/setup/copilot">    Set Up GitHub Copilot</option>
+            
+                <option value="/docs/agents/agents-tutorial">    Agents Tutorial</option>
+            
+                <option value="/docs/agents/best-practices">    Best Practices</option>
+            <option disabled>Concepts</option>
+                <option value="/docs/agents/concepts/agents">    Agents</option>
+            
+                <option value="/docs/agents/concepts/language-models">    How Models Work</option>
+            
+                <option value="/docs/agents/concepts/context">    Context</option>
+            
+                <option value="/docs/agents/concepts/tools">    Tools</option>
+            
+                <option value="/docs/agents/concepts/sessions">    Sessions and Chats</option>
+            
+                <option value="/docs/agents/concepts/trust-and-safety">    Trust &amp; Safety</option>
+            
+                <option value="/docs/agents/concepts/customization">    Agent Customization</option>
+            
+                <option value="/docs/agents/concepts/agent-harnesses">    Agent Harnesses</option>
+            
+                <option value="/docs/agents/reference/workspace-context">    Workspace Context</option>
+            
+                <option value="/docs/agents/concepts/agent-host">    Agent Host Architecture</option>
+            <option disabled>Use Agents</option>
+                <option value="/docs/agents/run/chat-view">    Chat View and Layout</option>
+            
+                <option value="/docs/agents/run/agents-window">    Agents Window</option>
+            
+                <option value="/docs/agents/run/agent-harnesses">    Choose an Agent Harness</option>
+            
+                <option value="/docs/agents/run/agents-window-configuration">    Configure the Agents Window</option>
+            
+                <option value="/docs/chat/chat-overview">    Chat Interaction Controls</option>
+            <option disabled>    Plan and Run Tasks</option>
+                <option value="/docs/agents/run/planning">        Plan Work</option>
+            
+                <option value="/docs/agents/run/tools">        Use Tools</option>
+            
+                <option value="/docs/agents/run/browser-tools">        Browser Tools</option>
+            
+                <option value="/docs/agents/run/subagents">        Subagents</option>
+            
+                <option value="/docs/agents/run/automations">        Automations</option>
+            <option disabled>    Sessions and Results</option>
+                <option value="/docs/agents/run/sessions/manage-sessions">        Manage Sessions</option>
+            
+                <option value="/docs/agents/run/sessions/session-history">        Session History</option>
+            
+                <option value="/docs/agents/run/remote-agent-sessions">        Remote Agent Sessions</option>
+            
+                <option value="/docs/agents/run/memory">        Memory</option>
+            
+                <option value="/docs/agents/run/review-code-edits">        Review &amp; Revert Changes</option>
+            
+                <option value="/docs/agents/run/artifacts">        Artifacts</option>
+            <option disabled>    Permissions and Security</option>
+                <option value="/docs/agents/run/approvals">        Approvals &amp; Permissions</option>
+            
+                <option value="/docs/agents/run/agent-sandboxing">        Agent Sandboxing</option>
+            
+                <option value="/docs/agents/run/security">        AI Security</option>
+            <option disabled>Customize agents</option>
+                <option value="/docs/agent-customization/overview">    Create and Manage</option>
+            
+                <option value="/docs/agent-customization/custom-instructions">    Instructions</option>
+            
+                <option value="/docs/agent-customization/agent-skills">    Agent Skills</option>
+            
+                <option value="/docs/agent-customization/custom-agents">    Custom Agents</option>
+            
+                <option value="/docs/agent-customization/language-models">    Choose and Configure Models</option>
+            
+                <option value="/docs/agent-customization/mcp-servers">    MCP</option>
+            
+                <option value="/docs/agent-customization/hooks">    Hooks</option>
+            
+                <option value="/docs/agent-customization/agent-plugins" selected>    Plugins</option>
+            
+                <option value="/docs/agent-customization/prompt-files">    Prompt Files</option>
+            
+                <option value="/docs/agent-customization/migrate-customizations">    Migrate Existing Customizations</option>
+            <option disabled>Tutorials &amp; guides</option>
+                <option value="/docs/agents/guides/explore-a-codebase">    Explore a Codebase</option>
+            
+                <option value="/docs/agents/guides/add-a-feature">    Add a Feature</option>
+            
+                <option value="/docs/agents/guides/fix-a-bug-with-agents">    Fix a Bug</option>
+            
+                <option value="/docs/agents/guides/refactor-safely">    Refactor Safely</option>
+            
+                <option value="/docs/agents/guides/test-code-with-ai">    Add Tests</option>
+            
+                <option value="/docs/agents/guides/browser-agent-testing-guide">    Test Web Apps</option>
+            
+                <option value="/docs/agents/guides/delegate-two-tasks">    Run Parallel Tasks</option>
+            
+                <option value="/docs/agents/guides/get-agent-back-on-track">    Get Back on Track</option>
+            
+                <option value="/docs/agents/guides/customize-copilot-guide">    Adapt Agents to Your Project</option>
+            
+                <option value="/docs/agents/guides/context-engineering-guide">    Context Engineering</option>
+            
+                <option value="/docs/agents/guides/test-driven-development-guide">    Test-Driven Development</option>
+            
+                <option value="/docs/agents/guides/notebooks-with-ai">    Jupyter Notebooks</option>
+            
+                <option value="/docs/agents/guides/optimize-usage">    Reduce Credit Usage</option>
+            
+                <option value="/docs/agents/guides/prompt-examples">    Prompt Examples</option>
+            <option disabled>Reference</option>
+                <option value="/docs/agents/reference/ai-features-cheat-sheet">    Cheat Sheet</option>
+            
+                <option value="/docs/agents/reference/tools-reference">    Tools and Context</option>
+            
+                <option value="/docs/agents/reference/ai-settings">    Settings Reference</option>
+            
+                <option value="/docs/agents/reference/chat-pet">    VS Code Pet</option>
+            
+                <option value="/docs/agents/reference/mcp-configuration">    MCP Configuration</option>
+            
+                <option value="/docs/agents/reference/hooks-reference">    Hooks Reference</option>
+            
+                <option value="/docs/agents/guides/monitoring-agents">    OpenTelemetry Monitoring</option>
+            <option disabled>Troubleshooting</option>
+                <option value="/docs/agents/agent-troubleshooting/troubleshooting">    Troubleshooting</option>
+            
+                <option value="/docs/agents/agent-troubleshooting/chat-debug-view">    Debug Chat Interactions</option>
+            
+                <option value="/docs/agents/agent-troubleshooting/cache-explorer">    Diagnose Prompt Caching</option>
+            
+                <option value="/docs/agents/agent-troubleshooting/faq">    FAQ</option>
+            </optgroup><optgroup label="Chat">
+                <option value="/docs/chat/chat-overview">Chat Interaction Controls</option>
+            
+                <option value="/docs/chat/inline-chat">Inline &amp; Quick Chat</option>
+            
+                <option value="/docs/chat/copilot-chat-context">Add Prompt Context</option>
+            </optgroup><optgroup label="Editor">
+                <option value="/docs/editing/getting-started/overview">Overview</option>
+            <option disabled>Getting Started</option>
+                <option value="/docs/editing/getting-started/editor-tutorial">    Editor Tutorial</option>
+            
+                <option value="/docs/editing/getting-started/userinterface">    User Interface</option>
+            
+                <option value="/docs/editing/getting-started/tips-and-tricks">    Tips and Tricks</option>
+            <option disabled>Write code</option>
+                <option value="/docs/editing/codebasics">    Basic Editing</option>
+            
+                <option value="/docs/editing/intellisense">    IntelliSense</option>
+            
+                <option value="/docs/editing/ai-powered-suggestions">    Inline Suggestions</option>
+            
+                <option value="/docs/editing/copilot-smart-actions">    Smart Actions</option>
+            
+                <option value="/docs/editing/editingevolved">    Code Navigation</option>
+            
+                <option value="/docs/editing/refactoring">    Refactoring</option>
+            
+                <option value="/docs/editing/userdefinedsnippets">    Snippets</option>
+            <option disabled>    Workspaces</option>
+                <option value="/docs/editing/workspaces/workspaces">        Overview</option>
+            
+                <option value="/docs/editing/workspaces/multi-root-workspaces">        Multi-Root Workspaces</option>
+            
+                <option value="/docs/editing/workspaces/workspace-trust">        Workspace Trust</option>
+            <option disabled>Configure the editor</option>
+                <option value="/docs/configure/locales">    Display Language</option>
+            
+                <option value="/docs/configure/custom-layout">    Layout</option>
+            
+                <option value="/docs/configure/keybindings">    Keyboard Shortcuts</option>
+            
+                <option value="/docs/configure/settings">    Settings</option>
+            
+                <option value="/docs/configure/settings-sync">    Settings Sync</option>
+            <option disabled>    Extensions</option>
+                <option value="/docs/configure/extensions/extensions">        Overview</option>
+            
+                <option value="/docs/configure/extensions/extension-marketplace">        Extension Marketplace</option>
+            
+                <option value="/docs/configure/extensions/extension-runtime-security">        Extension Runtime Security</option>
+            
+                <option value="/docs/configure/themes">    Themes</option>
+            
+                <option value="/docs/configure/profiles">    Profiles</option>
+            <option disabled>    Accessibility</option>
+                <option value="/docs/configure/accessibility/accessibility">        Overview</option>
+            
+                <option value="/docs/configure/accessibility/voice">        Voice Interactions</option>
+            
+                <option value="/docs/configure/command-line">    Command Line Interface</option>
+            
+                <option value="/docs/configure/telemetry">    Telemetry</option>
+            <option disabled>Reference</option>
+                <option value="/docs/reference/default-keybindings">    Default Keyboard Shortcuts</option>
+            
+                <option value="/docs/reference/default-settings">    Default Settings</option>
+            
+                <option value="/docs/reference/variables-reference">    Substitution Variables</option>
+            
+                <option value="/docs/reference/tasks-appendix">    Tasks Schema</option>
+            </optgroup><optgroup label="Source Control">
+                <option value="/docs/sourcecontrol/overview">Overview</option>
+            
+                <option value="/docs/sourcecontrol/quickstart">Quickstart</option>
+            
+                <option value="/docs/sourcecontrol/repos-remotes">Repositories &amp; Remotes</option>
+            
+                <option value="/docs/sourcecontrol/staging-commits">Staging, Commits &amp; Undo</option>
+            
+                <option value="/docs/sourcecontrol/history">History &amp; Blame</option>
+            
+                <option value="/docs/sourcecontrol/branches-worktrees">Branches, Stashes &amp; Worktrees</option>
+            
+                <option value="/docs/sourcecontrol/merge-conflicts">Merge Conflicts</option>
+            
+                <option value="/docs/sourcecontrol/github">Collaborate on GitHub</option>
+            
+                <option value="/docs/sourcecontrol/troubleshooting">Troubleshooting</option>
+            
+                <option value="/docs/sourcecontrol/faq">FAQ</option>
+            </optgroup><optgroup label="Terminal">
+                <option value="/docs/terminal/getting-started">Get Started</option>
+            
+                <option value="/docs/terminal/basics">Terminal Basics</option>
+            
+                <option value="/docs/terminal/profiles">Terminal Profiles</option>
+            
+                <option value="/docs/terminal/shell-integration">Shell Integration</option>
+            
+                <option value="/docs/terminal/appearance">Appearance</option>
+            
+                <option value="/docs/terminal/advanced">Advanced</option>
+            </optgroup><optgroup label="Debugging &amp; Testing">
+                <option value="/docs/debugtest/debugging">Debugging</option>
+            
+                <option value="/docs/debugtest/debugging-configuration">Debug Configuration</option>
+            
+                <option value="/docs/debugtest/tasks">Tasks</option>
+            
+                <option value="/docs/debugtest/testing">Testing</option>
+            
+                <option value="/docs/debugtest/integrated-browser">Integrated Browser</option>
+            
+                <option value="/docs/debugtest/port-forwarding">Port Forwarding</option>
+            <option disabled>Guides &amp; Tutorials</option>
+                <option value="/docs/agents/guides/test-driven-development-guide">    Test-Driven Development</option>
+            
+                <option value="/docs/agents/guides/browser-agent-testing-guide">    Test Web Apps</option>
+            </optgroup><optgroup label="Enterprise">
+                <option value="/docs/enterprise/overview">Overview</option>
+            
+                <option value="/docs/enterprise/policies">Enterprise Policies</option>
+            
+                <option value="/docs/enterprise/manage-ai-settings">Manage AI Settings</option>
+            
+                <option value="/docs/enterprise/extensions">Extensions</option>
+            
+                <option value="/docs/enterprise/telemetry">Telemetry</option>
+            
+                <option value="/docs/enterprise/updates">Updates</option>
+            </optgroup><optgroup label="Remote">
+                <option value="/docs/remote/remote-overview">Overview</option>
+            
+                <option value="/docs/remote/vscode-web">VS Code for the Web</option>
+            
+                <option value="/docs/remote/ssh">SSH</option>
+            
+                <option value="/docs/remote/ssh-tutorial">SSH Tutorial</option>
+            
+                <option value="/docs/remote/tunnels">Tunnels</option>
+            
+                <option value="/docs/remote/dev-containers">Dev Containers</option>
+            
+                <option value="/docs/remote/wsl">WSL</option>
+            
+                <option value="/docs/remote/wsl-tutorial">WSL Tutorial</option>
+            
+                <option value="/docs/remote/codespaces">GitHub Codespaces</option>
+            
+                <option value="/docs/remote/vscode-server">VS Code Server</option>
+            
+                <option value="/docs/remote/linux">Linux Prerequisites</option>
+            
+                <option value="/docs/remote/troubleshooting">Tips and Tricks</option>
+            
+                <option value="/docs/remote/faq">FAQ</option>
+            </optgroup><optgroup label="Advanced Setup">
+                <option value="/docs/setup/copilot">GitHub Copilot Setup</option>
+            
+                <option value="/docs/setup/linux">Linux</option>
+            
+                <option value="/docs/setup/mac">macOS</option>
+            
+                <option value="/docs/setup/windows">Windows</option>
+            
+                <option value="/docs/setup/raspberry-pi">Raspberry Pi</option>
+            
+                <option value="/docs/setup/network">Network</option>
+            
+                <option value="/docs/setup/portable">Portable Mode</option>
+            
+                <option value="/docs/setup/additional-components">Additional Components</option>
+            
+                <option value="/docs/setup/uninstall">Uninstall</option>
+            </optgroup>
+                <option value="/docs/languages/overview">Languages &amp; Runtimes</option>
+            
+                <option value="/docs/extension-docs/overview">Extension Docs</option>
+            
+              </select>
+            </nav>        </aside>
+        
+        <!-- Content wrapper contains main content + right sidebar -->
+        <div class="docs-content-wrapper">
+            <!-- Right sidebar - On This Page -->
+            <aside class="docs-right-sidebar hidden-xs">
+                <nav id="docs-subnavbar" aria-label="On Page">
+                    
+                    <h4><span class="sr-only">On this page there are 14 sections</span><span
+                            aria-hidden="true">On this page</span></h4>
+                    <ul class="nav">
+                        
+                        <li><a href="#_what-plugins-provide">What plugins provide</a></li>
+                        
+                        <li><a href="#_plugin-manifest-pluginjson">Plugin manifest (plugin.json)</a></li>
+                        
+                        <li><a href="#_plugin-formats">Plugin formats</a></li>
+                        
+                        <li><a href="#_automations-in-plugins">Automations in plugins</a></li>
+                        
+                        <li><a href="#_mcp-servers-in-plugins">MCP servers in plugins</a></li>
+                        
+                        <li><a href="#_hooks-in-plugins">Hooks in plugins</a></li>
+                        
+                        <li><a href="#_discover-and-install-plugins">Discover and install plugins</a></li>
+                        
+                        <li><a href="#_configure-plugin-marketplaces">Configure plugin marketplaces</a></li>
+                        
+                        <li><a href="#_use-local-plugins">Use local plugins</a></li>
+                        
+                        <li><a href="#_update-plugins">Update plugins</a></li>
+                        
+                        <li><a href="#_workspace-plugin-recommendations">Workspace plugin recommendations</a></li>
+                        
+                        <li><a href="#_cross-tool-compatibility">Cross-tool compatibility</a></li>
+                        
+                        <li><a href="#_troubleshooting">Troubleshooting</a></li>
+                        
+                        <li><a href="#_related-resources">Related resources</a></li>
+                        
+                    </ul>
+                    
+                </nav>
+                
+            </aside>
+            
+            <!-- Main article content -->
+            <main class="docs-main-content body">
+                
+                <h1>Agent plugins in VS Code</h1>
+                
+                
+
+
+
+
+<div class="docs-markdown-actions">
+	<div class="docs-markdown-dropdown" data-markdown-url="/docs/agent-customization/agent-plugins.md">
+		<button type="button" class="docs-markdown-btn-main" data-action="copy-markdown" aria-label="Copy as Markdown">
+			<span class="codicon codicon-copy" aria-hidden="true"></span>
+			<span>Copy as Markdown</span>
+		</button>
+		<button type="button" class="docs-markdown-btn-trigger" aria-haspopup="menu" aria-expanded="false" aria-label="More page actions">
+			<span class="codicon codicon-chevron-down docs-markdown-chevron" aria-hidden="true"></span>
+		</button>
+		<ul class="docs-markdown-menu" role="menu" aria-label="Page actions">
+			<li role="none">
+				<button type="button" role="menuitem" data-action="copy-markdown">
+					<span class="codicon codicon-copy" aria-hidden="true"></span>
+					<span>Copy as Markdown</span>
+				</button>
+			</li>
+			<li role="none">
+				<a role="menuitem" data-action="view-markdown" href="/docs/agent-customization/agent-plugins.md" target="_blank" rel="noopener noreferrer">
+					<span class="codicon codicon-file" aria-hidden="true"></span>
+					<span>View as Markdown</span>
+					<span class="codicon codicon-link-external" aria-hidden="true"></span>
+				</a>
+			</li>
+			<li class="docs-markdown-menu-separator" role="separator"></li>
+			<li role="none">
+				<a role="menuitem" data-action="ask-vscode" data-version="stable" href="vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagent-customization%2Fagent-plugins%20and%20answer%20questions%20about%20the%20content.&amp;windowId=_blank">
+					<span class="codicon codicon-chat-sparkle" aria-hidden="true"></span>
+					<span>Ask in VS Code</span>
+				</a>
+			</li>
+			<li role="none">
+				<a role="menuitem" data-action="ask-vscode" data-version="insiders" href="vscode-insiders://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagent-customization%2Fagent-plugins%20and%20answer%20questions%20about%20the%20content.&amp;windowId=_blank">
+					<span class="codicon codicon-chat-sparkle" aria-hidden="true"></span>
+					<span>Ask in VS Code Insiders</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<noscript>
+		<a class="docs-page-actions-noscript" href="vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagent-customization%2Fagent-plugins%20and%20answer%20questions%20about%20the%20content.&amp;windowId=_blank">
+			<span class="codicon codicon-chat-sparkle" aria-hidden="true"></span>
+			<span>Ask in VS Code</span>
+		</a>
+	</noscript>
+</div>
+
+                <hr class="docs-article-header-divider" aria-hidden="true">
+                
+                
+<p>Agent plugins bundle related customizations into one installable setup. Use a plugin to adopt a shared workflow instead of assembling its skills, agents, and tool integrations individually. For example, a testing plugin can package a test-running skill, review agent, and reporting integration that are intended to work together.</p>
+<p>If you only need a project rule or a single skill, start with an <a href="/docs/agents/concepts/customization#_customization-options-at-a-glance">individual customization</a>. Choose a bundle when its components support a workflow you want to adopt together.</p>
+<p>You can discover and install plugins from plugin marketplaces in Visual Studio Code. Plugins work alongside your locally defined customizations. When you install a plugin, its supported customizations become available in the relevant agent interfaces.</p>
+<p>Agent Plugins is an <a href="https://agent-plugins.org/" class="external-link" target="_blank">open standard</a> for packaging <a href="/docs/agent-customization/agent-skills">agent skills</a> and <a href="/docs/agent-customization/mcp-servers">MCP servers</a> that works across multiple AI agents, including GitHub Copilot in VS Code, GitHub Copilot CLI, and the GitHub Copilot app.
+VS Code also supports client-specific plugin capabilities, including slash commands, <a href="/docs/agent-customization/custom-agents">custom agents</a>, rules, <a href="/docs/agent-customization/hooks">hooks</a>, and <a href="#_automations-in-plugins">automation templates</a>. In an Agent Plugins package, most of these capabilities come from the <code>com.github.copilot</code> namespace. The existing Copilot and Claude plugin formats keep their own layouts.</p>
+<p>For how plugins fit into the broader set of customization options, see <a href="/docs/agents/concepts/customization">Customization concepts</a>.</p>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>Enable or disable support for agent plugins with the <span class="setting"><span class="setting-dropdown" data-setting-id="chat.plugins.enabled">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      chat.plugins.enabled
+      <span class="setting-policy-info codicon codicon-info" data-tooltip="This setting can be configured by an organization policy." role="note" tabindex="0" aria-label="This setting can be configured by an organization policy."></span>
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span> setting.</p>
+</div><h2 id="_what-plugins-provide" data-needslink="_what-plugins-provide">What plugins provide</h2>
+<p>Agent Plugins 1.0 defines skills and MCP servers as portable component types. Other capabilities are client-specific and use the standard's reverse-domain <a href="https://agent-plugins.org/plugin-authors/client-extensions" class="external-link" target="_blank">client extension namespaces</a>. VS Code reads Copilot-specific components from the <code>com.github.copilot</code> namespace and ignores namespaces owned by other clients.</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Capability</th>
+<th>Description</th>
+<th style="text-align:center">Client-specific</th>
+<th style="text-align:center">Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/docs/agent-customization/mcp-servers">MCP servers</a></td>
+<td>External tool integrations</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">✓</td>
+</tr>
+<tr>
+<td><a href="/docs/agent-customization/agent-skills">Skills</a></td>
+<td>Instructions, scripts, and resources that load on-demand</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">✓</td>
+</tr>
+<tr>
+<td><a href="/docs/agent-customization/custom-agents">Agents</a></td>
+<td>Specialized personas and tool configurations</td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td><a href="/docs/agent-customization/hooks">Hooks</a></td>
+<td>Shell commands that execute at agent lifecycle points</td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td><a href="#_automations-in-plugins">Automation templates</a></td>
+<td>Reusable prompts and schedules for agent tasks</td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Slash commands</td>
+<td>Commands you can invoke with <code>/</code> in chat</td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center"></td>
+</tr>
+</tbody>
+</table>
+<p>For example, a testing plugin might include a <code>test-runner</code> skill with scripts, a <code>test-reviewer</code> agent with read-only tools, and an MCP server for a test reporting dashboard. In the Agent Plugins format, the directory structure looks like this:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-testing-plugin/</span></span>
+<span class="line"><span>  plugin.json              # Plugin metadata and configuration</span></span>
+<span class="line"><span>  skills/</span></span>
+<span class="line"><span>    test-runner/</span></span>
+<span class="line"><span>      SKILL.md             # Testing skill instructions</span></span>
+<span class="line"><span>      run-tests.sh         # Supporting script</span></span>
+<span class="line"><span>  mcp.json                 # MCP server definitions</span></span>
+<span class="line"><span>  automations/</span></span>
+<span class="line"><span>    review.automation.md   # Automation template</span></span>
+<span class="line"><span>  scripts/</span></span>
+<span class="line"><span>    validate-tests.sh      # Hook script</span></span>
+<span class="line"><span>  com.github.copilot/</span></span>
+<span class="line"><span>    agents/</span></span>
+<span class="line"><span>      test-reviewer.agent.md  # Code review agent</span></span>
+<span class="line"><span>    hooks/</span></span>
+<span class="line"><span>      hooks.json           # Hook configuration</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>Plugins in the Copilot and Claude formats provide the same capabilities from different locations. See <a href="#_plugin-formats">Plugin formats</a>.</p>
+<p>Once installed, plugin-provided customizations appear alongside your locally defined ones. For example, skills from a plugin show up in the <strong>Configure Skills</strong> menu, and MCP servers from a plugin appear in the MCP server list.</p>
+<div class="markdown-alert caution" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Caution
+      </span><p>Plugins can include hooks and MCP servers that run code on your machine. Review the plugin contents and publisher before installing, especially for plugins from community marketplaces.</p>
+</div><h2 id="_plugin-manifest-pluginjson" data-needslink="_plugin-manifest-pluginjson">Plugin manifest (plugin.json)</h2>
+<p>An Agent Plugins 1.0 package has a <code>plugin.json</code> file at its root that declares the standard's schema:</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "$schema"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "name"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"my-dev-tools"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "description"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"React development utilities"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "version"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"1.2.0"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th style="text-align:center">Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$schema</code></td>
+<td>string</td>
+<td style="text-align:center">Yes</td>
+<td>Canonical Agent Plugins schema identifier.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td style="text-align:center">Yes</td>
+<td>Plugin name and package identifier.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>string</td>
+<td style="text-align:center">No</td>
+<td>Plugin version. Semantic Versioning is recommended.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td style="text-align:center">No</td>
+<td>Brief description of the plugin.</td>
+</tr>
+<tr>
+<td><code>author</code></td>
+<td>object</td>
+<td style="text-align:center">No</td>
+<td>Author information with optional <code>name</code>, <code>email</code>, and <code>url</code> fields.</td>
+</tr>
+<tr>
+<td><code>homepage</code></td>
+<td>string</td>
+<td style="text-align:center">No</td>
+<td>Documentation or homepage.</td>
+</tr>
+<tr>
+<td><code>repository</code></td>
+<td>string</td>
+<td style="text-align:center">No</td>
+<td>Source repository.</td>
+</tr>
+<tr>
+<td><code>license</code></td>
+<td>string</td>
+<td style="text-align:center">No</td>
+<td>License identifier. An SPDX identifier is recommended.</td>
+</tr>
+<tr>
+<td><code>keywords</code></td>
+<td>string[]</td>
+<td style="text-align:center">No</td>
+<td>Search and discovery terms.</td>
+</tr>
+<tr>
+<td><code>extensions</code></td>
+<td>object</td>
+<td style="text-align:center">No</td>
+<td>Client-specific data keyed by reverse-domain namespace.</td>
+</tr>
+</tbody>
+</table>
+<p>Skills are discovered from the <code>skills/</code> folder, and MCP server configuration is discovered from the <code>mcp.json</code> file. You don't list these component paths in the manifest. Custom agents, hooks, commands, and MCP server definitions are not portable top-level manifest fields.</p>
+<p>Copilot-specific components live in the <code>com.github.copilot</code> directory at the plugin root, and Copilot-specific manifest data goes under the matching key in <code>extensions</code>:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-plugin/</span></span>
+<span class="line"><span>  plugin.json              # $schema declares Agent Plugins 1.0</span></span>
+<span class="line"><span>  skills/                  # Portable: agent skills</span></span>
+<span class="line"><span>  mcp.json                 # Portable: MCP server configuration</span></span>
+<span class="line"><span>  com.github.copilot/      # Copilot-specific components</span></span>
+<span class="line"><span>    agents/</span></span>
+<span class="line"><span>    commands/</span></span>
+<span class="line"><span>    rules/</span></span>
+<span class="line"><span>    hooks/</span></span>
+<span class="line"><span>      hooks.json</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>Other clients ignore the <code>com.github.copilot</code> namespace, so a package stays portable while keeping its Copilot capabilities.</p>
+<p>For the full field constraints and validation rules, see the <a href="https://agent-plugins.org/plugin-authors/manifest" class="external-link" target="_blank">Agent Plugins manifest documentation</a>.</p>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>Existing Copilot-format plugins that don't declare the Agent Plugins schema remain supported. For their manifest fields, see the <a href="https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference#pluginjson" class="external-link" target="_blank">GitHub Copilot CLI plugin reference</a>.</p>
+</div><h2 id="_plugin-formats" data-needslink="_plugin-formats">Plugin formats</h2>
+<p>VS Code auto-detects the plugin format by checking the root manifest and format-specific manifest paths. A root <code>plugin.json</code> that declares the canonical Agent Plugins <code>$schema</code> uses Agent Plugins semantics. The Copilot format is used as the default when no other format marker is found.</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Plugin format</th>
+<th>Plugin manifest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent Plugins 1.0</td>
+<td><code>plugin.json</code> with <code>$schema</code> set to <code>https://agent-plugins.org/schemas/1.0.0/plugin.schema.json</code></td>
+</tr>
+<tr>
+<td>Copilot</td>
+<td><code>plugin.json</code></td>
+</tr>
+<tr>
+<td>Claude</td>
+<td><code>.claude-plugin/plugin.json</code></td>
+</tr>
+<tr>
+<td>Legacy OpenPlugin</td>
+<td><code>.plugin/plugin.json</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="_plugin-environment-variables" data-needslink="_plugin-environment-variables">Plugin environment variables</h3>
+<p>Some plugin formats provide a root token that you can use in hook commands and MCP server configurations to reference files within the plugin directory. VS Code expands the token at runtime and also sets it as an environment variable in the hook or server process.</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Plugin format</th>
+<th>Plugin root</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent Plugins 1.0</td>
+<td><code>${PLUGIN_ROOT}</code></td>
+</tr>
+<tr>
+<td>Claude</td>
+<td><code>${CLAUDE_PLUGIN_ROOT}</code></td>
+</tr>
+<tr>
+<td>Copilot</td>
+<td><code>${PLUGIN_ROOT}</code> or <code>${CLAUDE_PLUGIN_ROOT}</code></td>
+</tr>
+<tr>
+<td>Legacy OpenPlugin</td>
+<td><code>${PLUGIN_ROOT}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Agent Plugins 1.0 also defines <code>${PLUGIN_ROOT}</code> for packaged files and <code>${PLUGIN_DATA}</code> for writable state that persists across plugin updates. VS Code preserves these placeholders for the plugin runtime to expand. For details about where placeholders are supported, see the <a href="https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md#9-environment-variables-and-placeholder-expansion" class="external-link" target="_blank">Agent Plugins specification</a>.</p>
+<h2 id="_automations-in-plugins" data-needslink="_automations-in-plugins">Automations in plugins</h2>
+<p>Agent Plugins can contribute automation templates that appear under <strong>Templates from Plugins</strong> in the <a href="/docs/agents/run/automations#_start-from-a-template">Agents window</a>. A template provides a reusable name, prompt, and schedule. It doesn't create or enable an automation when the plugin is installed.</p>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>Automation templates are a VS Code-specific plugin capability, not a portable Agent Plugins 1.0 component type.</p>
+</div><h3 id="_automation-template-location" data-needslink="_automation-template-location">Automation template location</h3>
+<p>Store automation templates in an <code>automations/</code> folder at the root of an Agent Plugins package. Each file must use the <code>.automation.md</code> suffix:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-plugin/</span></span>
+<span class="line"><span>  plugin.json</span></span>
+<span class="line"><span>  automations/</span></span>
+<span class="line"><span>    daily-review.automation.md</span></span>
+<span class="line"><span>    weekly-review.automation.md</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>To add templates from other folders, configure <code>extensions.com.github.copilot.automations.paths</code> in <code>plugin.json</code>. These paths are relative to the <code>com.github.copilot/</code> folder and supplement the default <code>automations/</code> folder:</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "$schema"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "name"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"my-dev-tools"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "version"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"1.2.0"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "extensions"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "com.github.copilot"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "automations"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "paths"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"./team-automations/"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">]</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<p>Set <code>exclusive</code> to <code>true</code> alongside <code>paths</code> to load templates only from the configured folders and skip the default <code>automations/</code> folder.</p>
+<h3 id="_automation-template-format" data-needslink="_automation-template-format">Automation template format</h3>
+<p>An automation template is a Markdown file with YAML frontmatter. The Markdown body is the prompt:</p>
+<pre class="shiki" data-lang="markdown" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">---</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">version</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#B5CEA8;--shiki-light:#098658">1</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">id</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">weekly-review</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">name</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">Weekly review</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">description</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">Review the workspace for regressions.</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">schedule</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">:</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">  kind</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">cron</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">  expression</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"30 10 * * 5"</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">  timeZone</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">local</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">---</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">Review the workspace changes from the past week.</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">Identify regressions and suggest follow-up actions.</span></span>
+<span class="line"></span></code></pre>
+<p>The frontmatter supports these fields:</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Field</th>
+<th style="text-align:center">Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>version</code></td>
+<td style="text-align:center">Yes</td>
+<td>File format version. Use <code>1</code>.</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td style="text-align:center">Yes</td>
+<td>Identifier that is unique within the plugin. Use lowercase letters, numbers, periods, or hyphens, with a maximum of 64 characters.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td style="text-align:center">Yes</td>
+<td>Display name for the template.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td style="text-align:center">No</td>
+<td>Short description of the automation's purpose.</td>
+</tr>
+<tr>
+<td><code>schedule</code></td>
+<td style="text-align:center">Yes</td>
+<td>Manual, hourly, daily, or weekly schedule.</td>
+</tr>
+</tbody>
+</table>
+<p>Use one of these schedule formats:</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Schedule</th>
+<th>YAML</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Manual</td>
+<td><code>kind: manual</code></td>
+</tr>
+<tr>
+<td>Hourly</td>
+<td><code>kind: hourly</code></td>
+</tr>
+<tr>
+<td>Daily</td>
+<td><code>kind: cron</code>, a five-field expression such as <code>&quot;0 9 * * *&quot;</code>, and <code>timeZone: local</code></td>
+</tr>
+<tr>
+<td>Weekly</td>
+<td><code>kind: cron</code>, a five-field expression such as <code>&quot;30 10 * * 5&quot;</code>, and <code>timeZone: local</code></td>
+</tr>
+</tbody>
+</table>
+<p>The five cron fields represent minute, hour, day of month, month, and day of week. Only local-time cron expressions that represent a daily or weekly schedule are supported. VS Code ignores invalid templates rather than changing their schedule.</p>
+<p>Plugin templates can't specify a workspace, provider, model, permissions, enabled state, or run history. When someone selects a template, the <strong>New Automation</strong> dialog opens so they can review the prompt and choose the execution configuration. The <strong>Enabled</strong> checkbox is cleared by default.</p>
+<p>Disabling a plugin removes its templates from the Automations view. Automations that were previously created from those templates and their run history remain available.</p>
+<h2 id="_mcp-servers-in-plugins" data-needslink="_mcp-servers-in-plugins">MCP servers in plugins</h2>
+<p>Plugins can bundle <a href="/docs/agent-customization/mcp-servers">MCP servers</a> to provide agents with additional tools and data sources. Plugin MCP servers start automatically when the plugin is enabled and stop when the plugin is disabled.</p>
+<h3 id="_mcp-configuration-file" data-needslink="_mcp-configuration-file">MCP configuration file</h3>
+<div class="docs-switcher" data-switcher-id="mcp-configuration"><div role="tablist" class="docs-switcher-tabs" aria-label="Content variants"><button type="button" role="tab" id="switcher-mcp-configuration-0-tab-0" class="docs-switcher-tab" aria-controls="switcher-mcp-configuration-0-panel-0" aria-selected="true" tabindex="0" data-tab-value="agent-plugins-1-0">Agent Plugins 1.0</button><button type="button" role="tab" id="switcher-mcp-configuration-0-tab-1" class="docs-switcher-tab" aria-controls="switcher-mcp-configuration-0-panel-1" aria-selected="false" tabindex="-1" data-tab-value="copilot-and-claude">Copilot and Claude</button></div><div role="tabpanel" id="switcher-mcp-configuration-0-panel-0" class="docs-switcher-panel" aria-labelledby="switcher-mcp-configuration-0-tab-0" data-tab-value="agent-plugins-1-0"><p>Place MCP server definitions in the <code>mcp.json</code> file at the plugin root and follow the <a href="https://agent-plugins.org/plugin-authors/mcp-servers" class="external-link" target="_blank">portable MCP configuration format</a>.</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-plugin/</span></span>
+<span class="line"><span>  plugin.json             # Plugin metadata and configuration</span></span>
+<span class="line"><span>  skills/</span></span>
+<span class="line"><span>  mcp.json              # MCP server definitions</span></span>
+<span class="line"><span>  servers/</span></span>
+<span class="line"><span>    db-server             # Server executable</span></span>
+<span class="line"><span>  config.json             # Server configuration</span></span>
+<span class="line"><span></span></span></code></pre></div><div role="tabpanel" id="switcher-mcp-configuration-0-panel-1" class="docs-switcher-panel" aria-labelledby="switcher-mcp-configuration-0-tab-1" data-tab-value="copilot-and-claude" hidden><p>Place MCP server definitions in the <code>.mcp.json</code> file at the plugin root. VS Code discovers this file automatically when it loads the plugin.</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-plugin/</span></span>
+<span class="line"><span>  plugin.json             # Plugin metadata and configuration</span></span>
+<span class="line"><span>  skills/</span></span>
+<span class="line"><span>  .mcp.json              # MCP server definitions</span></span>
+<span class="line"><span>  servers/</span></span>
+<span class="line"><span>    db-server             # Server executable</span></span>
+<span class="line"><span>  config.json             # Server configuration</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>In the <code>.mcp.json</code> file, MCP servers are defined in a top-level <code>mcpServers</code> object. Each server entry specifies a command, arguments, and optional environment variables:</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "mcpServers"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "plugin-database"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}/servers/db-server"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "args"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"--config"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}/config.json"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">],</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "env"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "DB_PATH"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}/data"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    },</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "plugin-api"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"npx"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "args"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"@company/mcp-server"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">, </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"--plugin-mode"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">],</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "cwd"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<h3 id="_reference-plugin-paths-in-server-configuration" data-needslink="_reference-plugin-paths-in-server-configuration">Reference plugin paths in server configuration</h3>
+<p>For Claude-format plugins, use the <code>${CLAUDE_PLUGIN_ROOT}</code> token in MCP server fields to reference executables and files within the plugin directory. VS Code expands this token in the following fields:</p>
+<ul>
+<li><code>command</code>: the executable path</li>
+<li><code>args</code>: command-line arguments</li>
+<li><code>cwd</code>: working directory</li>
+<li><code>env</code>: environment variable values</li>
+<li><code>envFile</code>: path to an environment file</li>
+<li><code>url</code>: for HTTP-based MCP servers</li>
+<li><code>headers</code>: HTTP header values</li>
+</ul>
+<p>VS Code also injects a <code>CLAUDE_PLUGIN_ROOT</code> environment variable into the server process, so server code can access the plugin path at runtime.</p></div></div>
+<h3 id="_how-plugin-mcp-servers-interact-with-other-servers" data-needslink="_how-plugin-mcp-servers-interact-with-other-servers">How plugin MCP servers interact with other servers</h3>
+<p>Plugin MCP servers appear alongside workspace and user-level MCP servers. You can manage them through the same tools:</p>
+<ul>
+<li>
+<p>Select <strong>Configure Tools</strong> in the Chat view to see tools from all MCP servers, including plugin servers.</p>
+</li>
+<li>
+<p>Run <strong>MCP: List Servers</strong> from the Command Palette to view plugin servers alongside other servers.</p>
+</li>
+</ul>
+<p>Plugin MCP servers are implicitly trusted when you install the plugin. Unlike workspace MCP servers, they do not show a separate trust prompt at startup.</p>
+<p>Disabling a plugin stops its MCP servers. Tools provided by the stopped servers are no longer available in chat.</p>
+<h2 id="_hooks-in-plugins" data-needslink="_hooks-in-plugins">Hooks in plugins</h2>
+<p>Plugins can include <a href="/docs/agent-customization/hooks">hooks</a> that run shell commands at agent lifecycle points. Plugin-wide hooks work alongside your workspace and user-level hooks. When a plugin is enabled, these hooks fire in addition to any other hooks configured for the same event.</p>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>Hooks are client-specific and are not a portable Agent Plugins 1.0 component type. In an Agent Plugins package, they come from the <code>com.github.copilot</code> namespace.</p>
+</div><p>Organizations can distribute approved hooks through plugins. When managed settings specify <code>allowManagedHooksOnly: true</code>, plugin hooks run only when the plugin is force-enabled by a managed <code>enabledPlugins[&quot;plugin@marketplace&quot;]: true</code> entry. User enablement alone is not sufficient, and <code>allowManagedHooksOnly</code> does not itself enable the plugin. See <a href="/docs/enterprise/manage-ai-settings#_deploy-hooks-through-managed-plugins">Deploy hooks through managed plugins</a>.</p>
+<p>Hook configuration and payloads depend on the session's harness. The event and matcher behavior described below applies to the Local harness. Start with <a href="/docs/agent-customization/hooks#_choose-the-hook-implementation-for-your-session">choosing a hook implementation</a> for Copilot, Claude, and Codex sessions.</p>
+<h3 id="_hook-file-location" data-needslink="_hook-file-location">Hook file location</h3>
+<p>The hook file location depends on the plugin format:</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Plugin format</th>
+<th>Hook file path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent Plugins 1.0</td>
+<td><code>com.github.copilot/hooks/hooks.json</code></td>
+</tr>
+<tr>
+<td>Claude</td>
+<td><code>hooks/hooks.json</code></td>
+</tr>
+<tr>
+<td>Copilot</td>
+<td><code>hooks.json</code> (at the plugin root)</td>
+</tr>
+</tbody>
+</table>
+<p>VS Code auto-detects the plugin format and discovers the hook file automatically.</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-plugin/</span></span>
+<span class="line"><span>  plugin.json</span></span>
+<span class="line"><span>  com.github.copilot/</span></span>
+<span class="line"><span>    hooks/</span></span>
+<span class="line"><span>      hooks.json         # Hook configuration (Agent Plugins format)</span></span>
+<span class="line"><span>  scripts/</span></span>
+<span class="line"><span>    format.sh            # Hook script referenced by hooks.json</span></span>
+<span class="line"><span></span></span></code></pre>
+<h3 id="_hook-configuration-format" data-needslink="_hook-configuration-format">Hook configuration format</h3>
+<p>For the Local harness, plugin hooks use the same base format as <a href="/docs/agent-customization/hooks#_local-hook-configuration-formats">workspace hooks</a>. The Local parser accepts Claude hook configuration, including matcher syntax, but ignores matcher values. As a result, all nested commands for the event run in Local sessions.</p>
+<p><strong>Flat format</strong> (same as workspace hooks):</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "hooks"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "PostToolUse"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "type"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}/scripts/format.sh"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    ]</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<p><strong>Matcher format</strong> (Claude compatibility syntax):</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "hooks"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "PostToolUse"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "matcher"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"Write|Edit"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "hooks"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">          {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">            "type"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">            "command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}/scripts/format.sh"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">          }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">        ]</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    ]</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<p>The Local harness parses the <code>matcher</code> field for compatibility with Claude Code, but ignores matcher values. To filter Local hook behavior, check the event input inside the hook script.</p>
+<h3 id="_reference-plugin-paths-in-hook-commands" data-needslink="_reference-plugin-paths-in-hook-commands">Reference plugin paths in hook commands</h3>
+<p>Use a plugin-root token in Local hook commands to reference bundled scripts and files without hardcoding the plugin's installation path.</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Plugin format</th>
+<th>Token</th>
+<th>Environment variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude</td>
+<td><code>${CLAUDE_PLUGIN_ROOT}</code></td>
+<td><code>CLAUDE_PLUGIN_ROOT</code></td>
+</tr>
+<tr>
+<td>Legacy OpenPlugin</td>
+<td><code>${PLUGIN_ROOT}</code></td>
+<td><code>PLUGIN_ROOT</code></td>
+</tr>
+</tbody>
+</table>
+<p>VS Code expands the token to the plugin's absolute path in hook commands and <code>env</code> values. This includes the <code>command</code>, <code>bash</code>, <code>powershell</code>, and platform-specific command fields. Expanded command paths are shell-quoted, so plugin paths can contain spaces.</p>
+<p>The hook process also receives the matching root environment variable. For example, a Node.js script can read <code>process.env.CLAUDE_PLUGIN_ROOT</code>. These references resolve to the new root when the plugin is discovered at a different location.</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "hooks"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "PreToolUse"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "type"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "command"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"${CLAUDE_PLUGIN_ROOT}/scripts/validate-tool.sh"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    ]</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<p>The same expansion applies to hooks in the frontmatter of plugin-provided custom agents. For example, a Claude-format plugin can contribute <code>agents/reviewer.md</code> that invokes its bundled <code>scripts/validate-tool.js</code> script:</p>
+<pre class="shiki" data-lang="markdown" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">---</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">name</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">Code reviewer</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">description</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">Review code with plugin-provided validation.</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">hooks</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">:</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">  PreToolUse</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">:</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">    - </span><span style="--shiki-dark:#569CD6;--shiki-light:#800000">type</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#0000FF">command</span></span>
+<span class="line"><span style="--shiki-dark:#569CD6;--shiki-light:#800000">      command</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000FF">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"node ${CLAUDE_PLUGIN_ROOT}/scripts/validate-tool.js"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">---</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">Review code for correctness and maintainability.</span></span>
+<span class="line"></span></code></pre>
+<p>For legacy OpenPlugin plugins, use <code>${PLUGIN_ROOT}</code> in place of <code>${CLAUDE_PLUGIN_ROOT}</code>.</p>
+<p>These <a href="/docs/agent-customization/hooks#_agent-scoped-hooks-for-local">agent-scoped hooks</a> are in Preview and require the Local harness, <span class="setting"><span class="setting-dropdown" data-setting-id="chat.useHooks">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      chat.useHooks
+      <span class="setting-policy-info codicon codicon-info" data-tooltip="This setting can be configured by an organization policy." role="note" tabindex="0" aria-label="This setting can be configured by an organization policy."></span>
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span>, and a trusted workspace. They run only while the contributing custom agent is active, including when it runs as a subagent.</p>
+<h3 id="_supported-hook-events" data-needslink="_supported-hook-events">Supported hook events</h3>
+<p>In the Local harness, plugin hooks support the same events as workspace hooks: <code>SessionStart</code>, <code>UserPromptSubmit</code>, <code>PreToolUse</code>, <code>PostToolUse</code>, <code>PreCompact</code>, <code>SubagentStart</code>, <code>SubagentStop</code>, and <code>Stop</code>. See the <a href="/docs/agents/reference/hooks-reference">Local hooks reference</a> for event schemas.</p>
+<h3 id="_how-plugin-hooks-interact-with-other-hooks" data-needslink="_how-plugin-hooks-interact-with-other-hooks">How plugin hooks interact with other hooks</h3>
+<p>Plugin-wide hooks run alongside workspace-level and user-level hooks. When multiple hooks target the same event, all of them execute. For <code>PreToolUse</code> hooks, the most restrictive permission decision across all hooks wins: <code>deny</code> overrides <code>ask</code>, which overrides <code>allow</code>.</p>
+<p>Disabling a plugin also disables its hooks. Unless enterprise policy controls the plugin's enablement, you can enable or disable plugins globally or for a specific workspace from the Extensions view.</p>
+<h2 id="_discover-and-install-plugins" data-needslink="_discover-and-install-plugins">Discover and install plugins</h2>
+<p>You can browse and install plugins from marketplaces or directly from a Git repository.</p>
+<h3 id="_manage-plugins-with-slash-commands" data-needslink="_manage-plugins-with-slash-commands">Manage plugins with slash commands</h3>
+<p>In a Copilot session that runs on the Agent Host, enter <code>/plugin </code> in the chat input to view completions for plugin and marketplace operations.</p>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/plugin list</code></td>
+<td>List installed plugins and their status.</td>
+</tr>
+<tr>
+<td><code>/plugin install &lt;source&gt;</code></td>
+<td>Install a plugin from a marketplace or Git repository.</td>
+</tr>
+<tr>
+<td><code>/plugin update &lt;plugin&gt;</code></td>
+<td>Update an installed plugin.</td>
+</tr>
+<tr>
+<td><code>/plugin enable &lt;plugin&gt;</code></td>
+<td>Enable an installed marketplace plugin.</td>
+</tr>
+<tr>
+<td><code>/plugin disable &lt;plugin&gt;</code></td>
+<td>Disable an installed marketplace plugin.</td>
+</tr>
+<tr>
+<td><code>/plugin uninstall &lt;plugin&gt;</code></td>
+<td>Remove an installed plugin.</td>
+</tr>
+<tr>
+<td><code>/plugin marketplace list</code></td>
+<td>List included and registered marketplaces.</td>
+</tr>
+<tr>
+<td><code>/plugin marketplace browse &lt;name&gt;</code></td>
+<td>Browse the plugins in a marketplace.</td>
+</tr>
+<tr>
+<td><code>/plugin marketplace add &lt;source&gt;</code></td>
+<td>Add a marketplace from a Git repository.</td>
+</tr>
+<tr>
+<td><code>/plugin marketplace update [name]</code></td>
+<td>Update one marketplace or all registered marketplaces.</td>
+</tr>
+<tr>
+<td><code>/plugin marketplace remove &lt;name&gt; [--force]</code></td>
+<td>Remove a registered marketplace. Use <code>--force</code> if plugins from the marketplace are installed.</td>
+</tr>
+</tbody>
+</table>
+<p>Marketplace plugins use the qualified identity <code>&lt;plugin&gt;@&lt;marketplace&gt;</code>. Use this identity when plugins in multiple marketplaces have the same name. Command completion suggests valid marketplace and plugin identities for each operation.</p>
+<p>Plugins installed directly from a Git repository can be updated or uninstalled, but they can't be enabled or disabled. To stop using a directly installed plugin, uninstall it. Included and centrally managed marketplaces can't be removed.</p>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>The <code>/plugin</code> commands and the Agent Customizations editor currently use separate plugin inventories. Manage a plugin from the interface where you installed it.</p>
+</div><h3 id="_install-a-plugin-from-a-marketplace" data-needslink="_install-a-plugin-from-a-marketplace">Install a plugin from a marketplace</h3>
+<div class="docs-switcher" data-switcher-id="plugin-marketplace"><div role="tablist" class="docs-switcher-tabs" aria-label="Content variants"><button type="button" role="tab" id="switcher-plugin-marketplace-0-tab-0" class="docs-switcher-tab" aria-controls="switcher-plugin-marketplace-0-panel-0" aria-selected="true" tabindex="0" data-tab-value="extensions-view">Extensions view</button><button type="button" role="tab" id="switcher-plugin-marketplace-0-tab-1" class="docs-switcher-tab" aria-controls="switcher-plugin-marketplace-0-panel-1" aria-selected="false" tabindex="-1" data-tab-value="agent-customizations">Agent Customizations</button></div><div role="tabpanel" id="switcher-plugin-marketplace-0-panel-0" class="docs-switcher-panel" aria-labelledby="switcher-plugin-marketplace-0-tab-0" data-tab-value="extensions-view"><ol>
+<li>
+<p>Open the Extensions view (<span class="dynamic-keybinding" data-commandId="workbench.view.extensions" data-osx="⇧⌘X" data-win="Ctrl+Shift+X" data-linux="Ctrl+Shift+X"><span class="keybinding">⇧⌘X</span> (Windows, Linux <span class="keybinding">Ctrl+Shift+X</span>)</span>) and enter <code>@agentPlugins</code> in the search field.</p>
+<p>Alternatively, select the <strong>More Actions</strong> (three dots) icon in the Extensions sidebar and choose <strong>Views</strong> &gt; <strong>Agent Plugins</strong>.</p>
+</li>
+<li>
+<p>Browse the list of available plugins from your <a href="#_configure-plugin-marketplaces">configured marketplaces</a>.</p>
+<p><img src="/assets/docs/agent-customization/agent-plugins/extensions-view.png" alt="Screenshot of browsing agent plugins in the Extensions sidebar." loading="lazy"></p>
+</li>
+<li>
+<p>Select <strong>Install</strong> to install a plugin.</p>
+<p>The first time you install a plugin from a new marketplace, VS Code shows a trust prompt. Review the marketplace source before confirming.</p>
+</li>
+</ol></div><div role="tabpanel" id="switcher-plugin-marketplace-0-panel-1" class="docs-switcher-panel" aria-labelledby="switcher-plugin-marketplace-0-tab-1" data-tab-value="agent-customizations" hidden><ol>
+<li>
+<p>Open the Agent Customizations editor by running <strong>Chat: Open Customizations</strong> from the Command Palette, selecting the gear icon in the Chat view, or selecting <strong>Plugins</strong> in the Agents window.</p>
+</li>
+<li>
+<p>Browse available plugins from your <a href="#_configure-plugin-marketplaces">configured marketplaces</a>:</p>
+<ul>
+<li>To use the unified <strong>Discover</strong> experience (Experimental), enable <span class="setting"><span class="setting-dropdown" data-setting-id="chat.customizations.marketplace.enabled">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      chat.customizations.marketplace.enabled
+      
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span> and select <strong>Discover</strong>.</li>
+<li>Otherwise, select the <strong>Plugins</strong> tab and then select <strong>Browse Marketplace</strong>.</li>
+</ul>
+</li>
+<li>
+<p>Select <strong>Install</strong> to install a plugin.</p>
+<p>The first time you install a plugin from a new marketplace, VS Code shows a trust prompt. Review the marketplace source before confirming.</p>
+</li>
+</ol></div></div>
+<h3 id="_install-a-plugin-from-source" data-needslink="_install-a-plugin-from-source">Install a plugin from source</h3>
+<p>You can install a plugin directly from a Git repository URL without adding a full marketplace first.</p>
+<ul>
+<li>
+<p>Run <strong>Chat: Install Plugin From Source</strong> from the Command Palette.</p>
+</li>
+<li>
+<p>Alternatively, select <strong>Install Plugin from Source</strong> on the <strong>Plugins</strong> page of the Agent Customizations editor.</p>
+</li>
+</ul>
+<p>Enter a Git repository URL (for example, <code>https://github.com/rwoll/markdown-review</code>) and VS Code clones and installs the plugin.</p>
+<h3 id="_plugins-installed-by-github-copilot-cli" data-needslink="_plugins-installed-by-github-copilot-cli">Plugins installed by GitHub Copilot CLI</h3>
+<p>VS Code automatically discovers plugins that you install with the <a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing" class="external-link" target="_blank">GitHub Copilot CLI</a> to enable you to use them also in VS Code. Plugins from <code>~/.copilot/installed-plugins/</code> appear in the <strong>Agent Plugins - Installed</strong> view alongside plugins you installed from a marketplace or from source.</p>
+<p>The CLI stores plugins under <code>~/.copilot/installed-plugins/&lt;marketplace&gt;/&lt;plugin&gt;/</code>. Plugins installed directly from a Git URL (rather than from a marketplace) live under the <code>_direct</code> bucket, for example <code>~/.copilot/installed-plugins/_direct/github--moda-linter--copilot-plugin/</code>.</p>
+<h3 id="_view-installed-plugins" data-needslink="_view-installed-plugins">View installed plugins</h3>
+<p>The <strong>Agent Plugins - Installed</strong> view in the Extensions view shows the plugins you have installed. From this view, you can enable, disable, or uninstall plugins.</p>
+<p><img src="/assets/docs/agent-customization/agent-plugins/installed-plugins.png" alt="Screenshot of the Agent Plugins - Installed view in the Extensions view." loading="lazy"></p>
+<p>You can also manage installed plugins from the Chat view by selecting the <strong>gear icon</strong> &gt; <strong>Plugins</strong>.</p>
+<h3 id="_enable-or-disable-plugins" data-needslink="_enable-or-disable-plugins">Enable or disable plugins</h3>
+<p>You can enable or disable a plugin globally or for a specific workspace:</p>
+<ul>
+<li>
+<p>Use the context menu on a plugin in the <strong>Agent Plugins - Installed</strong> section of the Extensions view.</p>
+</li>
+<li>
+<p>Use the <a href="/docs/agent-customization/overview#_agent-customizations-editor">Agent Customizations editor</a> to toggle a plugin's enabled state.</p>
+</li>
+</ul>
+<p>The enable/disable state is stored separately from the plugin configuration, so it does not affect shared workspace settings.</p>
+<p>When a plugin is disabled, its skills, agents, hooks, MCP servers, slash commands, and automation templates are no longer available. For example, skills from a disabled plugin do not appear in <strong>Chat: Configure Skills</strong>, and automation templates do not appear in <strong>Templates from Plugins</strong>. Disabled plugins appear with a dimmed style in the Agent Customizations editor and Extensions view.</p>
+<h3 id="_uninstall-plugins" data-needslink="_uninstall-plugins">Uninstall plugins</h3>
+<p>To remove a plugin, right-click it in the <strong>Agent Plugins - Installed</strong> view and select <strong>Uninstall</strong>. Plugins installed from an external source (such as npm, PyPI, or an external Git repository) are removed from disk. Plugins that are inlined in a marketplace repository remain on disk but are no longer active.</p>
+<h2 id="_configure-plugin-marketplaces" data-needslink="_configure-plugin-marketplaces">Configure plugin marketplaces</h2>
+<p>By default, VS Code discovers plugins from the <a href="https://github.com/github/copilot-plugins" class="external-link" target="_blank">copilot-plugins</a> and <a href="https://github.com/github/awesome-copilot/" class="external-link" target="_blank">awesome-copilot</a>. You can add additional marketplaces with the <span class="setting"><span class="setting-dropdown" data-setting-id="chat.plugins.marketplaces">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      chat.plugins.marketplaces
+      
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span> setting.</p>
+<p>Marketplaces are Git repositories that contain plugin definitions. You can reference them in several formats:</p>
+<ul>
+<li><strong>Shorthand</strong>: <code>owner/repo</code> for public GitHub repositories. For example, <code>anthropics/claude-code</code>. Append <code>#&lt;ref&gt;</code> to select a branch, tag, or full 40-character commit SHA.</li>
+<li><strong>HTTPS git remote</strong>: a full URL ending in <code>.git</code>. For example, <code>https://github.com/anthropics/claude-code.git</code>.</li>
+<li><strong>SCP-style git remote</strong>: SSH-style references. For example, <code>git@github.com:anthropics/claude-code.git</code>.</li>
+<li><strong>file URI</strong>: a <code>file:///</code> path to a marketplace repository already cloned on disk.</li>
+</ul>
+<p>For reproducible installations, use a full 40-character commit SHA, such as <code>owner/repo#&lt;commit-sha&gt;</code>. VS Code installs plugins from that exact revision. Branch and tag references use the revision they resolve to when the marketplace is fetched.</p>
+<p>Private repositories are also supported. If a public lookup fails, VS Code falls back to cloning the repository directly.</p>
+<p>When a marketplace index declares a plugin at a relative path, VS Code verifies the repository, resolved revision, and path before installation. Sources with a missing revision, an invalid path, or an ambiguous path match are rejected.</p>
+<p>Marketplace plugins can also reference external package sources such as npm or PyPI packages. For the full marketplace plugin schema, see the <a href="https://code.claude.com/docs/en/plugin-marketplaces" class="external-link" target="_blank">Claude Code plugin marketplace documentation</a>.</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#6A9955;--shiki-light:#008000">// settings.json</span></span>
+<span class="line"><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"chat.plugins.marketplaces"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: [</span></span>
+<span class="line"><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">    "anthropics/claude-code"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">]</span></span>
+<span class="line"></span></code></pre>
+<div class="markdown-alert note" dir="auto">
+      <span>
+        <svg class="markdown-alert-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+          <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z">
+          </path>
+        </svg>
+        Note
+      </span><p>Enterprise admins can centrally control which plugins and marketplaces are available to developers. For more information, see <a href="/docs/enterprise/manage-ai-settings#_manage-agent-plugins-and-marketplaces">Manage agent plugins and marketplaces</a>.</p>
+</div><h2 id="_use-local-plugins" data-needslink="_use-local-plugins">Use local plugins</h2>
+<p>If you manually clone or download a plugin, you can register it with the <span class="setting"><span class="setting-dropdown" data-setting-id="chat.pluginLocations">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      chat.pluginLocations
+      
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span> setting. This setting maps local plugin directory paths to an enabled or disabled state. Set the value to <code>true</code> to enable the plugin, or <code>false</code> to keep it registered but disabled.</p>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#6A9955;--shiki-light:#008000">// settings.json</span></span>
+<span class="line"><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"chat.pluginLocations"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "/path/to/my-plugin"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">true</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "/path/to/another-plugin"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">false</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<h2 id="_update-plugins" data-needslink="_update-plugins">Update plugins</h2>
+<p>VS Code checks for plugin updates when you run <strong>Extensions: Check for Extension Updates</strong> from the Command Palette, or automatically every 24 hours when <span class="setting"><span class="setting-dropdown" data-setting-id="extensions.autoUpdate">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      extensions.autoUpdate
+      <span class="setting-policy-info codicon codicon-info" data-tooltip="This setting can be configured by an organization policy." role="note" tabindex="0" aria-label="This setting can be configured by an organization policy."></span>
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span> is enabled.</p>
+<p>Updating pulls down changes from cloned marketplace repositories and checks for new versions of externally sourced plugins.</p>
+<p>Plugins sourced from npm or PyPI never update automatically. Instead, they show an <strong>Update</strong> button in the Extensions view. Selecting the button prompts you to confirm before running the install command. If an update is found during a background check, no action is taken until you explicitly select <strong>Update</strong>.</p>
+<h2 id="_workspace-plugin-recommendations" data-needslink="_workspace-plugin-recommendations">Workspace plugin recommendations</h2>
+<p>Projects can recommend plugins for team members by configuring plugin settings in the workspace settings (<code>.claude/settings.json</code> or <code>.github/copilot/settings.json</code>).</p>
+<p>VS Code shows a notification the first time a chat message is sent. You can view the recommended plugins by opening the Extensions view and filtering by <code>@agentPlugins @recommended</code>.</p>
+<p>Specify the following fields in the settings file to configure workspace plugin recommendations:</p>
+<ul>
+<li>
+<p><strong><code>extraKnownMarketplaces</code></strong>: registers additional marketplaces for the project. These marketplaces appear when you search <code>@agentPlugins</code> in the Extensions view.</p>
+</li>
+<li>
+<p><strong><code>enabledPlugins</code></strong>: lists plugins that should be enabled by default.</p>
+</li>
+</ul>
+<pre class="shiki" data-lang="json" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">{</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "extraKnownMarketplaces"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "company-tools"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">      "source"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "source"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"github"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">,</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">        "repo"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#CE9178;--shiki-light:#A31515">"your-org/plugin-marketplace"</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">      }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">    }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  },</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">  "enabledPlugins"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: {</span></span>
+<span class="line"><span style="--shiki-dark:#9CDCFE;--shiki-light:#0451A5">    "code-formatter@company-tools"</span><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">: </span><span style="--shiki-dark:#569CD6;--shiki-light:#0000FF">true</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">  }</span></span>
+<span class="line"><span style="--shiki-dark:#D4D4D4;--shiki-light:#000000">}</span></span>
+<span class="line"></span></code></pre>
+<h2 id="_cross-tool-compatibility" data-needslink="_cross-tool-compatibility">Cross-tool compatibility</h2>
+<p>Agent Plugins 1.0 is an open standard designed for cross-tool compatibility. A conformant plugin uses a root <code>plugin.json</code>, puts skills in <code>skills/</code>, and puts MCP server configuration in <code>mcp.json</code>. Compatible clients can discover the portable component types they support from the same package.</p>
+<p>Agent Plugins can also include client-specific manifest data and files under a stable reverse-domain namespace. Clients ignore namespaces they don't implement, so client-specific capabilities don't prevent other clients from loading the portable components. VS Code reads custom agents, slash commands, rules, hooks, and automation path configuration from the <code>com.github.copilot</code> namespace. Other clients only use the capabilities in that namespace that they support.</p>
+<p>For example:</p>
+<pre class="shiki" data-lang="text" shiki-themes dark-plus light-plus" style="--shiki-dark:#D4D4D4;--shiki-light:#000000;--shiki-dark-bg:#1E1E1E;--shiki-light-bg:#FFFFFF" tabindex="0"><code><span class="line"><span>my-plugin/</span></span>
+<span class="line"><span>  plugin.json</span></span>
+<span class="line"><span>  skills/</span></span>
+<span class="line"><span>  mcp.json</span></span>
+<span class="line"><span>  com.github.copilot/      # Read by VS Code and other Copilot clients</span></span>
+<span class="line"><span>  com.example.client/      # Ignored by VS Code</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>VS Code continues to support existing Copilot, Claude, and legacy OpenPlugin formats. Plugins that don't declare the Agent Plugins schema continue to use their existing format-specific discovery rules.</p>
+<p>For details about the portable format, see the <a href="https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md" class="external-link" target="_blank">Agent Plugins specification</a>. For other formats, see the <a href="https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference" class="external-link" target="_blank">GitHub Copilot CLI plugin reference</a> and the <a href="https://code.claude.com/docs/en/plugin-marketplaces" class="external-link" target="_blank">Claude Code plugin marketplace documentation</a>.</p>
+<h2 id="_troubleshooting" data-needslink="_troubleshooting">Troubleshooting</h2>
+<h3 id="_plugin-does-not-appear-after-installation" data-needslink="_plugin-does-not-appear-after-installation">Plugin does not appear after installation</h3>
+<ul>
+<li>Confirm that agent plugins are enabled: check that <span class="setting"><span class="setting-dropdown" data-setting-id="chat.plugins.enabled">
+    <span class="setting-link-main">
+      <span class="codicon codicon-settings-gear dynamic-setting-icon"></span>
+      chat.plugins.enabled
+      <span class="setting-policy-info codicon codicon-info" data-tooltip="This setting can be configured by an organization policy." role="note" tabindex="0" aria-label="This setting can be configured by an organization policy."></span>
+    </span>
+    <button 
+      type="button"
+      class="setting-dropdown-trigger"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-label="Open setting in VS Code">
+        <svg class="setting-dropdown-chevron" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M7.976 10.072l4.357-4.357.62.618L8.284 11h-.618L3 6.333l.619-.618 4.357 4.357z"/>
+        </svg>
+    </button>
+    <span class="setting-dropdown-menu" role="menu" aria-label="Open setting">
+      <span role="menuitem" class="setting-action-item" data-version="stable" tabindex="0">Open in VS Code</span>
+      <span role="menuitem" class="setting-action-item" data-version="insiders" tabindex="-1">Open in VS Code Insiders</span>
+    </span>
+  </span></span> is set to <code>true</code>.</li>
+<li>Verify the plugin's <code>name</code> field follows the naming rules for its format. Agent Plugins 1.0 names use lowercase letters, numbers, hyphens, and periods. Legacy Copilot plugin names use lowercase letters, numbers, and hyphens. Slashes and colons aren't supported.</li>
+<li>Check that <code>plugin.json</code> is in a recognized location (see <a href="#_cross-tool-compatibility">Cross-tool compatibility</a>).</li>
+</ul>
+<h3 id="_skills-from-a-plugin-do-not-load" data-needslink="_skills-from-a-plugin-do-not-load">Skills from a plugin do not load</h3>
+<ul>
+<li>Open the <code>SKILL.md</code> file and check the <code>name</code> field in the YAML frontmatter. The name must be plain kebab-case without namespace prefixes (for example, <code>test-runner</code>, not <code>myorg/test-runner</code>). Invalid names cause the skill to be silently skipped.</li>
+<li>Make sure the skill directory name matches the <code>name</code> field in the <code>SKILL.md</code> frontmatter.</li>
+</ul>
+<h3 id="_plugin-version-does-not-update" data-needslink="_plugin-version-does-not-update">Plugin version does not update</h3>
+<ul>
+<li>Bump the <code>version</code> field in <code>plugin.json</code> (and in the <code>marketplace.json</code> plugin entry, if applicable) before pushing changes.</li>
+<li>Run <strong>Extensions: Check for Extension Updates</strong> from the Command Palette to trigger an update check.</li>
+</ul>
+<h3 id="_plugin-installation-fails-after-retry" data-needslink="_plugin-installation-fails-after-retry">Plugin installation fails after retry</h3>
+<p>Retry the installation. VS Code validates marketplace repository caches and replaces incomplete or invalid caches automatically.</p>
+<p>If installation still fails, review the error for an invalid repository, revision, or plugin path. If the source is valid and retry continues to fail, run <strong>Help: Report Issue</strong>. Don't delete or modify the internal plugin cache manually.</p>
+<h2 id="_related-resources" data-needslink="_related-resources">Related resources</h2>
+<ul>
+<li><a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing" class="external-link" target="_blank">Finding and installing plugins for GitHub Copilot CLI</a></li>
+<li><a href="https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference" class="external-link" target="_blank">GitHub Copilot CLI plugin reference</a></li>
+</ul>
+
+                <div class="feedback" data-edit-url="https://vscode.dev/github/microsoft/vscode-docs/blob/main/docs/agent-customization/agent-plugins.md"></div>
+                
+                <div class="body-footer">10/7/2026</div>
+                
+            </main>
+        </div>
+        
+        <!-- Mobile connect widget -->
+        <div class="docs-mobile-widgets visible-xs">
+            <div class="connect-widget"></div>
+        </div>
+    </div>
+</div>
+		</main>
+	</div>
+
+	<div id="search-popup-overlay" class="search-popup-overlay" role="dialog" aria-modal="true" aria-label="Search">
+		<div class="search-popup-container">
+			<div class="search-popup-header">
+				<form class="search-popup-form">
+					<div class="input-group">
+						<input type="text" name="q" class="search-box form-control" placeholder="Search the website"
+							aria-label="Search text" role="combobox" aria-expanded="false"
+							aria-autocomplete="list" aria-controls="search-results-listbox"
+							aria-activedescendant="" />
+						<span class="input-group-btn">
+							<button tabindex="0" class="btn" type="submit" aria-label="Search">
+								<img class="search-icon-dark" src="/assets/icons/search-dark.svg" alt="Search" />
+								<img class="search-icon-light" src="/assets/icons/search.svg" alt="Search" />
+							</button>
+						</span>
+					</div>
+				</form>
+				<button class="search-popup-close" type="button" aria-label="Close search"><i class="codicon codicon-close" aria-hidden="true"></i></button>
+			</div>
+			<div class="search-popup-results">
+				<ul class="search-popup-results-list" id="search-results-listbox" role="listbox" aria-label="Search results"></ul>
+			</div>
+			<div class="sr-only" role="status" aria-live="polite" aria-atomic="true" id="search-popup-status"></div>
+		</div>
+	</div>
+
+
+	<footer role="contentinfo" class="container">
+		<div class="footer-container">
+			<div class="footer-row">
+				<div class="footer-social">
+					<ul class="links">
+						<li>
+							<a href="https://github.com/microsoft/vscode"><img src="/assets/icons/github-icon.svg" alt="VS Code on Github"></a>
+						</li>
+						<li>
+							<a href="https://go.microsoft.com/fwlink/?LinkID=533687"><img src="/assets/icons/x-icon.svg" class="x-icon" alt="Follow us on X"></a>
+						</li>
+						<li>
+							<a href="https://www.linkedin.com/showcase/vs-code"><img src="/assets/icons/linkedin-icon.svg" alt="VS Code on LinkedIn"></a>
+						</li>
+						<li>
+							<a href="https://bsky.app/profile/vscode.dev"><img src="/assets/icons/bluesky-icon.svg" alt="VS Code on Bluesky"></a>
+						</li>
+						<li>
+							<a href="https://www.reddit.com/r/vscode/"><img src="/assets/icons/reddit-icon.svg" alt="Join the VS Code community on Reddit"></a>
+						</li>
+						<li>
+							<a href="https://www.vscodepodcast.com"><img src="/assets/icons/podcast-icon.svg" alt="The VS Code Insiders Podcast"></a>
+						</li>
+						<li>
+							<a href="https://www.instagram.com/vscode.ig"><img src="/assets/icons/instagram-icon.svg" alt="VS Code on Instagram"></a>
+						</li>
+						<li>
+							<a href="https://www.tiktok.com/@vscode"><img src="/assets/icons/tiktok-icon.svg" alt="VS Code on TikTok"></a>
+						</li>
+						<li>
+							<a href="https://www.youtube.com/@code"><img src="/assets/icons/youtube-icon.svg" alt="VS Code on YouTube"></a>
+						</li>
+						<script>
+							function manageConsent() {
+								if (siteConsent && siteConsent.isConsentRequired) {
+									siteConsent.manageConsent();
+								}
+							}
+						</script>
+					</ul>
+					<a id="footer-microsoft-link" class="microsoft-logo" href="https://www.microsoft.com">
+						<img src="/assets/icons/microsoft.svg" alt="Microsoft homepage" />
+					</a>
+				</div>
+			</div>
+			<div class="footer-row">
+				<ul class="links">
+					<li><a id="footer-support-link" href="https://support.serviceshub.microsoft.com/supportforbusiness/create?sapId=d66407ed-3967-b000-4cfb-2c318cad363d"
+						target="_blank" rel="noopener" title="Get support for VS Code"
+						aria-label="Get support for VS Code (opens in new tab)">Support</a></li>
+					<li><a id="footer-privacy-link" href="https://go.microsoft.com/fwlink/?LinkId=521839"
+						target="_blank" rel="noopener" title="View the Microsoft privacy statement"
+						aria-label="Microsoft privacy statement (opens in new tab)">Privacy</a></li>
+					<li style="display: none;"><a id="footer-cookie-link" style="cursor: pointer;" onclick="manageConsent()"
+						target="_blank" rel="noopener">Manage Cookies</a></li>
+					<li><a id="footer-terms-link" href="https://www.microsoft.com/legal/terms-of-use"
+						target="_blank" rel="noopener" title="View the Microsoft Terms of Use"
+						aria-label="Microsoft Terms of Use (opens in new tab)">Terms of Use</a></li>
+					<li><a id="footer-license-link" href="/License"
+						target="_blank" rel="noopener" title="View the Visual Studio Code license"
+						aria-label="Visual Studio Code license (opens in new tab)">License</a></li>
+				</ul>
+			</div>
+			<div class="footer-row">
+				<ul class="links">
+					<li>
+						<svg class="privacy-choices" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 14" xml:space="preserve" height="16" width="43">
+							<title>Your Privacy Choices Opt-Out Icon</title>
+							<path d="M7.4 12.8h6.8l3.1-11.6H7.4C4.2 1.2 1.6 3.8 1.6 7s2.6 5.8 5.8 5.8z" style="fill-rule:evenodd;clip-rule:evenodd;fill:#fff"></path>
+							<path d="M22.6 0H7.4c-3.9 0-7 3.1-7 7s3.1 7 7 7h15.2c3.9 0 7-3.1 7-7s-3.2-7-7-7zm-21 7c0-3.2 2.6-5.8 5.8-5.8h9.9l-3.1 11.6H7.4c-3.2 0-5.8-2.6-5.8-5.8z" style="fill-rule:evenodd;clip-rule:evenodd;fill:#06f"></path>
+							<path d="M24.6 4c.2.2.2.6 0 .8L22.5 7l2.2 2.2c.2.2.2.6 0 .8-.2.2-.6.2-.8 0l-2.2-2.2-2.2 2.2c-.2.2-.6.2-.8 0-.2-.2-.2-.6 0-.8L20.8 7l-2.2-2.2c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0l2.2 2.2L23.8 4c.2-.2.6-.2.8 0z" style="fill:#fff"></path>
+							<path d="M12.7 4.1c.2.2.3.6.1.8L8.6 9.8c-.1.1-.2.2-.3.2-.2.1-.5.1-.7-.1L5.4 7.7c-.2-.2-.2-.6 0-.8.2-.2.6-.2.8 0L8 8.6l3.8-4.5c.2-.2.6-.2.9 0z" style="fill:#06f"></path>
+						</svg>
+						<a id="footer-privacy-choices-link" href="https://aka.ms/YourCaliforniaPrivacyChoices"
+						target="_blank" rel="noopener" title="View Your Privacy Choices"
+						aria-label="Your Privacy Choices (opens in new tab)">Your Privacy Choices</a></li>
+					<li><a id="footer-consumer-health-privacy-link" href="https://go.microsoft.com/fwlink/?linkid=2259814"
+						target="_blank" rel="noopener" title="View the Microsoft Consumer Health Privacy policy"
+						aria-label="Microsoft Consumer Health Privacy policy (opens in new tab)">Consumer Health Privacy</a></li>
+				</ul>
+			</div>
+		</div>
+	</footer>
+	<script type="module">
+		document.addEventListener('DOMContentLoaded', () => {
+			const copilotDeepLinks = document.querySelectorAll('.copilot-deep-link');
+			if (copilotDeepLinks.length === 0) {
+				return;
+			}
+			if (window.innerWidth < 992) {
+				for (const link of copilotDeepLinks) {
+					link.href = 'https://aka.ms/vscode-activatecopilotfree';
+				}
+			}
+		});
+	</script>
+
+	<script src="/dist/index.js"></script>
+
+	
+
+	<script type="application/ld+json">
+		{
+			"@context" : "http://schema.org",
+			"@type" : "SoftwareApplication",
+			"name" : "Visual Studio Code",
+			"softwareVersion": "1.141",
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD"
+			},
+			"applicationCategory": "DeveloperApplication",
+			"applicationSubCategory": "AI Code Editor",
+			"description": "Visual Studio Code is a free, open source AI code editor for agent-first development. Build with AI agents, manage multi-agent workflows, and code across any environment.",
+			"alternateName": "VS Code",
+			"datePublished": "2021-11-03",
+			"operatingSystem": "Mac, Linux, Windows",
+			"logo": "https://code.visualstudio.com/assets/apple-touch-icon.png",
+			"screenshot": "https://code.visualstudio.com/assets/images/product-screenshot.png",
+			"releaseNotes": "https://code.visualstudio.com/updates",
+			"downloadUrl": "https://code.visualstudio.com/download",
+			"license": "https://code.visualstudio.com/license",
+			"softwareRequirements": "https://code.visualstudio.com/docs/supporting/requirements",
+			"url" : "https://code.visualstudio.com",
+			"author": {
+				"@type": "Organization",
+				"name": "Microsoft"
+			},
+			"publisher": {
+				"@type": "Organization",
+				"name": "Microsoft"
+			},
+			"maintainer": {
+				"@type": "Organization",
+				"name": "Microsoft"
+			},
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": "https://code.visualstudio.com/Search?q={search_term_string}",
+				"query-input": "required name=search_term_string"
+			},
+			"sameAs" : [
+				"https://en.wikipedia.org/wiki/Visual_Studio_Code",
+				"https://twitter.com/code",
+				"https://www.youtube.com/code",
+				"https://www.tiktok.com/@vscode",
+				"https://github.com/microsoft/vscode"
+			]
+		}
+	</script>
+</body>
+
+</html>

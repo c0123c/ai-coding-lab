@@ -1,0 +1,649 @@
+# 在 VS Code 中调用子 Agent
+
+介绍为独立子任务隔离上下文，通过提示或自定义角色委派，并在主会话审查结果及控制调用方式。
+
+- 来源：Microsoft／VS Code
+- 资料类型：文档源码（含未展开模板）
+- 存档版本：`7dde53519982`。
+- 文档时间：官方审核：[2026-10-07](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/run/subagents.md>)；源码提交（存档版）：[2026-10-08](<https://github.com/microsoft/vscode-docs/commit/a88484276b0f7e053f9145da14de6a98f32b61c5>)；本地归档批次：2026-10-10
+- 阅读状态：中文源码译文，由 Google 翻译；源码中的模板未展开，不等同于官网渲染后的完整文章。代码、命令与配置保留原样，未逐句人工校对。
+
+[原文发布页](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/run/subagents.md>) · [原始文件](<../../../../原始抓取备份/原文/官方/Microsoft/VS Code/在 VS Code 中调用子 Agent（存档7dde5351-654）.md>) · [返回资料总览](<../../../资料总览.md>)
+
+
+<details>
+<summary>源码自带的配置与元数据（保留原样）</summary>
+
+~~~yaml
+---
+ContentId: 8b3c9f5e-4d2a-6f9b-3e1c-7a8d5f2e9b0c
+DateApproved: 10/7/2026
+MetaDescription: Delegate focused tasks to context-isolated subagents in {% data variables.product.prodname_vscode_shortname %} and review results in the main chat.
+MetaSocialImage: ../../images/shared/github-copilot-social.png
+Keywords:
+- subagents
+- agents
+- context isolation
+- copilot
+- ai
+- context window
+- parallel
+---
+~~~
+
+</details>
+
+[查看原文对照](#原文对照)
+
+## 中文全文
+
+# 在 {% data variables.product.prodname_vscode %} 中使用子代理
+
+使用子代理来研究主题、比较方法或审查代码，而无需用中间工作填充主要对话。子代理在其自己的上下文中工作并将集中结果返回给主代理 agent。了解有关 [ 子代理概念 ](<https://github.com/docs/agents/concepts/agents.md#subagents>) 的更多信息。
+
+本文展示了如何委派任务并在 {% data variables.product.prodname_vscode_shortname %} 中跟踪其进度。选择您的线束的 [ 选项卡 ](<#按线束划分的子代理>) 以获取其说明，然后了解如何使用共享聊天控件 [ 跟踪子代理进度 ](<#你在聊天中看到的内容>)。
+
+<div class="docs-action" data-show-in-doc="false" data-show-in-sidebar="true" title="Try a subagent">
+启动聊天提示，在实施之前将研究委托给子代理。
+
+* [打开于{% data variables.product.prodname_vscode_shortname %}](<vscode://GitHub.Copilot-Chat/chat?agent=agent%26prompt=Use%20a%20subagent%20to%20research%20authentication%20best%20practices%20for%20a%20Node.js%20app%20and%20report%20back%20a%20recommendation.>)
+
+</div>
+
+## 何时使用子代理
+
+具有明确范围并产生主要 agent 可以使用的结果的委托工作：
+
+* **实施前研究**：查找相关文件、现有模式或库选项，然后返回建议。
+* **比较方法**：研究独立的解决方案，或使用[不同的模型](<#选择子代理的型号>)来检查同一问题。
+* **审查更改**：检查单独的问题，例如正确性和性能，然后合并结果。
+
+对于快速查找或小型编辑，直接请求通常就足够了。委托增加了模型的使用和协调，因此请考虑将中间工作排除在主要上下文之外的成本和好处。
+
+## 按线束划分的子代理
+
+您的 [agent 工具 ](<https://github.com/docs/agents/run/agent-harnesses.md#choose-a-session-target>) 确定子代理的运行方式以及它们支持哪些配置选项。当您[开始会话](<https://github.com/docs/agents/run/agent-harnesses.md#start-a-session>)时选择线束。
+
+> [！NOTE]
+> 提供商文档还涵盖CLI工作流程。 {% data variables.product.prodname_vscode_shortname %} 中的命令和配置选项可能有所不同。使用 [ 线束指南 ](<https://github.com/docs/agents/run/agent-harnesses.md>) 进行特定于集成的设置和限制。
+
+{% tabs id="subagents-by-harness" %}
+{% 标签标签="{% data variables.product.prodname_copilot_short %}" %}
+
+<a id="copilot"></a>
+
+的 **{% data variables.product.prodname_copilot_short %}** 线束使用 {% data variables.copilot.copilot_sdk_short %} 管理对内置或自定义子代理的委托。在提示中请求子代理，或者让主代理 agent 决定何时委派。对于本地人 agent 行为和配置，请参见 [内置和自定义 agents 在 {% data variables.product.prodname_copilot_short %}](<https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-custom-agents>).
+
+{% /tab %}
+{% tab label="Claude" %}
+
+<a id="claude"></a>
+
+**Claude** 工具利用单独的上下文以及可配置的指令和工具来管理自己的子代理。在提示中请求委派，或让 agent 选择适当的子代理。有关本机配置和行为，请参阅 [Claude 子代理 ](<https://code.claude.com/docs/en/sub-agents>)。
+
+{% /tab %}
+{% tab label="Codex" %}
+
+<a id="codex"></a>
+
+**Codex** 工具使用提供者本机子代理来运行独立任务并收集其结果。要求 Codex 在提示中进行委托，并参阅 [Codex 子代理 ](<https://developers.openai.com/codex/multi-agent>) 了解本机配置和行为。有关可用性和设置（包括实验性 Agent 主机集成）的信息，请参阅 [使用 Codex 线束 ](<https://github.com/docs/agents/run/agent-harnesses.md#codex>)。
+
+{% /tab %}
+{% tab label="Local" %}
+
+<a id="local"></a>
+
+**本地**线束使用{% data variables.product.prodname_vscode_shortname %} `runSubagent`工具。以下说明涵盖工具选择、自定义 agent 配置、模型选择以及该线束的嵌套子代理。
+
+### 调用子代理
+
+在本地会话中尝试只读研究任务：
+
+1. 打开你的项目，然后 [开始一个会话](<https://github.com/docs/agents/run/agent-harnesses.md#start-a-session>) 在 {% data variables.copilot.chat_view %} 与 **本地** 挽具和 **Agent** 角色。
+1. 选择 ** 配置工具 ** 并确保选择 ** 运行子代理 ** (`agent/runSubagent`)。了解有关 [ 选择工具 ](<https://github.com/docs/agents/run/tools.md#select-tools-for-a-request>) 的更多信息。
+1. 输入明确请求子代理的提示：
+
+    ```prompt
+    Use a subagent to find how authentication works in this codebase.
+    Do not change files. Return the relevant files, the authentication flow,
+    and any unanswered questions.
+    ```
+
+1. [关注子代理的进度](<#你在聊天中看到的内容>)，然后查看主要agent的调查结果摘要。
+
+#### 如何调用子代理
+
+您以自然语言请求委派，主 agent 调用子代理工具。主agent也可以在没有明确请求的情况下决定委托。它将任务传递给子代理，接收结果，并使用该结果继续您的工作。
+
+本地子代理不会继承主对话历史记录。通过指定以下内容使委派任务独立：
+
+* **目标**：要回答的问题或要完成的工作。
+* **上下文**：相关文件、约束和已做出的决策。
+* **允许的操作**：是否仅研究或进行更改。
+* **预期结果**：返回的结果、建议或更改。
+
+每个本地调用都是无状态的：主 agent 无法将后续消息发送到同一子代理。进一步的工作需要在相关上下文中进行新的调用。本地子代理无法使用用于提出澄清问题和管理待办事项的内置工具。
+
+#### 在提示文件中调用子代理
+
+对于可重复使用的本地工作流程，请将 `agent` 工具集添加到 [ 提示文件的 ](<https://github.com/docs/agent-customization/prompt-files.md>) `tools` frontmatter 中。使用与交互式请求相同的方法在提示正文中描述委派的任务和预期结果。
+
+### 运行自定义 agent 作为子代理
+
+在本地会话中，子代理会继承主 agent 的指令和选定的工具，除非您指定 [ 自定义 agent](<https://github.com/docs/agent-customization/custom-agents.md>)。自定义 agent 提供特定于任务的指令，并且可以覆盖工具和 [ 模型 ](<#选择子代理的型号>)。
+
+例如，使用此内容在工作区中创建 `.github/agents/codebase-researcher.agent.md`。有关创建文件的其他方法，请参阅[创建自定义agent](<https://github.com/docs/agent-customization/custom-agents.md#create-a-custom-agent>)。
+
+```markdown
+---
+name: Codebase Researcher
+description: Find relevant code and explain existing patterns
+user-invocable: false
+tools: ['read', 'search']
+---
+Research the requested topic without changing files.
+Return relevant file paths, existing patterns, and unanswered questions.
+```
+
+保存文件，然后从主聊天中请求该文件：
+
+```prompt
+Use the Codebase Researcher subagent to explain how authentication works
+in this project.
+```
+
+Agent 名称区分大小写。使用自定义 agent 定义中的确切名称。
+
+#### 控制如何调用自定义 agent
+
+两个 frontmatter 属性控制 agent 的可用方式：
+
+* `user-invocable` 控制 agents 下拉列表中的可见性。将其设置为 `false` 以隐藏仅子代理帮助程序，例如 Codebase Researcher。默认值为 `true`。
+* `disable-model-invocation`控制其他agents是否可以将其作为子代理调用。默认值为 `false`。
+
+已弃用的 `infer` 属性已被这两个属性取代。
+
+#### 限制 agent 可以使用哪些子代理
+
+默认情况下，不带 `disable-model-invocation: true` 的自定义 agents 可用作子代理。为了让协调员专注于特定的工作人员，请设置其 `agents` frontmatter：
+
+* `agents: ['Codebase Researcher', 'Reviewer']` 仅允许指定的 agents。
+* `agents: ['*']`，或省略该属性，允许所有可用的agents。
+* `agents: []` 阻止子代理的使用。
+
+> [!NOTE]
+> 在 `agents` 中显式列出 agent 会覆盖 agent 的 `disable-model-invocation: true`。选择器可见性和子代理可用性是单独的控件。
+
+将 `agent` 工具集包含在协调器的 `tools` 属性中。 [协调员和工作人员示例](<#协调员和工作人员模式>)显示了完整的工作流程。
+
+### 选择子代理的型号
+
+本地子代理按以下顺序选择型号：
+
+1. 由主 agent 向 `runSubagent` 工具提供的显式模型参数。
+1. 所选自定义 agent 的 [`model`](<https://github.com/docs/agent-customization/custom-agents.md#header-optional>) 属性，它接受模型名称或模型的优先级列表。
+1. 自动，当 `setting(chat.subagents.defaultToAuto)` 启用并且 [ 使用自动 ](<#对子代理使用自动>) 的条件适用时。
+1. 运行主要对话的模型。
+
+要请求模型，请将其包含在提示中。将 `<model name>` 替换为会话中可用的模型：
+
+```prompt
+Use a subagent with <model name> to review the error handling in this module.
+```
+
+根据主模型的成本层检查显式和 agent 配置的模型选择。如果选择超出该层，子代理将不会运行并报告哪些模型可用。
+
+#### 对子代理使用“自动”
+
+`feature(subagent-auto-model-selection)`
+
+当工具调用和 agent 都没有指定模型时，启用 `setting(chat.subagents.defaultToAuto)` 以使用 Auto 而不是主模型。该设置默认为 `false`，并且不会覆盖继承的自定义 agent 的模型配置。
+
+如果“自动”不可用，子代理将使用主对话的模型。
+
+[ 的子代理带来您自己的密钥模型 ](<https://github.com/docs/agent-customization/language-models.md#bring-your-own-language-model-key>) 继续使用该模型，除非您指定不同的模型。通过此设置的自动路由不受主模型的固定成本层的限制。
+
+### 嵌套子代理
+
+默认情况下，本地子代理无法调用更多子代理。对于递归委托工作的工作流程，启用 `setting(chat.subagents.allowInvocationsFromSubagents)`（默认情况下为 `false`）。嵌套的最大深度限制为五。
+
+保持递归任务有界，并包含停止条件，以便 agents 不会重复委托相同的工作。
+
+#### 示例：递归 agent
+
+递归 agent 在其 `agents` 属性中列出自身。启用嵌套子代理后，将此示例另存为 `.github/agents/recursive-processor.agent.md` 以将文件列表拆分为更小的研究任务：
+
+```markdown
+---
+name: Recursive Processor
+description: Research independent files in small groups
+tools: ['agent', 'read', 'search']
+agents: ['Recursive Processor']
+argument-hint: A list of files to summarize
+---
+Summarize the purpose of each file without changing it.
+* For more than four files, split the list in half and delegate each half
+  to a Recursive Processor subagent.
+* For four or fewer files, or if further delegation is unavailable,
+  summarize the files directly.
+* Combine the results into a single summary.
+```
+
+### 编排模式
+
+对于本地会话中可重复的多步骤工作，请使用协调员 agent 将重点任务分配给工作人员并合并他们的结果。
+
+#### 协调员和工作人员模式
+
+功能构建协调员可以委托研究和审查，同时自行更改代码。此示例使用三个 agent 文件：前面定义的 [代码库研究员 ](<#运行自定义-agent-作为子代理>)、审阅者和协调员。
+
+创建`.github/agents/reviewer.agent.md`：
+
+```markdown
+---
+name: Reviewer
+description: Review changes for correctness and missing tests
+user-invocable: false
+tools: ['read', 'search']
+---
+Review the supplied files and change summary without editing files.
+Report correctness issues and missing test coverage with file references.
+```
+
+创建`.github/agents/feature-builder.agent.md`：
+
+```markdown
+---
+name: Feature Builder
+description: Implement features with delegated research and review
+tools: ['agent', 'edit', 'read', 'search']
+agents: ['Codebase Researcher', 'Reviewer']
+---
+For each feature request:
+1. Ask Codebase Researcher to find relevant files and existing patterns.
+2. Use its findings to implement the requested change.
+3. Ask Reviewer to check the changed files, passing the requirements
+   and a summary of your changes.
+4. Address the findings, then summarize the changes and remaining risks.
+```
+
+保存所有三个文件。在本地会话中，从 agents 下拉列表中选择 ** 功能生成器 ** 并描述要实现的功能。工作人员拥有只读工具，而协调员拥有编辑工具。
+
+如果需要再次审查，协调器将启动新的调用并提供更新的上下文。较早的审阅者调用不会保留后续消息的对话。
+
+#### 多视角代码审查
+
+对于一次性审核，请在提示中分配视角，而不是创建更多 agent 文件：
+
+```prompt
+Use two subagents to review the current changes without editing files.
+Ask one to check correctness and the other to check test coverage.
+Combine their findings, remove duplicates, and prioritize actionable issues.
+```
+
+不同的背景可能会出现不同的问题，但不能保证得出公正或正确的结论。在采取行动之前先审查综合结果。
+
+### 故障排除
+
+对于本地会话，请检查以下常见原因：
+
+|症状|要检查什么|
+| --- | --- |
+|主要的agent不委托。|确认在 ** 配置工具 ** 中选择了 **运行子代理 **，然后显式请求具有重点任务的子代理。|
+|自定义 agent 不可用。|检查其准确的、区分大小写的名称 `disable-model-invocation` 和协调器的 `agents` 列表。 `user-invocable: false` 仅对选择器隐藏它。|
+|请求的模型未运行。|使用错误中列出的模型之一，或删除显式首选项。参见[型号选择](<#选择子代理的型号>)。|
+|子代理不能进一步委派。|检查[嵌套子代理设置](<#嵌套子代理>)、深度限制及其工具是否包含`agent`。|
+
+{% /tab %}
+{% /tabs %}
+
+## 你在聊天中看到的内容
+
+呈现方式取决于线束和接口。交互式 [ 同伴聊天 ](<https://github.com/docs/agents/concepts/sessions.md#chats-within-a-session>) 是您独立提示的对话。子代理聊天显示 agent 委托的工作。
+
+### 聊天视图
+
+在 {% data variables.copilot.chat_view %} 的本地会话中，正在运行的子代理显示为折叠的工具调用及其 agent 名称和当前活动，例如读取文件或搜索代码库。选择工具调用，查看提示、工具调用和返回结果。
+
+对于 Agent 主机会话，编辑器的 **会话** 视图显示交互式对等聊天，但不包括该层次结构中的子代理聊天。要检查受支持会话中的只读子代理聊天，请使用 [{% data variables.copilot.agents_window %}](<#agents窗口>)。
+
+### Agents窗口
+
+在 {% data variables.copilot.agents_window %} 支持的会话中，子代理在会话中显示为只读聊天。选择父聊天中的指示器以打开子代理。该指示器显示其型号、经过的时间和活动工具调用。
+
+默认情况下，子代理聊天在选项卡栏中隐藏。您还可以从 **Chats** 下拉列表、正在运行的子代理指示器中打开一个子代理，或在发生委托的聊天中打开 **Open Subagent**。
+
+要使父聊天和子代理并排可见：
+
+* 按住 `kbstyle(Alt)` 并在 ** 聊天 ** 下拉列表中选择转录内子剂药丸或子剂。
+* 聚焦转录内的子剂药丸并按 `kbstyle(Alt+Enter)`。
+* 将转录本子代理药丸拖动到现有聊天组的中心或边缘以沿该方向创建组。
+
+转录内的子代理药丸是聊天响应的一部分。它与聊天输入上方的后台活动药丸不同，后者会打开一个用于运行活动的选择器，并且不可拖动。
+
+只读子代理聊天显示锁定图标并且不接受输入。它们会在窗口重新加载后与您的其他聊天保持一致。
+
+![显示 {% data variables.copilot.agents_window %} 中只读子代理聊天的屏幕截图。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/agents-window/agents-window-follow-subagents-read-only-chat.png>)
+
+### 显示设置
+
+默认情况下，聊天编辑器使用丰富的演示文稿，在其自己的编辑器中打开每个子代理，而不是在父聊天中内联显示其完整活动。禁用 `setting(chat.subagents.useRichRendering)` 设置以内联显示子代理活动。
+
+> [!TIP]
+> AI 子代理的信用使用情况默认隐藏。要在子代理响应药丸、悬停详细信息和屏幕阅读器标签中显示 [AI 积分使用情况 ](<https://github.com/docs/agents/concepts/language-models.md#ai-credits-and-model-costs>)，请启用 `setting(chat.subagents.showCreditUsage)` 设置。
+
+## 相关资源
+
+* [自定义agents](<https://github.com/docs/agent-customization/custom-agents.md>)：使用您自己的指令和工具扩展示例。
+* [优化AI信用使用](<https://github.com/docs/agents/guides/optimize-usage.md>)：平衡模型选择、上下文和成本。
+* [Agent 会话](<https://github.com/docs/agents/run/sessions/manage-sessions.md>)：组织您的对话并管理上下文。
+
+
+## 原文对照
+
+<details>
+<summary>展开完整原文</summary>
+
+# Use subagents in {% data variables.product.prodname_vscode %}
+
+Use subagents to research a topic, compare approaches, or review code without filling your main conversation with intermediate work. A subagent works in its own context and returns a focused result to the main agent. Learn more about [subagent concepts](<https://github.com/docs/agents/concepts/agents.md#subagents>).
+
+This article shows how to delegate a task and follow its progress in {% data variables.product.prodname_vscode_shortname %}. Select the [tab for your harness](<#subagents-by-harness>) for its instructions, then learn how to [follow subagent progress](<#what-you-see-in-chat>) with the shared chat controls.
+
+<div class="docs-action" data-show-in-doc="false" data-show-in-sidebar="true" title="Try a subagent">
+Launch a chat prompt that delegates research to a subagent before implementation.
+
+* [Open in {% data variables.product.prodname_vscode_shortname %}](<vscode://GitHub.Copilot-Chat/chat?agent=agent%26prompt=Use%20a%20subagent%20to%20research%20authentication%20best%20practices%20for%20a%20Node.js%20app%20and%20report%20back%20a%20recommendation.>)
+
+</div>
+
+## When to use subagents
+
+Delegate work that has a clear scope and produces a result the main agent can use:
+
+* **Research before implementation**: find relevant files, existing patterns, or library options, then return a recommendation.
+* **Compare approaches**: investigate independent solutions, or use [different models](<#select-the-model-for-a-subagent>) to examine the same problem.
+* **Review changes**: check separate concerns, such as correctness and performance, then combine the findings.
+
+For a quick lookup or a small edit, a direct request is usually enough. Delegation adds model usage and coordination, so consider the cost as well as the benefit of keeping intermediate work out of the main context.
+
+## Subagents by harness
+
+Your [agent harness](<https://github.com/docs/agents/run/agent-harnesses.md#choose-a-session-target>) determines how subagents run and which configuration options they support. Select the harness when you [start a session](<https://github.com/docs/agents/run/agent-harnesses.md#start-a-session>).
+
+> [!NOTE]
+> Provider documentation also covers CLI workflows. Commands and configuration options can differ in {% data variables.product.prodname_vscode_shortname %}. Use the [harness guide](<https://github.com/docs/agents/run/agent-harnesses.md>) for integration-specific setup and limitations.
+
+{% tabs id="subagents-by-harness" %}
+{% tab label="{% data variables.product.prodname_copilot_short %}" %}
+
+<a id="copilot"></a>
+
+The **{% data variables.product.prodname_copilot_short %}** harness uses the {% data variables.copilot.copilot_sdk_short %} to manage delegation to built-in or custom subagents. Request a subagent in your prompt, or let the main agent decide when to delegate. For native agent behavior and configuration, see [built-in and custom agents in {% data variables.product.prodname_copilot_short %}](<https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-custom-agents>).
+
+{% /tab %}
+{% tab label="Claude" %}
+
+<a id="claude"></a>
+
+The **Claude** harness manages its own subagents, with separate context and configurable instructions and tools. Request delegation in your prompt, or let the agent choose an appropriate subagent. See [Claude subagents](<https://code.claude.com/docs/en/sub-agents>) for native configuration and behavior.
+
+{% /tab %}
+{% tab label="Codex" %}
+
+<a id="codex"></a>
+
+The **Codex** harness uses provider-native subagents to run independent tasks and collect their results. Ask Codex to delegate in your prompt, and see [Codex subagents](<https://developers.openai.com/codex/multi-agent>) for native configuration and behavior. For availability and setup, including the Experimental Agent Host integration, see [Use the Codex harness](<https://github.com/docs/agents/run/agent-harnesses.md#codex>).
+
+{% /tab %}
+{% tab label="Local" %}
+
+<a id="local"></a>
+
+The **Local** harness uses the {% data variables.product.prodname_vscode_shortname %} `runSubagent` tool. The following instructions cover tool selection, custom-agent configuration, model selection, and nested subagents for this harness.
+
+### Invoke a subagent
+
+Try a read-only research task in a Local session:
+
+1. Open your project, then [start a session](<https://github.com/docs/agents/run/agent-harnesses.md#start-a-session>) in the {% data variables.copilot.chat_view %} with the **Local** harness and **Agent** role.
+1. Select **Configure Tools** and make sure **Run Subagent** (`agent/runSubagent`) is selected. Learn more about [selecting tools](<https://github.com/docs/agents/run/tools.md#select-tools-for-a-request>).
+1. Enter a prompt that explicitly requests a subagent:
+
+    ```prompt
+    Use a subagent to find how authentication works in this codebase.
+    Do not change files. Return the relevant files, the authentication flow,
+    and any unanswered questions.
+    ```
+
+1. [Follow the subagent's progress](<#what-you-see-in-chat>), then review the main agent's summary of its findings.
+
+#### How subagents are invoked
+
+You request delegation in natural language, and the main agent invokes the subagent tool. The main agent can also decide to delegate without an explicit request. It passes a task to the subagent, receives the result, and uses that result to continue your work.
+
+A Local subagent doesn't inherit the main conversation history. Make the delegated task self-contained by specifying:
+
+* **Goal**: the question to answer or work to complete.
+* **Context**: relevant files, constraints, and decisions already made.
+* **Allowed actions**: whether to research only or make changes.
+* **Expected result**: the findings, recommendation, or changes to return.
+
+Each Local invocation is stateless: the main agent can't send follow-up messages to the same subagent. Further work requires a new invocation with the relevant context. The built-in tools for asking clarifying questions and managing todo items are unavailable to Local subagents.
+
+#### Invoke a subagent in a prompt file
+
+For a reusable Local workflow, add the `agent` tool set to a [prompt file's](<https://github.com/docs/agent-customization/prompt-files.md>) `tools` frontmatter. Describe the delegated task and expected result in the prompt body, using the same approach as an interactive request.
+
+### Run a custom agent as a subagent
+
+In Local sessions, a subagent inherits the main agent's instructions and selected tools unless you specify a [custom agent](<https://github.com/docs/agent-customization/custom-agents.md>). A custom agent provides task-specific instructions and can override the tools and [model](<#select-the-model-for-a-subagent>).
+
+For example, create `.github/agents/codebase-researcher.agent.md` in your workspace with this content. See [Create a custom agent](<https://github.com/docs/agent-customization/custom-agents.md#create-a-custom-agent>) for other ways to create the file.
+
+```markdown
+---
+name: Codebase Researcher
+description: Find relevant code and explain existing patterns
+user-invocable: false
+tools: ['read', 'search']
+---
+Research the requested topic without changing files.
+Return relevant file paths, existing patterns, and unanswered questions.
+```
+
+Save the file, then request it from your main chat:
+
+```prompt
+Use the Codebase Researcher subagent to explain how authentication works
+in this project.
+```
+
+Agent names are case-sensitive. Use the exact name from the custom agent definition.
+
+#### Control how a custom agent is invoked
+
+Two frontmatter properties control how an agent is available:
+
+* `user-invocable` controls visibility in the agents dropdown. Set it to `false` to hide a subagent-only helper such as Codebase Researcher. The default is `true`.
+* `disable-model-invocation` controls whether other agents can invoke it as a subagent. The default is `false`.
+
+The deprecated `infer` property is replaced by these two properties.
+
+#### Restrict which subagents an agent can use
+
+By default, custom agents without `disable-model-invocation: true` are available as subagents. To keep a coordinator focused on specific workers, set its `agents` frontmatter:
+
+* `agents: ['Codebase Researcher', 'Reviewer']` permits only the named agents.
+* `agents: ['*']`, or omitting the property, permits all available agents.
+* `agents: []` prevents subagent use.
+
+> [!NOTE]
+> Explicitly listing an agent in `agents` overrides that agent's `disable-model-invocation: true`. Picker visibility and subagent availability are separate controls.
+
+Include the `agent` tool set in the coordinator's `tools` property. The [coordinator and worker example](<#coordinator-and-worker-pattern>) shows a complete workflow.
+
+### Select the model for a subagent
+
+Local subagents select a model in this order:
+
+1. An explicit model parameter supplied by the main agent to the `runSubagent` tool.
+1. The selected custom agent's [`model`](<https://github.com/docs/agent-customization/custom-agents.md#header-optional>) property, which accepts a model name or a prioritized list of models.
+1. Auto, when `setting(chat.subagents.defaultToAuto)` is enabled and the [conditions for using Auto](<#use-auto-for-subagents>) apply.
+1. The model running the main conversation.
+
+To request a model, include it in your prompt. Replace `<model name>` with a model available in your session:
+
+```prompt
+Use a subagent with <model name> to review the error handling in this module.
+```
+
+Explicit and agent-configured model selections are checked against the main model's cost tier. If a selection exceeds that tier, the subagent doesn't run and reports which models are available.
+
+#### Use Auto for subagents
+
+`feature(subagent-auto-model-selection)`
+
+Enable `setting(chat.subagents.defaultToAuto)` to use Auto instead of the main model when neither the tool call nor the agent specifies a model. The setting defaults to `false` and doesn't override an inherited custom agent's model configuration.
+
+If Auto is unavailable, the subagent uses the main conversation's model.
+
+Subagents of a [bring your own key model](<https://github.com/docs/agent-customization/language-models.md#bring-your-own-language-model-key>) continue to use that model unless you specify a different one. Auto routing through this setting is not constrained by the main model's fixed cost tier.
+
+### Nested subagents
+
+Local subagents cannot invoke further subagents by default. For a workflow that delegates work recursively, enable `setting(chat.subagents.allowInvocationsFromSubagents)` (`false` by default). Nesting is limited to a maximum depth of five.
+
+Keep recursive tasks bounded, and include a stopping condition so agents don't repeatedly delegate the same work.
+
+#### Example: recursive agent
+
+A recursive agent lists itself in its `agents` property. With nested subagents enabled, save this example as `.github/agents/recursive-processor.agent.md` to split a list of files into smaller research tasks:
+
+```markdown
+---
+name: Recursive Processor
+description: Research independent files in small groups
+tools: ['agent', 'read', 'search']
+agents: ['Recursive Processor']
+argument-hint: A list of files to summarize
+---
+Summarize the purpose of each file without changing it.
+* For more than four files, split the list in half and delegate each half
+  to a Recursive Processor subagent.
+* For four or fewer files, or if further delegation is unavailable,
+  summarize the files directly.
+* Combine the results into a single summary.
+```
+
+### Orchestration patterns
+
+For repeatable multi-step work in a Local session, use a coordinator agent to assign focused tasks to workers and combine their results.
+
+#### Coordinator and worker pattern
+
+A feature-building coordinator can delegate research and review while making the code changes itself. This example uses three agent files: the [Codebase Researcher](<#run-a-custom-agent-as-a-subagent>) defined earlier, a reviewer, and a coordinator.
+
+Create `.github/agents/reviewer.agent.md`:
+
+```markdown
+---
+name: Reviewer
+description: Review changes for correctness and missing tests
+user-invocable: false
+tools: ['read', 'search']
+---
+Review the supplied files and change summary without editing files.
+Report correctness issues and missing test coverage with file references.
+```
+
+Create `.github/agents/feature-builder.agent.md`:
+
+```markdown
+---
+name: Feature Builder
+description: Implement features with delegated research and review
+tools: ['agent', 'edit', 'read', 'search']
+agents: ['Codebase Researcher', 'Reviewer']
+---
+For each feature request:
+1. Ask Codebase Researcher to find relevant files and existing patterns.
+2. Use its findings to implement the requested change.
+3. Ask Reviewer to check the changed files, passing the requirements
+   and a summary of your changes.
+4. Address the findings, then summarize the changes and remaining risks.
+```
+
+Save all three files. In a Local session, select **Feature Builder** from the agents dropdown and describe the feature to implement. The workers have read-only tools, while the coordinator has edit tools.
+
+If another review is needed, the coordinator starts a new invocation and supplies the updated context. The earlier reviewer invocation doesn't retain a conversation for follow-up messages.
+
+#### Multi-perspective code review
+
+For a one-off review, assign perspectives in your prompt instead of creating more agent files:
+
+```prompt
+Use two subagents to review the current changes without editing files.
+Ask one to check correctness and the other to check test coverage.
+Combine their findings, remove duplicates, and prioritize actionable issues.
+```
+
+Separate contexts can surface different issues, but don't guarantee unbiased or correct conclusions. Review the combined findings before acting on them.
+
+### Troubleshooting
+
+For Local sessions, check these common causes:
+
+| Symptom | What to check |
+| --- | --- |
+| The main agent doesn't delegate. | Confirm **Run Subagent** is selected in **Configure Tools**, then explicitly request a subagent with a focused task. |
+| A custom agent isn't available. | Check its exact, case-sensitive name, `disable-model-invocation`, and the coordinator's `agents` list. `user-invocable: false` only hides it from the picker. |
+| A requested model doesn't run. | Use one of the models listed in the error, or remove the explicit preference. See [model selection](<#select-the-model-for-a-subagent>). |
+| A subagent can't delegate further. | Check the [nested subagent setting](<#nested-subagents>), the depth limit, and whether its tools include `agent`. |
+
+{% /tab %}
+{% /tabs %}
+
+## What you see in chat
+
+The presentation depends on both the harness and the interface. Interactive [peer chats](<https://github.com/docs/agents/concepts/sessions.md#chats-within-a-session>) are conversations you prompt independently. Subagent chats show work that an agent delegates.
+
+### Chat view
+
+In a Local session in the {% data variables.copilot.chat_view %}, a running subagent appears as a collapsed tool call with its agent name and current activity, such as reading files or searching the codebase. Select the tool call to inspect the prompt, tool calls, and returned result.
+
+For Agent Host sessions, the editor's **Sessions** view shows interactive peer chats, but doesn't include subagent chats in that hierarchy. To inspect read-only subagent chats in supported sessions, use the [{% data variables.copilot.agents_window %}](<#agents-window>).
+
+### Agents window
+
+In supported sessions in the {% data variables.copilot.agents_window %}, subagents appear as read-only chats within the session. Select the indicator in the parent chat to open the subagent. The indicator shows its model, elapsed time, and active tool call.
+
+Subagent chats are hidden from the tab strip by default. You can also open one from the **Chats** dropdown, the running-subagents indicator, or **Open Subagent** in the chat where the delegation occurred.
+
+To keep the parent chat and subagent visible side by side:
+
+* Hold `kbstyle(Alt)` and select the in-transcript subagent pill or the subagent in the **Chats** dropdown.
+* Focus the in-transcript subagent pill and press `kbstyle(Alt+Enter)`.
+* Drag the in-transcript subagent pill to the center of an existing chat group or to an edge to create a group in that direction.
+
+The in-transcript subagent pill is part of the chat response. It differs from the background-activities pill above the chat input, which opens a picker for running activities and isn't draggable.
+
+Read-only subagent chats show a lock icon and don't accept input. They persist across window reloads with your other chats.
+
+![Screenshot showing a read-only subagent chat in the {% data variables.copilot.agents_window %}.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/agents-window/agents-window-follow-subagents-read-only-chat.png>)
+
+### Display settings
+
+By default, chat editors use a rich presentation that opens each subagent in its own editor instead of showing its full activity inline in the parent chat. Disable the `setting(chat.subagents.useRichRendering)` setting to show subagent activity inline.
+
+> [!TIP]
+> AI credit usage for subagents is hidden by default. To show [AI credit usage](<https://github.com/docs/agents/concepts/language-models.md#ai-credits-and-model-costs>) in the subagent response pill, hover details, and screen reader label, enable the `setting(chat.subagents.showCreditUsage)` setting.
+
+## Related resources
+
+* [Custom agents](<https://github.com/docs/agent-customization/custom-agents.md>): extend the examples with your own instructions and tools.
+* [Optimize AI credit usage](<https://github.com/docs/agents/guides/optimize-usage.md>): balance model choice, context, and cost.
+* [Agent sessions](<https://github.com/docs/agents/run/sessions/manage-sessions.md>): organize your conversations and manage context.
+
+
+</details>

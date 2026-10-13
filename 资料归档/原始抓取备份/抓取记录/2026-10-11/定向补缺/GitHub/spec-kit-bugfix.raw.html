@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Bug Fixing Quickstart | Spec Kit Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Bug Fixing Quickstart | Spec Kit Documentation ">
+      
+      
+      <link rel="icon" href="../images/spec-kit-logo.webp">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/github/spec-kit/blob/main/docs/guides/bugfix.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/spec-kit-logo.webp" alt="Spec Kit">
+            Spec Kit
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="bug-fixing-quickstart">Bug Fixing Quickstart</h1>
+
+<p>Use this process when existing behavior is broken and you need an evidence-based
+diagnosis, a scoped repair, and verification against the original report. You do
+not need to run the SDD feature workflow first.</p>
+<p>The bundled, opt-in <strong>bug</strong> extension separates the work into
+<strong>assess → fix → test</strong>. Each bug gets a directory under
+<code>.specify/bugs/&lt;slug&gt;/</code> containing the diagnosis, change record, and test results.</p>
+<h2 id="set-up">Set up</h2>
+<p>First <a href="../installation.html">install Spec Kit</a> and initialize the repository that
+contains the bug. If it already contains code, follow
+<a href="existing-projects.html">Adopting Spec Kit in an Existing Project</a>.</p>
+<p>In a terminal at the initialized project root, install the extension:</p>
+<pre><code class="lang-bash">specify extension add bug
+</code></pre>
+<p>Then launch your coding agent in that directory. The examples below use
+GitHub Copilot's default skills mode (<code>--integration copilot</code>). Other agents
+expose the same steps using their own
+<a href="../reference/integrations.html#command-invocation">command invocation syntax</a>.
+Invoke each <code>/speckit-bug-*</code> skill separately in your agent's chat and review its
+output before continuing. These are agent skills, not terminal commands; the
+terminal command above only installs the extension.</p>
+<h2 id="1-assess-the-bug">1. Assess the bug</h2>
+<p>Provide the symptom, reproduction steps, and expected behavior. A GitHub issue
+URL or stack trace also works. Choose a short, reusable name for the bug:</p>
+<pre><code class="lang-text">/speckit-bug-assess &quot;Submitting the login form with an empty password crashes the app instead of showing a validation error.&quot; slug=login-crash
+</code></pre>
+<p>The agent investigates the code and writes
+<code>.specify/bugs/login-crash/assessment.md</code>. It does not change source code.
+Review the diagnosis and proposed remediation before asking for a fix; do not
+proceed with an unsupported diagnosis or a report that is not a bug.</p>
+<h2 id="2-fix-the-assessed-cause">2. Fix the assessed cause</h2>
+<p>Use the same slug:</p>
+<pre><code class="lang-text">/speckit-bug-fix slug=login-crash
+</code></pre>
+<p>The agent applies the assessed remediation and records the changes in
+<code>.specify/bugs/login-crash/fix.md</code>. This is the only stage that edits source
+code. If new evidence requires work outside the assessed scope, the agent must
+record that deviation rather than silently expanding the repair.</p>
+<h2 id="3-test-the-fix">3. Test the fix</h2>
+<pre><code class="lang-text">/speckit-bug-test slug=login-crash
+</code></pre>
+<p>The agent re-runs the reproduction and relevant tests, then writes
+<code>.specify/bugs/login-crash/test.md</code>. This stage records evidence; it does not
+edit source code to make a failing test pass.</p>
+<table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>Meaning</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verified</code></td>
+<td>The verification requirements were exercised successfully</td>
+<td>Review the patch and evidence before merging</td>
+</tr>
+<tr>
+<td><code>partial</code></td>
+<td>Some verification could not be completed</td>
+<td>Supply the missing environment or reproduction evidence and test again</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>Verification found a remaining problem</td>
+<td>Revisit the diagnosis or fix using that evidence, then test again</td>
+</tr>
+</tbody>
+</table>
+<p>A passing test suite alone is not enough if the original reproduction was never
+exercised. Keep the assessment, fix record, and test report together so a reviewer
+can trace the repair from symptom to evidence.</p>
+<h2 id="learn-more">Learn more</h2>
+<ul>
+<li><a href="../reference/agentic-bugfix.html">Bug command reference</a>: arguments, slug handling, and output contracts.</li>
+<li><a href="../quickstart.html">SDD quickstart</a>: use this when the work is a new feature rather than a repair.</li>
+<li><a href="assessment.html">Idea assessment quickstart</a>: investigate whether a proposed change is worth pursuing.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/github/spec-kit/blob/main/docs/guides/bugfix.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Spec Kit - A specification-driven development toolkit
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

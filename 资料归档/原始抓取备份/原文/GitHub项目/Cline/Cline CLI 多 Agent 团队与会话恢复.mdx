@@ -1,0 +1,57 @@
+---
+vendor: "Cline"
+repository: "cline/cline"
+path: "docs/cli/agent-teams.mdx"
+source_url: "https://github.com/cline/cline/blob/main/docs/cli/agent-teams.mdx"
+raw_url: "https://raw.githubusercontent.com/cline/cline/main/docs/cli/agent-teams.mdx"
+resolved_url: "https://raw.githubusercontent.com/cline/cline/main/docs/cli/agent-teams.mdx"
+tree_snapshot_sha: "f87705844954a86ac993bfc4e2c86402e86d1d60"
+sha256_body: "91559c7e4348a330d84c84bd28fcb160a9e1014d664299ba379ad4c8a7abbf80"
+archive: "01_资料来源/官方资料/审计记录/官方GitHub相关正文_2026-10-10/official-github-pages-0003.jsonl.gz:52"
+---
+
+---
+title: "Agent Teams"
+sidebarTitle: "Agent Teams"
+description: "Coordinate multiple agents working together on complex tasks from the CLI."
+---
+<Warning>
+  This feature currently only applies to Cline SDK, CLI, and Kanban. This feature is not applicable on VSCode and JetBrains Extension for now.
+</Warning>
+
+
+Agent teams let you break complex work across multiple agents that coordinate through a shared task board. One agent acts as the coordinator, delegating subtasks to specialist agents.
+
+## Starting a Team
+
+Start your prompt with `/team`, in an interactive session or on the command line:
+
+```bash
+cline "/team Plan and implement user authentication with tests"
+```
+
+The coordinator gets tools to add teammates, hand them tasks and collect their results. Without `/team`, Cline can still form a team when it decides a task needs one.
+
+## Resuming Team Work
+
+The team belongs to the session. To pick up where it left off, find the session's ID with `cline history`, then resume the session:
+
+```bash
+cline --id <session-id>
+```
+
+The session opens with its team, and you can tell the coordinator what to do next.
+
+## Team State
+
+Each team has a task board, a mailbox for messages between agents, and a mission log. Cline keeps them in `~/.cline/data/db/teams.db`.
+
+## Turning Teams Off
+
+Teams are available in Act and Plan modes, and not with `--yolo`. To turn them off, run `cline`, type `/settings`, and turn off the `teams` tool on the **Tools** tab. Turn off `spawn_agent` there to stop [sub-agents](/features/subagents) too.
+
+## Sub-Agents
+
+For simpler delegation within a single session (no persistent state), use [sub-agents](/features/subagents). Sub-agents run in parallel and return focused reports to the main agent.
+
+See the [SDK Multi-Agent Teams guide](/sdk/guides/multi-agent-teams) for the programmatic API.

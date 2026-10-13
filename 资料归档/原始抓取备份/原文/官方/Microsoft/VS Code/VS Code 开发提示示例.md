@@ -1,0 +1,212 @@
+---
+vendor: "Microsoft"
+repository: "microsoft/vscode-docs"
+path: "docs/agents/guides/prompt-examples.md"
+source_url: "https://github.com/microsoft/vscode-docs/blob/main/docs/agents/guides/prompt-examples.md"
+raw_url: "https://raw.githubusercontent.com/microsoft/vscode-docs/main/docs/agents/guides/prompt-examples.md"
+resolved_url: "https://raw.githubusercontent.com/microsoft/vscode-docs/main/docs/agents/guides/prompt-examples.md"
+tree_snapshot_sha: "7dde535199826fdb8e278bdf6f0c3bff0aae0138"
+sha256_body: "1f452a5b2a2d9f1b8d28ced180f6218a2037b8fb96410f7b939c04e954b704c6"
+archive: "01_资料来源/官方资料/审计记录/官方GitHub相关正文_2026-10-10/official-github-pages-0007.jsonl.gz:16"
+---
+
+---
+ContentId: 9d8f3a2b-5c6e-4f7a-8b9c-1d2e3f4a5b6c
+DateApproved: 10/7/2026
+MetaDescription: Use chat prompts in {% data variables.product.prodname_vscode_shortname %} to explore code, build features, refactor, debug, and test.
+MetaSocialImage: ../images/shared/github-copilot-social.png
+---
+# Prompt examples
+
+This article provides example prompts for chat in {% data variables.product.prodname_vscode %} across different scenarios and agents. Use these examples as inspiration to craft effective prompts for your own development tasks.
+
+If you are new to using chat in {% data variables.product.prodname_vscode_shortname %}, learn more about [getting started with chat](/docs/chat/chat-overview.md) or review [best practices for prompt crafting](/docs/agents/best-practices.md).
+
+<div class="docs-action" data-show-in-doc="false" data-show-in-sidebar="true" title="Get started with agents">
+Follow a hands-on tutorial to build an app with AI agents in {% data variables.product.prodname_vscode_shortname %}.
+
+* [Start agentic coding tutorial](/docs/agents/agents-tutorial.md)
+
+</div>
+
+## General coding and technology questions
+
+Use the **Ask** agent to get quick answers about coding concepts, technology topics, and general programming questions.
+
+```prompt-ask
+What is a linked list?
+```
+
+```prompt-ask
+Provide 3 ways to implement a search feature in React.
+```
+
+```prompt-ask
+Explain the difference between async/await and promises.
+```
+
+## Understanding and exploring your codebase
+
+Use the **Ask** agent with `#codebase` to understand how your project works, locate specific functionality, or explore code relationships.
+
+For a guided investigation with source references and verification steps, see [Explore a codebase with an agent](/docs/agents/guides/explore-a-codebase.md).
+
+```prompt-ask
+Explain how authentication works in #codebase
+```
+
+```prompt-ask
+Where is the database connection string configured? #codebase
+```
+
+```prompt-ask
+How do I build this #codebase?
+```
+
+```prompt-ask
+Which testing framework is used for #calculator.test.js?
+```
+
+## Code generation and editing
+
+Use **Agent** for multi-file creation and **inline chat** (`kb(inlinechat.start)`) for targeted, in-place edits.
+
+For complete workflows in an existing project, see [Add a feature](/docs/agents/guides/add-a-feature.md) and [Refactor without changing behavior](/docs/agents/guides/refactor-safely.md).
+
+```prompt
+Add a login button and style it based on #styles.css
+```
+
+```prompt
+Create a meal-planning web app using React and Node.js
+```
+
+```prompt
+Refactor this code to use async/await
+```
+
+## Testing and quality assurance
+
+Use **Agent** to generate tests or fix failing tests.
+
+```prompt
+Add unit tests for the user service.
+```
+
+```prompt
+Fix the failing tests #testFailure
+```
+
+## Debugging and fixing issues
+
+Use **Agent** for fixing issues across files, or **Ask** to understand the root cause first.
+
+```prompt
+Fix the issues in #problems
+```
+
+```prompt
+Why is this function returning undefined?
+```
+
+## Working with source control
+
+Use chat to work with your pending changes and generate release documentation.
+
+```prompt
+Summarize the #changes
+```
+
+```prompt
+Generate release notes based on the #changes
+```
+
+## Working with external resources
+
+Use `#fetch` to reference content from the web or use the GitHub MCP server to search for code examples in public GitHub repositories.
+
+```prompt
+How do I use the 'useState' hook in react 18? #fetch https://18.react.dev/reference/react/useState#usage
+```
+
+```prompt
+Build an API endpoint to fetch address info, use the template from GitHub repo contoso/api-templates
+```
+
+```prompt
+What are the top #extensions for this workspace?
+```
+
+## Terminal and command-line tasks
+
+Use [terminal inline chat](/docs/chat/inline-chat.md#use-terminal-inline-chat) to get help with shell commands and terminal operations.
+
+```prompt
+How do I install npm packages?
+```
+
+```prompt
+List the top 5 largest files in the src directory
+```
+
+```prompt
+undo the last git commit
+```
+
+## Working with Jupyter notebooks
+
+Use **Agent** to create, edit, and work with Jupyter notebooks.
+
+```prompt
+/newNotebook use pandas and seaborn to read and visualize the titanic dataset. Show key information from the dataset.
+```
+
+```prompt
+Create a notebook to read data from #housing.csv and plot the distribution of prices
+```
+
+```prompt
+Make sure the data is cleaned before visualizing and processing it
+```
+
+```prompt
+Show the correlation between different features in the dataset
+```
+
+## Multi-turn conversation examples
+
+Chat supports follow-up prompts within the same session. Use multi-turn conversations to iterate on results and refine the AI's output.
+
+**First prompt:**
+
+```prompt
+Create a REST API with Express.js that has endpoints for users and products
+```
+
+**Follow-up prompts:**
+
+```prompt
+Add input validation and error handling to both endpoints
+```
+
+```prompt
+Now add unit tests for the validation logic
+```
+
+By building on earlier responses, the AI maintains context from the previous steps and generates more coherent code.
+
+## Tips for crafting effective prompts
+
+* **Be specific**: Include details about what you want to accomplish, the technologies to use, and the expected output format.
+* **Add context**: Use #-mentions to reference files, symbols, or context variables like `#codebase`, `#changes`, or `#problems`.
+* **Iterate**: Start with a simple prompt and refine it based on the response. Ask follow-up questions to improve the results.
+* **Break down complex tasks**: Instead of asking for everything at once, break large tasks into smaller, manageable steps.
+
+Learn more about [best practices for crafting prompts](/docs/agents/best-practices.md) and [adding context to your prompts](/docs/chat/copilot-chat-context.md).
+
+## Related resources
+
+* [Chat overview](/docs/chat/chat-overview.md)
+* [Add context to your chat prompt](/docs/chat/copilot-chat-context.md)
+* [Inline chat](/docs/chat/inline-chat.md)
+* [Copilot Chat Cookbook](https://docs.github.com/en/copilot/example-prompts-for-github-copilot-chat) in the GitHub documentation

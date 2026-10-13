@@ -1,0 +1,299 @@
+# 理解 AI Agent
+
+解释模型与工具循环、会话、运行环境、计划和扩展能力的关系，说明用户怎样引导和控制执行。
+
+- 来源：Microsoft／VS Code
+- 资料类型：文档源码（含未展开模板）
+- 存档版本：`7dde53519982`。
+- 文档时间：官方审核：[2026-10-07](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/concepts/agents.md>)；源码提交（存档版）：[2026-10-06](<https://github.com/microsoft/vscode-docs/commit/4fe6b03408632f2e9338a970d26afa480e4a022d>)；本地归档批次：2026-10-10
+- 阅读状态：中文源码译文，由 Google 翻译；源码中的模板未展开，不等同于官网渲染后的完整文章。代码、命令与配置保留原样，未逐句人工校对。
+
+[原文发布页](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/concepts/agents.md>) · [原始文件](<../../../../原始抓取备份/原文/官方/Microsoft/VS Code/理解 AI Agent（存档7dde5351-644）.md>) · [返回资料总览](<../../../资料总览.md>)
+
+
+<details>
+<summary>源码自带的配置与元数据（保留原样）</summary>
+
+~~~yaml
+---
+ContentId: e5f6a7b8-9c0d-1e2f-3a4b-5c6d7e8f9a0b
+DateApproved: 10/7/2026
+MetaDescription: Understand how agents in {% data variables.product.prodname_vscode_shortname %} use models, context, and tools to complete coding tasks.
+MetaSocialImage: ../images/shared/github-copilot-social.png
+Keywords:
+- copilot
+- ai
+- agents
+- agent loop
+- agentic loop
+- autonomous
+- subagents
+- memory
+- planning
+- local agents
+- "{% data variables.copilot.copilot_cloud_agent_short %}s"
+- remote agent sessions
+- agent host protocol
+---
+~~~
+
+</details>
+
+[查看原文对照](#原文对照)
+
+## 中文全文
+
+# 了解【AI】【agents】
+
+agent 是一个 AI 系统，它使用语言模型和 [ 工具 ](<https://github.com/docs/agents/concepts/tools.md>) 代表您完成目标。语言模型根据提示中的信息生成响应。 agent 进一步收集上下文、在开发环境中采取操作、评估结果并根据需要重复这些步骤。
+
+您选择目标，控制哪些操作需要批准，并查看所产生的更改。本文介绍了 agent 循环的工作原理，并介绍了支持代理工作的会话、计划、子代理、内存和自定义。
+
+有关 {% data variables.product.prodname_vscode_shortname %} 中的 AI 工作流程的概述以及在何处使用 agents，请参阅 [在 {% data variables.product.prodname_vscode_shortname %}](<https://github.com/docs/agents/overview.md>) 中使用 AI 进行构建。
+
+<div class="docs-action" data-show-in-doc="false" data-show-in-sidebar="true" title="Get started with agents">
+完成一个简短的快速入门，以使用 {% data variables.product.prodname_vscode_shortname %} 中的 agent 创建和验证应用程序。
+
+* [启动agents快速入门](<https://github.com/docs/agents/quickstart.md>)
+
+</div>
+
+## 这些概念如何组合在一起
+
+每次发送请求时，核心概念都会协同工作：
+
+1. **请求：**您描述目标并提供任何要求或约束。
+1. **上下文和推理：** {% data variables.product.prodname_vscode_shortname %}组装相关的[上下文](<https://github.com/docs/agents/concepts/context.md>)，例如文件和对话历史记录。 [语言模型](<https://github.com/docs/agents/concepts/language-models.md>)对该信息进行推理并确定下一步操作。
+1. **工具操作：** agent 使用 [ 工具 ](<https://github.com/docs/agents/concepts/tools.md>) 收集更多信息或对您的环境进行操作，例如读取文件、编辑代码或运行命令。
+1. **验证：**工具调用的结果作为上下文返回到模型。 agent评估其进度并决定是否采取另一行动。
+1. ** 审核：** 任务完成后，您将审核响应、代码更改和验证结果。
+
+重复的推理、行动和验证步骤形成了**agent循环**。 [会话](<https://github.com/docs/agents/concepts/sessions.md>)将对话和任务状态保持在一起。 [agent 线束](<https://github.com/docs/agents/concepts/agent-harnesses.md>) 协调循环，而执行环境则确定工具运行和代码更改的位置。
+
+## Agent 循环
+
+agent 循环使 agent 能够完成任务，而不是产生单个响应。在每一步中，agent 都会评估其进度并选择下一步操作。该操作的输出将为下一个决策提供信息。
+
+![屏幕截图显示了从用户提示到推理、工具调用、更新和最终审查的代理循环图。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/concepts/agent-loop.png>)
+
+例如，当您要求 agent 将验证添加到表单时，循环通常包括以下阶段：
+
+1. **理解：** agent查找表单，读取相关代码和测试，并识别项目现有的验证模式。
+1. **法案：** agent 更新表单并添加或修改测试。
+1. **验证：** agent运行相关测试并检查错误。如果验证失败，它会诊断结果，进行另一次更改，然后再次验证。
+
+简单的问题可能只需要读取几个文件。当 agent 编辑代码、运行测试和修复问题时，较大的实现任务可能会多次重复循环。
+
+## 保持控制
+
+agent 可以采取行动，但您仍然负责指导任务并决定保留哪些更改。在会话期间，您可以：
+
+* 选择哪些工具可用以及哪些工具调用需要批准。
+* 在操作运行之前查看批准请求。
+* 发送另一条消息以添加上下文或重定向工作。
+* 如果 agent 采取了错误的方法，请停止它。
+* 在保留更改之前查看更改的文件和验证结果。
+
+了解有关 [ 信任和安全控制 ](<https://github.com/docs/agents/concepts/trust-and-safety.md>) 的更多信息。
+
+## 会议
+
+会话是 agent 的工作单元。它将任务的工作区、代码更改和执行状态汇集在一起​​。根据线束的不同，一个会话可以包含多个聊天，每个聊天都有自己的对话历史记录。
+
+会话是独立的，可以并行运行，并且在 [{% data variables.copilot.chat_view %}](<https://github.com/docs/agents/run/chat-view.md>) 和 [{% data variables.copilot.agents_window %}](<https://github.com/docs/agents/run/agents-window.md>) 之间共享。会话可以在您的计算机或远程主机上运行，​​您可以将其交给另一个 agent。了解有关 [ 会话和切换 ](<https://github.com/docs/agents/concepts/sessions.md>) 的更多信息。
+
+## Agent 工具和执行环境
+
+agent 线束是协调 agent 循环的运行时。它管理会话，将语言模型连接到工具，并提供特定于提供商的功能。 {% data variables.product.prodname_vscode_shortname %} 支持 Copilot、Claude 和 Codex 等线束。
+
+执行环境是线束运行工作区工具和更改代码的地方。根据可用的工具，这可以是您的机器、连接的主机、主机上的开发容器或云基础设施。开发容器提供项目的配置工具和依赖项，而无需更改线束。了解有关 [agent 工具和执行环境 ](<https://github.com/docs/agents/concepts/agent-harnesses.md#relate-execution-environments-and-code-isolation>) 的更多信息。
+
+## 扩展 agent 工作的功能
+
+Agents 可以使用附加功能来执行复杂的任务和重复的工作流程。并非每个请求都需要这些功能。
+
+### 规划
+
+每个 agent 决定下一步要执行哪个操作，作为 agent 循环的一部分。对于复杂的任务，请使用内置计划 agent 研究代码库、明确需求并在代码更改开始之前提出实施计划。
+
+计划 agent 在准备计划时使用只读工具。审核并批准该方法后，您可以将计划移交给实施 agent。了解有关 [ 通过 agents](<https://github.com/docs/agents/run/planning.md>) 进行规划的更多信息。
+
+### 子代理
+
+对于复杂的任务，主agent可以将重点工作委托给子代理。子代理执行特定任务，例如研究主题或分析部分代码库，并将结果报告给主代理 agent。
+
+当独立研究将大量中间信息添加到主 agent 的 [ 上下文窗口 ](<https://github.com/docs/agents/concepts/language-models.md#context-window>) 时，子代理非常有用。
+
+子代理的主要特征：
+
+* **上下文隔离**：每个子代理在自己的上下文中工作。线束确定它接收哪些指令和对话历史记录。在本地线束中，子代理接收委派的任务和适用的指令，而不是主要对话历史记录。
+* **并行执行**：当线束支持并发子代理时，独立的子任务可以并行运行，例如单独的正确性和性能审查。
+* **集中结果**：主agent使用子代理的结果，而不将其所有中间工作添加到主上下文中。
+
+子代理提出自己的模型请求，因此较小的主上下文并不一定意味着较低的总令牌使用量或[成本](<https://github.com/docs/agents/concepts/language-models.md#ai-credits-and-model-costs>)。
+
+您无需创建自定义 agent 即可使用子代理。 [自定义agent](<https://github.com/docs/agent-customization/custom-agents.md>)定义子代理可以使用的可重用指令、工具和模型首选项。
+
+例如，[计划agent](<#规划>)可以在创建计划之前使用子代理来研究任务的独立部分。
+
+了解有关 [ 使用子代理 ](<https://github.com/docs/agents/run/subagents.md>) 的更多信息。
+
+### 内存
+
+当记忆工具可用时，agent 可以存储笔记，以便稍后在同一会话或将来的会话中使用。这些注释可以记录首选项、之前任务的经验教训或有关代码库的信息。内存与会话自动累积的对话上下文是分开的。
+
+内存工具在您的计算机上以三个范围本地存储注释：
+
+* **用户内存** (`/memories/`)：在所有工作区和对话中持续存在。前 200 行会自动加载到每个会话中。
+* **存储库内存** (`/memories/repo/`)：范围仅限于当前工作区并在对话中持续存在。
+* **会话内存**（`/memories/session/`）：范围为当前对话并在结束时清除。
+
+了解更多关于 [内存在 {% data variables.product.prodname_vscode_shortname %} agents](<https://github.com/docs/agents/run/memory.md>).
+
+### 定制化
+
+您可以为项目或工作流程自定义 agent 循环：
+
+* [**自定义agent**](<https://github.com/docs/agent-customization/custom-agents.md>)定义特定工作流程的指令、可用工具、语言模型和可选切换。
+* [**Agent skills**](<https://github.com/docs/agent-customization/agent-skills.md>) 提供 agent 专门任务的指令和资源。
+* [**Hooks**](<https://github.com/docs/agent-customization/hooks.md>) 在 agent 生命周期的特定点运行命令。
+
+了解有关 [ 定制概念 ](<https://github.com/docs/agents/concepts/customization.md>) 的更多信息。
+
+## 相关资源
+
+* [工具](<https://github.com/docs/agents/concepts/tools.md>)
+* [Agent 工具和执行环境](<https://github.com/docs/agents/concepts/agent-harnesses.md>)
+* [信任与安全](<https://github.com/docs/agents/concepts/trust-and-safety.md>)
+
+
+## 原文对照
+
+<details>
+<summary>展开完整原文</summary>
+
+# Understand AI agents
+
+An agent is an AI system that uses a language model and [tools](<https://github.com/docs/agents/concepts/tools.md>) to complete a goal on your behalf. A language model generates responses based on the information in a prompt. An agent goes further by gathering context, taking actions in your development environment, evaluating the results, and repeating these steps as needed.
+
+You choose the goal, control which actions require approval, and review the resulting changes. This article explains how the agent loop works and introduces the sessions, planning, subagents, memory, and customizations that support agentic work.
+
+For an overview of AI workflows in {% data variables.product.prodname_vscode_shortname %} and where to work with agents, see [Build with AI in {% data variables.product.prodname_vscode_shortname %}](<https://github.com/docs/agents/overview.md>).
+
+<div class="docs-action" data-show-in-doc="false" data-show-in-sidebar="true" title="Get started with agents">
+Complete a short quickstart to create and validate an app with an agent in {% data variables.product.prodname_vscode_shortname %}.
+
+* [Start the agents quickstart](<https://github.com/docs/agents/quickstart.md>)
+
+</div>
+
+## How the concepts fit together
+
+The core concepts work together each time you send a request:
+
+1. **Request:** You describe a goal and provide any requirements or constraints.
+1. **Context and reasoning:** {% data variables.product.prodname_vscode_shortname %} assembles relevant [context](<https://github.com/docs/agents/concepts/context.md>), such as files and conversation history. A [language model](<https://github.com/docs/agents/concepts/language-models.md>) reasons over that information and determines the next action.
+1. **Tool action:** The agent uses [tools](<https://github.com/docs/agents/concepts/tools.md>) to gather more information or act on your environment, such as reading a file, editing code, or running a command.
+1. **Validation:** The result of the tool call returns to the model as context. The agent evaluates its progress and decides whether to take another action.
+1. **Review:** When the task is complete, you review the response, code changes, and validation results.
+
+The repeated reasoning, action, and validation steps form the **agent loop**. A [session](<https://github.com/docs/agents/concepts/sessions.md>) keeps the conversation and task state together. An [agent harness](<https://github.com/docs/agents/concepts/agent-harnesses.md>) coordinates the loop, while the execution environment determines where tools run and code changes are made.
+
+## Agent loop
+
+The agent loop enables an agent to work through a task instead of producing a single response. At each step, the agent evaluates its progress and chooses the next action. The output of that action informs the next decision.
+
+![Screenshot showing a diagram of the agentic loop from the user prompt through reasoning, tool calls, updates, and final review.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/concepts/agent-loop.png>)
+
+For example, when you ask an agent to add validation to a form, the loop typically includes these stages:
+
+1. **Understand:** The agent finds the form, reads related code and tests, and identifies the project's existing validation patterns.
+1. **Act:** The agent updates the form and adds or modifies tests.
+1. **Validate:** The agent runs the relevant tests and checks for errors. If validation fails, it diagnoses the result, makes another change, and validates again.
+
+Simple questions might require only a few file reads. Larger implementation tasks might repeat the loop many times as the agent edits code, runs tests, and fixes problems.
+
+## Stay in control
+
+An agent can take actions, but you remain responsible for directing the task and deciding which changes to keep. During a session, you can:
+
+* Choose which tools are available and which tool calls require approval.
+* Review an approval request before an action runs.
+* Send another message to add context or redirect the work.
+* Stop the agent if it is taking the wrong approach.
+* Review changed files and validation results before you keep the changes.
+
+Learn more about [trust and safety controls](<https://github.com/docs/agents/concepts/trust-and-safety.md>).
+
+## Sessions
+
+A session is the unit of work with an agent. It brings together the workspace, code changes, and execution state for a task. Depending on the harness, a session can contain multiple chats, each with its own conversation history.
+
+Sessions are independent, can run in parallel, and are shared across the [{% data variables.copilot.chat_view %}](<https://github.com/docs/agents/run/chat-view.md>) and the [{% data variables.copilot.agents_window %}](<https://github.com/docs/agents/run/agents-window.md>). A session can run on your machine or a remote host, and you can hand it off to another agent. Learn more about [sessions and handoff](<https://github.com/docs/agents/concepts/sessions.md>).
+
+## Agent harnesses and execution environments
+
+An agent harness is the runtime that coordinates the agent loop. It manages the session, connects the language model to tools, and provides provider-specific capabilities. {% data variables.product.prodname_vscode_shortname %} supports harnesses such as Copilot, Claude, and Codex.
+
+The execution environment is where the harness runs workspace tools and changes code. Depending on the available harness, this can be your machine, a connected host, a Dev Container on either host, or cloud infrastructure. A Dev Container provides the project's configured tools and dependencies without changing the harness. Learn more about [agent harnesses and execution environments](<https://github.com/docs/agents/concepts/agent-harnesses.md#relate-execution-environments-and-code-isolation>).
+
+## Capabilities that extend agent work
+
+Agents can use additional capabilities for complex tasks and recurring workflows. These capabilities are not required for every request.
+
+### Planning
+
+Every agent decides which action to take next as part of the agent loop. For a complex task, use the built-in Plan agent to research the codebase, clarify requirements, and propose an implementation plan before code changes begin.
+
+The Plan agent uses read-only tools while preparing the plan. After you review and approve the approach, you can hand off the plan to an implementation agent. Learn more about [planning with agents](<https://github.com/docs/agents/run/planning.md>).
+
+### Subagents
+
+For complex tasks, the main agent can delegate focused work to subagents. A subagent performs a specific task, such as researching a topic or analyzing part of a codebase, and reports the result to the main agent.
+
+Subagents are useful when independent research would add large amounts of intermediate information to the main agent's [context window](<https://github.com/docs/agents/concepts/language-models.md#context-window>).
+
+Key characteristics of subagents:
+
+* **Context isolation**: each subagent works in its own context. The harness determines which instructions and conversation history it receives. In the Local harness, subagents receive the delegated task and applicable instructions, not the main conversation history.
+* **Parallel execution**: independent subtasks can run in parallel when the harness supports concurrent subagents, such as separate correctness and performance reviews.
+* **Focused results**: the main agent uses the subagent's result without adding all of its intermediate work to the main context.
+
+Subagents make their own model requests, so a smaller main context doesn't necessarily mean lower total token usage or [cost](<https://github.com/docs/agents/concepts/language-models.md#ai-credits-and-model-costs>).
+
+You don't need to create a custom agent to use subagents. A [custom agent](<https://github.com/docs/agent-customization/custom-agents.md>) defines reusable instructions, tools, and model preferences that a subagent can use.
+
+For example, the [Plan agent](<#planning>) can use subagents to research independent parts of a task before creating a plan.
+
+Learn more about [using subagents](<https://github.com/docs/agents/run/subagents.md>).
+
+### Memory
+
+When the memory tool is available, an agent can store notes for use later in the same session or in future sessions. These notes can record preferences, lessons from previous tasks, or information about your codebase. Memory is separate from the conversation context that a session accumulates automatically.
+
+The memory tool stores notes locally on your machine in three scopes:
+
+* **User memory** (`/memories/`): persists across all workspaces and conversations. The first 200 lines are automatically loaded into every session.
+* **Repository memory** (`/memories/repo/`): scoped to the current workspace and persists across conversations.
+* **Session memory** (`/memories/session/`): scoped to the current conversation and cleared when it ends.
+
+Learn more about [memory in {% data variables.product.prodname_vscode_shortname %} agents](<https://github.com/docs/agents/run/memory.md>).
+
+### Customization
+
+You can customize the agent loop for a project or workflow:
+
+* A [**custom agent**](<https://github.com/docs/agent-customization/custom-agents.md>) defines instructions, available tools, a language model, and optional handoffs for a specific workflow.
+* [**Agent skills**](<https://github.com/docs/agent-customization/agent-skills.md>) give an agent instructions and resources for a specialized task.
+* [**Hooks**](<https://github.com/docs/agent-customization/hooks.md>) run commands at specific points in the agent lifecycle.
+
+Learn more about [customization concepts](<https://github.com/docs/agents/concepts/customization.md>).
+
+## Related resources
+
+* [Tools](<https://github.com/docs/agents/concepts/tools.md>)
+* [Agent harnesses and execution environments](<https://github.com/docs/agents/concepts/agent-harnesses.md>)
+* [Trust and safety](<https://github.com/docs/agents/concepts/trust-and-safety.md>)
+
+
+</details>

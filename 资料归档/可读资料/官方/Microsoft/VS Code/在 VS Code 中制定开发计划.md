@@ -1,0 +1,379 @@
+# 在 VS Code 中制定开发计划
+
+介绍让当前 Agent 先研究和规划、用户审阅调整、保存或执行计划的方法，并说明本地会话的计划设置。
+
+- 来源：Microsoft／VS Code
+- 资料类型：存档文档
+- 文档时间：官方审核：[2026-10-07](<https://code.visualstudio.com/docs/agents/run/planning>)；官方文件提交（截至抓取）：[2026-10-06](<https://github.com/microsoft/vscode-docs/commit/4fe6b03408632f2e9338a970d26afa480e4a022d>)；本地抓取：2026-10-11
+- 阅读状态：完整中文机器译文，由 Google 翻译；代码、命令与配置保留原样，未逐句人工校对。
+
+[原文发布页](<https://code.visualstudio.com/docs/agents/run/planning>) · [原始文件](<../../../../原始抓取备份/原文/官方/Microsoft/VS Code/在 VS Code 中制定开发计划.md>) · [返回资料总览](<../../../资料总览.md>)
+
+[查看原文对照](#原文对照)
+
+## 中文全文
+
+# 在 VS Code 中计划与 agents 的工作
+
+* [以 Markdown 形式查看](<https://code.visualstudio.com/docs/agents/run/planning.md>)
+* [在VS Code](<vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Frun%2Fplanning%20and%20answer%20questions%20about%20the%20content.&windowId=_blank>)中询问
+* [在VS Code内部人士中提问](<vscode-insiders://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Frun%2Fplanning%20and%20answer%20questions%20about%20the%20content.&windowId=_blank>)
+
+[在VS Code](<vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Frun%2Fplanning%20and%20answer%20questions%20about%20the%20content.&windowId=_blank>)中询问
+
+---
+
+规划可帮助您在 agent 更改代码之前澄清需求、比较方法并识别风险。当方法不确定或变更跨越项目的多个部分时，请使用单独的计划步骤。对于一个小的、定义明确的编辑，您可以要求 agent 直接实现它。
+
+您可以要求 agent 在普通对话中提出一种方法。对于专用规划工作流程，请在 **Copilot** 会话中使用 ** 规划 ** 模式。 agent 研究您的项目，提出澄清问题，并创建一个计划供您在实施前审查。
+
+本文将引导您创建一个计划 Copilot，审查和完善它，并选择是实施它还是保存以供以后使用。它还涵盖了不同的控制 [在本地会议中进行规划](<#_plan-in-a-local-session>).
+
+对于端到端示例，请按照指南[向现有项目添加功能](<https://code.visualstudio.com/docs/agents/guides/add-a-feature>)，从定义需求到审查测试的变更。
+
+## 如何计划任务
+
+在开始之前，打开VS Code和[中的项目文件夹设置GitHub Copilot](<https://code.visualstudio.com/docs/setup/copilot>)。
+
+以下步骤使用 **Copilot** 会话目标。了解有关 [ 选择 agent 安全带 ](<https://code.visualstudio.com/docs/agents/run/agent-harnesses>) 的更多信息。
+
+1. 使用 ⌃⌘I（Windows、Linux Ctrl+Alt+I）打开聊天视图，然后选择 **新建聊天** (`+`)。
+2. 从 ** 会话目标 ** 控件中选择 **Copilot**。
+3. 输入 `/plan`，然后输入您想要的结果、任何限制以及验证成功的方式。例如：
+
+   ```
+   /plan Add pagination to this project's product-list API.
+   Follow the existing API conventions and preserve the behavior of requests
+   that don't specify pagination. Include tests for invalid parameters,
+   empty results, and compatibility with existing clients.
+   Identify decisions I need to make before implementation.
+   ```
+
+`/plan` 将会话切换到计划模式并提交您的请求。或者，从 agent 模式选择器中选择 ** 计划 **，然后输入不带斜线命令的任务。
+4. 在 agent 研究您的项目时回答其澄清问题。例如，在最终确定计划之前就分页方法和默认值达成一致。如果您不确定，请要求其推荐一种方法并解释权衡。
+
+agent 提出了包含实施步骤、相关文件和验证步骤的计划。分页任务的说明性大纲是：
+
+* 使用 API 的现有验证模式添加可选分页参数。
+* 根据请求应用分页，保留现有客户端的响应格式和行为。
+* 添加对有效和无效参数、空结果和不分页请求的测试。
+* 运行 API 测试套件并验证现有客户端是否仍收到预期结果。
+
+您的实际计划应该确定项目中的文件和代码模式，而不仅仅是列出通用任务。
+
+### 询问当前的agent计划
+
+对于方法的讨论，您可以向当前的 agent 询问计划，而无需显式选择计划模式：
+
+```
+Research how to add pagination to this project's product-list API.
+Propose an implementation plan and identify compatibility risks.
+Do not change project files. Wait for my approval before implementing.
+```
+
+此请求指导 agent 的行为，但不会更改会话的权限。当您想要明确启动专用工作流程时，请选择计划模式或使用 `/plan`。
+
+## 审查并完善计划
+
+当Copilot出示**审查计划**卡时，请在开始实施之前阅读完整计划：
+
+1. 选择**打开完整计划**在Markdown编辑器中打开计划文件。
+2. 查看方法、受影响的代码和验证步骤。您可以编辑计划或添加内嵌注释。
+3. 要请求修改，请在卡片的反馈区域中添加总体评论，然后选择**提交反馈**。这会将您的整体和内联评论发送到 agent，而不批准实施。
+
+当会话提供计划文件时，该卡提供**打开完整计划**。其他会话可以改为显示 **计划摘要** 或 **开放计划** 标签。
+
+根据您的预期结果检查计划：
+
+* **范围：**它解决了请求的问题并排除了不相关的更改。
+* **项目适合：**它识别受影响的文件并重用现有模式。
+* **决策：**假设、依赖关系和未解决的选择是明确的。
+* **验证：**建议的测试和手动检查表明更改有效且不会破坏现有行为。
+
+例如，提交此反馈：
+
+```
+Keep the current response format unchanged and exclude UI changes.
+Split the implementation into independently testable steps.
+Add a compatibility check for requests that omit pagination parameters.
+```
+
+在选择实施行动之前，请审查更新的计划并解决悬而未决的问题。待处理的反馈将禁用批准，直到您提交或清除它。在提交批准或反馈之前，审核控件会将编辑内容保存到计划文件中。
+
+## 实施或保存计划
+
+审查计划后，从计划审查卡中选择一项行动。可用的操作取决于会话：
+
+|行动|它的作用|
+| --- | --- |
+|**实施计划**|批准该计划并在本届会议上开始实施。|
+|**仅批准计划**|批准计划但不执行。|
+|**带自动驾驶仪的机具**|继续自主地使用 Copilot 会话中选定的批准级别。|
+|**拒绝**|拒绝计划而不开始实施。|
+
+要共享计划或将其与项目一起保留，请打开完整计划并保存单独的副本。要在另一个会话中实施它，请使用所需的 agent 启动一个会话并附加保存的计划。这会共享计划而不是转移整个对话。
+
+注意事项
+
+批准计划和批准工具操作是单独的决策。在开始实施之前，请检查会话的 [ 权限 ](<https://code.visualstudio.com/docs/agents/run/approvals#_permission-levels>)。在 Copilot 会话中，Autopilot 控制 agent 如何继续工作，而选定的批准级别控制哪些操作需要确认。
+
+## 定制规划
+
+使用强大的推理模型来进行复杂的规划，然后选择能够可靠地实施经过审查的、范围广泛的计划的低成本模型。这可以减少 AI 信用使用量，但比较总成本和质量，因为重试和返工可能超过更便宜模型的节省。
+
+在 Copilot 会话中，使用 [ 语言模型选择器 ](<https://code.visualstudio.com/docs/agent-customization/language-models#_change-the-model-for-chat>) 选择规划模型。要对单独的实施请求使用不同的模型：
+
+1. 如果提供，请选择 ** 仅批准计划 **，然后等待计划请求完成。
+2. 选择实施模型，并在agent模式选择器中从**计划**切换到**交互式**。
+3. 要求 agent 在同一次对话中实施已批准的计划。
+
+有关模型选择指南，请参阅[优化AI积分使用](<https://code.visualstudio.com/docs/agents/guides/optimize-usage>)。
+
+对于可重复的规划工作流程，请定义一个 [ 自定义 agent](<https://code.visualstudio.com/docs/agent-customization/custom-agents>)，其中包含架构指南或所需的规划可交付成果等说明。
+
+## 在本地会话中计划
+
+**本地**会话目标提供内置计划agent，其控件与Copilot计划模式不同。从 **Session Target** 控件中选择 **Local**，然后从 agents 下拉列表中选择 **Plan** 或输入 `/plan`，然后输入您的任务。
+
+默认情况下，此 agent 会在不编辑项目文件的情况下研究您的项目。创建计划后，请使用以下操作：
+
+|目标|行动|
+| --- | --- |
+|阅读完整计划|运行 **Chat：从命令面板 (⇧⌘P (Windows、Linux Ctrl+Shift+P)) 显示内存文件 ** 并选择会话的 `plan.md`。该计划存储在 [ 会话内存 ](<https://code.visualstudio.com/docs/agents/run/memory#_session-memory>) 的 `/memories/session/plan.md` 中，而不是作为项目文件。|
+|在当前对话中实施|选择**开始实施**。这会切换到Agent并立即提交实施请求。|
+|转移到另一个目的地|打开 **开始实施 ** 旁边的下拉列表，然后在 ** 目标中选择可用的 **Continue。仅当支持的目标可用时才会显示下拉列表。了解有关 [ 会话切换 ](<https://code.visualstudio.com/docs/agents/run/agent-harnesses#_hand-off-a-session>) 的更多信息。|
+|保存可编辑副本|选择**在编辑器中打开**。这将切换到 Agent 并要求它创建计划的无标题副本，您可以将其保存在项目中。与**打开完整计划**不同，它创建一个副本而不是打开现有计划文件。|
+
+注意事项
+
+在本地会话中，**使用 Autopilot 开始**（预览版）通过自动工具批准开始实施并继续自主进行。这包括批准文件编辑、终端命令和外部工具调用。您的组织可以限制此选项。
+
+### 当地规划设置
+
+这些选项适用于本地会话中的内置计划 agent，不适用于 Copilot 计划模式：
+
+* **选择默认型号。**使用
+
+
+聊天。planAgent。defaultModel
+
+在VS Code
+中打开 在VS Code内部人员
+中打开进行规划。实验的
+
+
+github.copilot.chat.implementAgent.model
+
+在 VS Code
+ 中打开 在 VS Code 内部人员中打开 
+ 设置选择当前对话中 **开始实施 ** 使用的模型。
+* **添加工具（实验）。**使用
+
+
+github.copilot.聊天.planAgent.additionalTools
+
+在VS Code
+中打开 在VS Code内部人员
+中打开以添加研究工具。其他工具可以将 agent 的功能扩展到其默认的只读项目访问之外。
+* **让Agent切换到计划（实验）。**与
+
+
+github.copilot.chat.switchAgent.enabled
+
+在 VS Code
+ 中打开 在 VS Code 内部人员中打开 
+ 启用后，Agent 可以选择切换到计划以进行研究或复杂任务。模型决定何时切换。当您想要显式启动专用工作流程时，请使用 `/plan`。
+
+## 相关资源
+
+* [查看 AI-生成的代码编辑](<https://code.visualstudio.com/docs/agents/run/review-code-edits>)
+* [编写有效提示](<https://code.visualstudio.com/docs/agents/guides/prompt-engineering-guide>)
+
+10/7/2026
+
+
+## 原文对照
+
+<details>
+<summary>展开完整原文</summary>
+
+# Plan work with agents in VS Code
+
+* [View as Markdown](<https://code.visualstudio.com/docs/agents/run/planning.md>)
+* [Ask in VS Code](<vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Frun%2Fplanning%20and%20answer%20questions%20about%20the%20content.&windowId=_blank>)
+* [Ask in VS Code Insiders](<vscode-insiders://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Frun%2Fplanning%20and%20answer%20questions%20about%20the%20content.&windowId=_blank>)
+
+[Ask in VS Code](<vscode://GitHub.Copilot-Chat/chat?prompt=Read%20https%3A%2F%2Fcode.visualstudio.com%2Fdocs%2Fagents%2Frun%2Fplanning%20and%20answer%20questions%20about%20the%20content.&windowId=_blank>)
+
+---
+
+Planning helps you clarify requirements, compare approaches, and identify risks before an agent changes your code. Use a separate planning step when the approach is uncertain or a change spans multiple parts of your project. For a small, well-defined edit, you can ask an agent to implement it directly.
+
+You can ask an agent to propose an approach in an ordinary conversation. For a dedicated planning workflow, use **Plan** mode in a **Copilot** session. The agent researches your project, asks clarifying questions, and creates a plan for you to review before implementation.
+
+This article walks you through creating a plan with Copilot, reviewing and refining it, and choosing whether to implement it or save it for later. It also covers the different controls for [planning in a Local session](<#_plan-in-a-local-session>).
+
+For an end-to-end example, follow the guide to [add a feature to an existing project](<https://code.visualstudio.com/docs/agents/guides/add-a-feature>), from defining requirements to reviewing the tested change.
+
+## How to plan a task
+
+Open your project folder in VS Code and [set up GitHub Copilot](<https://code.visualstudio.com/docs/setup/copilot>) before you begin.
+
+The following steps use the **Copilot** session target. Learn more about [choosing an agent harness](<https://code.visualstudio.com/docs/agents/run/agent-harnesses>).
+
+1. Open the Chat view with ⌃⌘I (Windows, Linux Ctrl+Alt+I) and select **New Chat** (`+`).
+2. Choose **Copilot** from the **Session Target** control.
+3. Enter `/plan` followed by the outcome you want, any constraints, and how you will verify success. For example:
+
+   ```
+   /plan Add pagination to this project's product-list API.
+   Follow the existing API conventions and preserve the behavior of requests
+   that don't specify pagination. Include tests for invalid parameters,
+   empty results, and compatibility with existing clients.
+   Identify decisions I need to make before implementation.
+   ```
+
+   `/plan` switches the session to Plan mode and submits your request. Alternatively, select **Plan** from the agent mode picker and enter the task without the slash command.
+4. Answer the agent's clarifying questions as it researches your project. For example, agree on a pagination approach and defaults before it finalizes the plan. If you're unsure, ask it to recommend an approach and explain the tradeoffs.
+
+The agent presents a plan with implementation steps, relevant files, and verification steps. An illustrative outline for the pagination task is:
+
+* Add optional pagination parameters using the API's existing validation patterns.
+* Apply pagination when requested, preserving the response format and behavior for existing clients.
+* Add tests for valid and invalid parameters, empty results, and requests without pagination.
+* Run the API test suite and verify that existing clients still receive the expected results.
+
+Your actual plan should identify the files and code patterns in your project, not just list generic tasks.
+
+### Ask the current agent to plan
+
+For a discussion of an approach, you can ask the current agent for a plan without explicitly selecting Plan mode:
+
+```
+Research how to add pagination to this project's product-list API.
+Propose an implementation plan and identify compatibility risks.
+Do not change project files. Wait for my approval before implementing.
+```
+
+This request guides the agent's behavior but does not change the session's permissions. Select Plan mode or use `/plan` when you want to start the dedicated workflow explicitly.
+
+## Review and refine the plan
+
+When Copilot presents a **Review Plan** card, read the full plan before starting implementation:
+
+1. Select **Open Full Plan** to open the plan file in the Markdown editor.
+2. Review the approach, affected code, and verification steps. You can edit the plan or add inline comments.
+3. To request revisions, add an overall comment in the card's feedback area and select **Submit Feedback**. This sends your overall and inline comments to the agent without approving implementation.
+
+The card offers **Open Full Plan** when the session provides a plan file. Other sessions can show **Plan summary** or **Open Plan** labels instead.
+
+Check the plan against your intended outcome:
+
+* **Scope:** it solves the requested problem and excludes unrelated changes.
+* **Project fit:** it identifies affected files and reuses existing patterns.
+* **Decisions:** assumptions, dependencies, and unresolved choices are explicit.
+* **Verification:** the proposed tests and manual checks demonstrate that the change works without breaking existing behavior.
+
+For example, submit this feedback:
+
+```
+Keep the current response format unchanged and exclude UI changes.
+Split the implementation into independently testable steps.
+Add a compatibility check for requests that omit pagination parameters.
+```
+
+Review the updated plan and resolve open questions before choosing an implementation action. Pending feedback disables approval until you submit or clear it. The review controls save edits to the plan file before submitting approval or feedback.
+
+## Implement or save the plan
+
+After reviewing the plan, choose an action from the plan-review card. The available actions depend on the session:
+
+| Action | What it does |
+| --- | --- |
+| **Implement Plan** | Approves the plan and starts implementation in the current session. |
+| **Approve Plan Only** | Approves the plan without executing it. |
+| **Implement with Autopilot** | Continues autonomously using the selected approval level in the Copilot session. |
+| **Reject** | Declines the plan without starting implementation. |
+
+To share the plan or keep it with your project, open the full plan and save a separate copy. To implement it in another session, start a session with the desired agent and attach the saved plan. This shares the plan rather than transferring the entire conversation.
+
+Note
+
+Approving a plan and approving tool actions are separate decisions. Review the session's [permissions](<https://code.visualstudio.com/docs/agents/run/approvals#_permission-levels>) before starting implementation. In a Copilot session, Autopilot controls how the agent continues working, while the selected approval level controls which actions need confirmation.
+
+## Customize planning
+
+Use a capable reasoning model for complex planning, then choose a lower-cost model that can reliably implement the reviewed, well-scoped plan. This can reduce AI credit usage, but compare total cost and quality because retries and rework can outweigh a cheaper model's savings.
+
+In a Copilot session, use the [language model picker](<https://code.visualstudio.com/docs/agent-customization/language-models#_change-the-model-for-chat>) to choose the planning model. To use a different model for a separate implementation request:
+
+1. Choose **Approve Plan Only**, when offered, and wait for the planning request to finish.
+2. Select the implementation model and switch from **Plan** to **Interactive** in the agent mode picker.
+3. Ask the agent to implement the approved plan in the same conversation.
+
+For model-selection guidance, see [Optimize AI credit usage](<https://code.visualstudio.com/docs/agents/guides/optimize-usage>).
+
+For a repeatable planning workflow, define a [custom agent](<https://code.visualstudio.com/docs/agent-customization/custom-agents>) with instructions such as architectural guidelines or required planning deliverables.
+
+## Plan in a Local session
+
+The **Local** session target provides a built-in Plan agent with different controls from Copilot Plan mode. Select **Local** from the **Session Target** control, then select **Plan** from the agents dropdown or enter `/plan` followed by your task.
+
+By default, this agent researches your project without editing project files. After it creates a plan, use these actions:
+
+| Goal | Action |
+| --- | --- |
+| Read the full plan | Run **Chat: Show Memory Files** from the Command Palette (⇧⌘P (Windows, Linux Ctrl+Shift+P)) and select the session's `plan.md`. The plan is stored in [session memory](<https://code.visualstudio.com/docs/agents/run/memory#_session-memory>) at `/memories/session/plan.md`, not as a project file. |
+| Implement in the current conversation | Select **Start Implementation**. This switches to Agent and submits the implementation request immediately. |
+| Hand off to another destination | Open the dropdown next to **Start Implementation** and select an available **Continue in** destination. The dropdown appears only when supported destinations are available. Learn more about [session handoffs](<https://code.visualstudio.com/docs/agents/run/agent-harnesses#_hand-off-a-session>). |
+| Save an editable copy | Select **Open in Editor**. This switches to Agent and asks it to create an untitled copy of the plan, which you can save in your project. Unlike **Open Full Plan**, it creates a copy rather than opening the existing plan file. |
+
+Caution
+
+In a Local session, **Start with Autopilot** (Preview) starts implementation with automatic tool approval and continues autonomously. This includes approval for file edits, terminal commands, and external tool calls. Your organization can restrict this option.
+
+### Local planning settings
+
+These options apply to the built-in Plan agent in Local sessions, not to Copilot Plan mode:
+
+* **Choose default models.** Use 
+
+
+  chat.planAgent.defaultModel
+
+  Open in VS Code
+  Open in VS Code Insiders
+   for planning. The experimental 
+
+
+  github.copilot.chat.implementAgent.model
+
+  Open in VS Code
+  Open in VS Code Insiders
+   setting selects the model used by **Start Implementation** in the current conversation.
+* **Add tools (Experimental).** Use 
+
+
+  github.copilot.chat.planAgent.additionalTools
+
+  Open in VS Code
+  Open in VS Code Insiders
+   to add research tools. Additional tools can expand the agent's capabilities beyond its default read-only project access.
+* **Let Agent switch to Plan (Experimental).** With 
+
+
+  github.copilot.chat.switchAgent.enabled
+
+  Open in VS Code
+  Open in VS Code Insiders
+   enabled, Agent can choose to switch to Plan for research or complex tasks. The model decides when to switch. Use `/plan` when you want to start the dedicated workflow explicitly.
+
+## Related resources
+
+* [Review AI-generated code edits](<https://code.visualstudio.com/docs/agents/run/review-code-edits>)
+* [Write effective prompts](<https://code.visualstudio.com/docs/agents/guides/prompt-engineering-guide>)
+
+10/7/2026
+
+
+</details>

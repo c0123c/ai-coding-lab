@@ -1,0 +1,60 @@
+---
+vendor: "OpenCode"
+repository: "anomalyco/opencode"
+path: "packages/web/src/content/docs/ide.mdx"
+source_url: "https://github.com/anomalyco/opencode/blob/dev/packages/web/src/content/docs/ide.mdx"
+raw_url: "https://raw.githubusercontent.com/anomalyco/opencode/dev/packages/web/src/content/docs/ide.mdx"
+resolved_url: "https://raw.githubusercontent.com/anomalyco/opencode/dev/packages/web/src/content/docs/ide.mdx"
+tree_snapshot_sha: "055d95bb7e278c94baf06235a52cac79dd13ba67"
+sha256_body: "0ef1c720c3be3585eae0709b5c9479566048d43be841cc03511e30ffa41c26c9"
+archive: "01_资料来源/官方资料/审计记录/官方GitHub相关正文_2026-10-10/official-github-pages-0001.jsonl.gz:54"
+---
+
+---
+title: IDE
+description: The OpenCode extension for VS Code, Cursor, and other IDEs
+---
+
+OpenCode integrates with VS Code, Cursor, or any IDE that supports a terminal. Just run `opencode` in the terminal to get started.
+
+---
+
+## Usage
+
+- **Quick Launch**: Use `Cmd+Esc` (Mac) or `Ctrl+Esc` (Windows/Linux) to open OpenCode in a split terminal view, or focus an existing terminal session if one is already running.
+- **New Session**: Use `Cmd+Shift+Esc` (Mac) or `Ctrl+Shift+Esc` (Windows/Linux) to start a new OpenCode terminal session, even if one is already open. You can also click the OpenCode button in the UI.
+- **Context Awareness**: Automatically share your current selection or tab with OpenCode.
+- **File Reference Shortcuts**: Use `Cmd+Option+K` (Mac) or `Alt+Ctrl+K` (Linux/Windows) to insert file references. For example, `@File#L37-42`.
+
+---
+
+## Installation
+
+To install OpenCode on VS Code and popular forks like Cursor, Windsurf, VSCodium:
+
+1. Open VS Code
+2. Open the integrated terminal
+3. Run `opencode` - the extension installs automatically
+
+If on the other hand you want to use your own IDE when you run `/editor` or `/export` from the TUI, you'll need to set `export EDITOR="code --wait"`. [Learn more](/docs/tui/#editor-setup).
+
+---
+
+### Manual Install
+
+Search for **OpenCode** in the Extension Marketplace and click **Install**.
+
+---
+
+### Troubleshooting
+
+If the extension fails to install automatically:
+
+- Ensure you’re running `opencode` in the integrated terminal.
+- Confirm the CLI for your IDE is installed:
+  - For VS Code: `code` command
+  - For Cursor: `cursor` command
+  - For Windsurf: `windsurf` command
+  - For VSCodium: `codium` command
+  - If not, run `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux) and search for "Shell Command: Install 'code' command in PATH" (or the equivalent for your IDE)
+- Ensure VS Code has permission to install extensions

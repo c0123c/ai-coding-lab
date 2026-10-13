@@ -1,0 +1,533 @@
+# Agent Host 会话的沙箱
+
+介绍隔离边界、平台支持、主机设置、会话控制、权限例外和实际运行检查，说明安全配置如何生效。
+
+- 来源：Microsoft／VS Code
+- 资料类型：文档源码（含未展开模板）
+- 存档版本：`7dde53519982`。
+- 文档时间：官方审核：[2026-10-07](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/run/agent-sandboxing.md>)；源码提交（存档版）：[2026-10-07](<https://github.com/microsoft/vscode-docs/commit/a2f9dd4e642a53cf17ecda8d9568611404ce2740>)；本地归档批次：2026-10-10
+- 阅读状态：中文源码译文，由 Google 翻译；源码中的模板未展开，不等同于官网渲染后的完整文章。代码、命令与配置保留原样，未逐句人工校对。
+
+[原文发布页](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/run/agent-sandboxing.md>) · [原始文件](<../../../../原始抓取备份/原文/官方/Microsoft/VS Code/Agent Host 会话的沙箱（存档7dde5351-633）.md>) · [返回资料总览](<../../../资料总览.md>)
+
+
+<details>
+<summary>源码自带的配置与元数据（保留原样）</summary>
+
+~~~yaml
+---
+ContentId: 51cb4cc4-4f0a-4af7-b3c9-8c07795202cb
+DateApproved: 10/7/2026
+MetaDescription: Configure and verify {% data variables.product.prodname_copilot_short %} Agent Host sandboxing with file system and network access controls.
+MetaSocialImage: ../images/shared/github-copilot-social.png
+keywords:
+- copilot
+- ai
+- agents
+- sandbox
+- sandboxing
+- terminal
+- security
+- permissions
+- network
+---
+~~~
+
+</details>
+
+[查看原文对照](#原文对照)
+
+## 中文全文
+
+# 沙盒 {% data variables.product.prodname_copilot_short %} Agent 主持会话
+
+{% data variables.product.prodname_copilot_short %} [Agent 主机会话](<https://github.com/docs/agents/concepts/agent-host.md>) 可以运行终端命令并启动本地计算机或连接的远程主机上的语言或工具服务器。 Agent 沙箱将这些进程限制为您在执行主机上配置的文件系统和网络访问。
+
+使用本文了解安全边界、打开沙箱、授予所需的最低访问权限，并检查会话的有效策略。
+
+以下设置和行为适用于 Agent 主机的默认 {% data variables.copilot.copilot_sdk_short %} 工具实现，而不是本地聊天工具或自定义终端工具覆盖。
+
+## 了解沙箱边界
+
+沙盒和批准提供单独的保护层：
+
+|保护|目的|
+|---|---|
+|[批准](<https://github.com/docs/agents/run/approvals.md>)|确定操作是自动运行还是需要您的确认。|
+|沙盒|限制支持agent操作的文件系统和网络资源可以访问。|
+
+沙箱适用于终端命令及其子进程。配置后，它也适用于 MCP 和 Agent 主机启动或管理的语言服务器。不启动操作系统进程的内置工具使用自己的权限检查。
+
+沙盒不是虚拟机或用户帐户边界，它不会取代端点安全。沙盒进程仍在您帐户下的执行主机上运行。网络访问、额外路径、凭据、开发人员工具访问以及在沙箱外运行的权限都会削弱隔离性。仅授予任务所需的访问权限。
+
+根据操作和平台，限制使用操作系统保护或 agent 主机进程内的检查。沙盒不会取代云会话或开发容器提供的隔离。 [MCP 服务器沙箱 ](<https://github.com/docs/agent-customization/mcp-servers.md#sandbox-mcp-servers>) 位于 Agent 主机之外，是一个单独的功能，具有自己的配置和平台支持。
+
+有关沙箱有助于缓解的安全模型和威胁，请参阅[信任和安全](<https://github.com/docs/agents/concepts/trust-and-safety.md#agent-sandboxing>)。
+
+> [!IMPORTANT]
+> 打开沙箱默认情况下不会阻止出站网络访问。 `setting(chat.agent.sandbox.network.allowNetwork)` 默认为 `true`。配置的允许和拒绝的网络域仍然限制目的地。 [如果需要限制出站连接，请单独配置网络访问](<#配置网络访问>)。
+
+## 检查平台可用性
+
+Agent 主机沙箱具有以下平台先决条件。检查agent运行的操作系统。对于远程 Agent 主机，请在远程主机（而不是客户端计算机）上安装依赖项和操作系统更新。
+
+|平台|先决条件|
+|---|---|
+| macOS |没有。|
+|Linux 和 WSL2|安装`bubblewrap`和`socat`。|
+|窗户|安装适用的 9 月份 8、2026 Windows 安全更新。|
+
+在 Debian 和 Ubuntu 上，安装 Linux 依赖项：
+
+```bash
+sudo apt-get install bubblewrap socat
+```
+
+在 Fedora 上，安装 Linux 依赖项：
+
+```bash
+sudo dnf install bubblewrap socat
+```
+
+WSL 版本 1 不受支持，因为它不提供 `bubblewrap` 所需的 Linux 内核功能。
+
+在 Windows 上，安装适用于您的 Windows 版本的更新：
+
+* Windows 11 24H2 或 25H2：[KB5124008](<https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5124008-windows-11-24h2-25h2-security-update>)。
+* Windows 11 26H1：[KB5124012](<https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5124012-windows-11-26h1-security-update>)。
+
+> [！NOTE]
+> Windows 支持处于实验阶段。 Agent 主机外部的单独 MCP 服务器沙箱功能在 Windows 上不可用。
+
+## 在执行主机上打开沙箱
+
+`setting(chat.agent.sandbox.enabled)` 设置控制所有平台上的 Agent 主机沙箱。它接受 `off` 或 `on`，默认为 `off`。
+
+对于本地 Agent 主机，执行主机是您的本地计算机。对于连接的远程 Agent 主机，其平台决定沙箱实施和先决条件。设置在该主机上解析，所有配置的路径均引用其文件系统，而不是客户端计算机。
+
+> [！NOTE]
+> Agent 主机强制实施已弃用旧版沙箱设备策略。管理员应使用 [{% data variables.product.prodname_copilot_short %} 托管设置 ](<https://github.com/docs/enterprise/manage-ai-settings.md#deploy-copilot-managed-sandbox-settings>) 来要求沙箱。
+
+1. 满足执行主机上的 [ 平台先决条件 ](<#检查平台可用性>)。
+1. 在该主机的设置中将 `setting(chat.agent.sandbox.enabled)` 设置为 `on`。
+1. 启动新的 Agent 主机会话。
+1. [检查有效的沙箱策略](<#检查有效的沙箱策略>)以验证会话的限制。
+
+要在您的设置中启用沙箱 JSON：
+
+```json
+{
+    "chat.agent.sandbox.enabled": "on"
+}
+```
+
+如果操作系统依赖项不可用，Agent 主机不会在没有沙箱的情况下以静默方式运行命令。按照通知安装缺少的依赖项。
+
+### 控制当前会话的沙箱
+
+在 Agent 主机会话中，打开 ** 权限 ** 并选择 ** 终端沙箱 ** 以更改该会话的沙箱。此控件不会更新用户或工作区设置、更改其他会话或设置新会话的默认值。
+
+新会话继承其执行主机的有效配置。当您恢复会话时，显式会话选择仍然存在，除非组织管理的限制覆盖它。
+
+沙盒独立于所选的 [ 权限级别 ](<https://github.com/docs/agents/run/approvals.md#permission-levels>)。例如，当您选择 ** 允许所有 ** 时，沙箱将继续限制进程。
+
+### 为 Agent 主机会话配置沙箱
+
+{% data variables.product.prodname_copilot_short %} Agent 主机会话在 [{% data variables.copilot.agents_window %}](<https://github.com/docs/agents/run/agents-window.md>) 和编辑器窗口中均可用。他们默认使用 {% data variables.copilot.copilot_sdk_short %} 内置 shell。您无需更改终端实现即可使用沙箱。
+
+对于远程 Agent 主机，使用 [ 会话切换 ](<#控制当前会话的沙箱>) 更改当前会话的沙箱状态。新会话的默认值来自连接主机的沙箱配置，而不是来自客户端计算机的设置。
+
+## Agent 主机沙箱设置
+
+以下设置配置 Agent 主机沙箱。共享设置名称并不意味着其他聊天工具使用相同的行为。
+
+|设置|默认|目的|
+|---|---|---|
+| `setting(chat.agent.sandbox.enabled)` | `off` |在所有支持的平台上启用沙箱。|
+| `setting(chat.agent.sandbox.network.allowNetwork)` | `true` |允许出站网络访问，但须遵守配置的主机名限制。|
+| `setting(chat.agent.sandbox.network.allowLocalNetwork)` | `false` |允许访问本地网络上的主机。|
+| `setting(chat.agent.sandbox.network.allowedDomains)` | `[]` |配置允许的网络目标。|
+| `setting(chat.agent.sandbox.network.deniedDomains)` | `[]` |配置阻止的网络目标。|
+| `setting(chat.agent.sandbox.fileSystem.userConfiguredPaths)` |空路径列表|自定义读写、只读和拒绝路径。|
+| `setting(chat.agent.sandbox.fileSystem.allowDevToolAccess)` | `true` |授予对常见开发人员工具、配置和缓存的访问权限。|
+| `setting(chat.agent.sandbox.mcpServers)` | `true` |启用沙箱后，在沙箱中运行本地启动的 MCP 服务器。|
+| `setting(chat.agent.sandbox.lspServers)` | `true` |启用沙箱后，在沙箱中运行语言服务器。|
+| `setting(chat.agent.sandbox.credentials.authenticategit)` | `true` |使用您的凭据在沙箱内进行 HTTPS Git 操作。|
+| `setting(chat.agent.sandbox.credentials.authenticategh)` | `true` |使用您的 GitHub 帐户在沙箱内执行 `gh` 命令。|
+| `setting(chat.agent.sandbox.allowUnsandboxedCommands)` | `true` |确认后允许请求在沙箱外运行。|
+
+## 检查有效的沙箱策略
+
+`/sandbox policy` 斜线命令仅在 Agent 主机会话中可用。运行它来验证沙箱是否处于活动状态或调查进程被阻止的原因。
+
+* 在聊天输入中输入`/sandbox policy`并提交。报告会自动在编辑器中以 Markdown 预览形式打开。在响应中选择**打开沙盒策略**以重新打开它。
+
+生成的`sandbox-policy.md`报告描述了执行主机、是否启用沙箱、操作系统的沙箱实现以及有效的文件系统和网络策略。您还可以在沙盒关闭时运行该命令。在这种情况下，报告表明沙箱限制未激活。
+
+该命令不会启动模型转动或更改沙箱设置。
+
+更改后再次运行 `/sandbox policy` 以刷新报告。该命令会更新会话的相同报告，因此前面的链接也会打开最新生成的报告。要检查新会话的默认设置，请在运行命令之前启动新会话。
+
+## 配置文件系统访问
+
+沙箱自动授予对当前工作目录的读写访问权限。使用 `setting(chat.agent.sandbox.fileSystem.userConfiguredPaths)` 自定义所有支持平台上的路径权限：
+
+|财产|访问|
+|---|---|
+| `readwritePaths` |读写访问。|
+| `readonlyPaths` |读访问权限，无写访问权限。|
+| `deniedPaths` |无法访问。|
+
+对于多个属性中列出的路径， `deniedPaths` 优先于 `readonlyPaths`，它优先于 `readwritePaths`。路径是指所在机器 agent 运行，包括远程运行 Agent 主持会议。
+
+以下示例授予对构建输出文件夹的读写访问权限、对共享源的读取访问权限，并阻止对敏感数据的访问：
+
+```jsonc
+{
+    "chat.agent.sandbox.fileSystem.userConfiguredPaths": {
+        "readwritePaths": ["/path/to/build-output"],
+        "readonlyPaths": ["/path/to/shared-source"],
+        "deniedPaths": ["/path/to/sensitive-data"]
+    }
+}
+```
+
+数组默认为空。
+
+`setting(chat.agent.sandbox.fileSystem.allowDevToolAccess)` 设置默认为 `true`。它授予对 `PATH` 上的工具目录、工具链目录、开发人员工具配置和缓存（包括注册表令牌）的读取访问权限，以及对共享构建缓存的读写访问权限。将其设置为 `false` 以删除这些自动开发人员工具授予，并在必要时添加更窄的路径。
+
+使用 `/sandbox policy` 检查有效权限，包括运行时默认值和组织管理的限制。
+
+## 配置托管服务器和凭据
+
+当沙箱打开时，这些设置确定 Agent 主机管理的进程是否以特定沙箱访问权限运行：
+
+* `setting(chat.agent.sandbox.mcpServers)` 默认为 `true` 并将沙箱应用于由 Agent 主机启动或管理的 MCP 服务器。
+* `setting(chat.agent.sandbox.lspServers)` 默认为 `true` 并将沙箱应用于由 Agent 主机启动或管理的语言服务器。
+* `setting(chat.agent.sandbox.credentials.authenticategit)` 默认为 `true` 并为沙盒进程提供 Git 身份验证。
+* `setting(chat.agent.sandbox.credentials.authenticategh)` 默认为 `true` 并向沙盒进程提供 GitHub CLI 身份验证。
+
+关闭 MCP 或语言服务器沙箱会将那些 Agent 主机管理的服务器进程保留在沙箱之外。您独立启动的服务器也不在 Agent 主机的管理范围内。关闭任务不需要的凭据访问。具有凭据的进程可以使用关联帐户的权限进行操作。
+
+## 配置网络访问
+
+文件系统和网络隔离是单独的控制：
+
+* `setting(chat.agent.sandbox.network.allowNetwork)`默认为`true`并允许出站网络访问。将其设置为 `false` 以阻止出站访问，包括集成浏览器。
+* `setting(chat.agent.sandbox.network.allowLocalNetwork)`默认为`false`并控制对本地网络上主机的访问。
+* `setting(chat.agent.sandbox.network.allowedDomains)` 和 `setting(chat.agent.sandbox.network.deniedDomains)` 在启用出站访问时限制目的地。 Agent 主机将这些主机名限制转发到沙箱运行时。
+
+仅当任务必须连接到执行主机或专用网络上的服务时才允许本地网络访问。使用 `/sandbox policy` 检查当前 Agent 主机会话的有效网络策略。
+
+要启用受域过滤影响的出站访问：
+
+```jsonc
+{
+    "chat.agent.sandbox.network.allowNetwork": true,
+    "chat.agent.sandbox.network.allowedDomains": [
+        "api.github.com"
+    ],
+    "chat.agent.sandbox.network.deniedDomains": [
+        "example.com"
+    ]
+}
+```
+
+> [!IMPORTANT]
+> 在 Windows 上，代理、主机名限制或凭据屏蔽要求 `setting(chat.agent.sandbox.network.allowLocalNetwork)` 为 `true`。沙箱使用主机环回来到达本地侦听器。如果在该配置中禁用本地网络访问，则沙盒命令不会启动。仅当您接受额外的本地网络访问时才启用此设置。
+
+> [！CAUTION]
+> 进程可以在允许的网络目标上执行操作，而不仅仅是读取数据。网络访问还可能暴露凭据或工作区内容。仅授予任务所需的目的地。
+
+您的组织可以强制执行无法通过本地设置放松的网络限制。请参阅[{% data variables.product.prodname_copilot_short %}托管沙箱设置](<https://github.com/docs/enterprise/manage-ai-settings.md#deploy-copilot-managed-sandbox-settings>)。
+
+## 控制批准和后备行为
+
+如果命令被阻止，请首先检查适用的 [ 文件系统 ](<#配置文件系统访问>) 或 [ 网络 ](<#配置网络访问>) 限制。仅授予任务所需的访问权限，而不是关闭沙箱。
+
+如果命令无法在沙箱内运行，agent 可以要求确认在沙箱外运行它。 `setting(chat.agent.sandbox.allowUnsandboxedCommands)` 设置控制此回退：
+
+* `true`（默认）：agent可以请求在沙箱外运行的权限。对于 Agent 主机会话，支持的提示可以批准一项操作或当前会话。仅当您信任该命令可以在没有沙箱的文件系统和网络限制的情况下运行时才批准。
+* `false`：**允许外部沙箱**未提供，并且请求在沙箱外部运行失败而不是提示批准。符合沙盒策略的命令仍然可以运行。
+
+当沙盒命令失败或沙盒限制会阻止它时，agent 会请求批准。拒绝确认可防止命令在沙箱外运行。
+
+![显示在 agent 沙箱外部运行命令的提示的屏幕截图。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/agent-sandboxing/sandbox-prompt.png>)
+
+> [！CAUTION]
+> 批准在沙箱外运行将删除该操作的文件系统和网络限制。如果您批准会话范围的绕过，则该会话中的后续终端命令也可以在不受这些限制的情况下运行，直到您重新打开沙箱为止。
+
+## 旧版本地和自定义终端行为
+
+旧版本地会话和自定义终端实现不会以相同的方式使用所有 Agent 主机设置。以下兼容性设置不会配置标准 Agent 主机沙箱：
+
+* 删除的 `chat.agent.sandbox.enabledWindows` 设置将替换为 Windows 上统一的 `setting(chat.agent.sandbox.enabled)` 设置。
+* 以前的 `setting(chat.agent.sandbox.allowNetwork)` 设置迁移到 `setting(chat.agent.sandbox.network.allowNetwork)`。
+* `setting(chat.agent.sandbox.retryWithAllowNetworkRequests)` 是已弃用的本地终端设置。它可以在旧沙箱内提供支持网络的重试，但不适用于 Agent 主机。
+* `setting(chat.agent.sandbox.allowAutoApprove)` 控制旧版本地终端审批行为。它不是 Agent 主机沙箱设置。
+* `setting(chat.agent.sandbox.fileSystem.mac)`、`setting(chat.agent.sandbox.fileSystem.linux)` 和 `setting(chat.agent.sandbox.fileSystem.windows)` 是已弃用的特定于平台的设置。 Agent 主机忽略它们。
+
+对于兼容的终端实现，域允许和拒绝控制仍然是公开的。它们的功能因实现和平台而异，因此不要使用旧行为来推断有效的 Agent 主机策略。
+
+## 当您的组织管理沙盒时
+
+托管沙箱实施处于预览阶段。您的组织可能需要沙箱、防止绕过或限制网络访问。强制控制已锁定，但您可以选择更具限制性的值，使控制保持可编辑状态。
+
+如果设置被锁定或您需要的访问权限被策略拒绝，请联系您的管理员。有关策略详细信息，请参阅[企业agent沙箱](<https://github.com/docs/enterprise/manage-ai-settings.md#configure-agent-sandboxing>)。
+
+## 相关资源
+
+* [管理审批和权限](<https://github.com/docs/agents/run/approvals.md>)
+* [了解 AI agents](<https://github.com/docs/agents/concepts/trust-and-safety.md>) 的信任和安全
+* [查看AI设置](<https://github.com/docs/agents/reference/ai-settings.md#sandboxing-and-network-access>)
+
+
+## 原文对照
+
+<details>
+<summary>展开完整原文</summary>
+
+# Sandbox {% data variables.product.prodname_copilot_short %} Agent Host sessions
+
+{% data variables.product.prodname_copilot_short %} [Agent Host sessions](<https://github.com/docs/agents/concepts/agent-host.md>) can run terminal commands and start language or tool servers on your local machine or a connected remote host. Agent sandboxing confines these processes to the file system and network access that you configure on the execution host.
+
+Use this article to understand the security boundary, turn on sandboxing, grant the minimum required access, and inspect the effective policy for a session.
+
+The settings and behavior below apply to the Agent Host's default {% data variables.copilot.copilot_sdk_short %} tool implementation, not the Local chat harness or the custom terminal tool override.
+
+## Understand the sandbox boundary
+
+Sandboxing and approvals provide separate layers of protection:
+
+| Protection | Purpose |
+|---|---|
+| [Approvals](<https://github.com/docs/agents/run/approvals.md>) | Determine whether an action runs automatically or requires your confirmation. |
+| Sandboxing | Restricts the file system and network resources that supported agent operations can access. |
+
+Sandboxing applies to terminal commands and their child processes. When configured, it also applies to MCP and language servers that the Agent Host launches or manages. Built-in tools that don't start operating system processes use their own permission checks.
+
+Sandboxing is not a virtual machine or user-account boundary, and it does not replace endpoint security. A sandboxed process still runs on the execution host under your account. Network access, extra paths, credentials, developer tool access, and permission to run outside the sandbox all weaken isolation. Grant only the access that a task requires.
+
+Depending on the operation and platform, restrictions use operating system protections or checks within the agent host process. Sandboxing does not replace the isolation provided by cloud sessions or Dev Containers. [MCP server sandboxing](<https://github.com/docs/agent-customization/mcp-servers.md#sandbox-mcp-servers>) outside the Agent Host is a separate feature with its own configuration and platform support.
+
+For the security model and threats that sandboxing helps mitigate, see [Trust and safety](<https://github.com/docs/agents/concepts/trust-and-safety.md#agent-sandboxing>).
+
+> [!IMPORTANT]
+> Turning on sandboxing does not block outbound network access by default. `setting(chat.agent.sandbox.network.allowNetwork)` defaults to `true`. Configured allowed and denied network domains still restrict destinations. [Configure network access](<#configure-network-access>) separately if you need to restrict outbound connections.
+
+## Check platform availability
+
+Agent Host sandboxing has the following platform prerequisites. Check the operating system where the agent runs. For a remote Agent Host, install dependencies and operating system updates on the remote host, not the client machine.
+
+| Platform | Prerequisite |
+|---|---|
+| macOS | None. |
+| Linux and WSL2 | Install `bubblewrap` and `socat`. |
+| Windows | Install the applicable September 8, 2026 Windows security update. |
+
+On Debian and Ubuntu, install the Linux dependencies:
+
+```bash
+sudo apt-get install bubblewrap socat
+```
+
+On Fedora, install the Linux dependencies:
+
+```bash
+sudo dnf install bubblewrap socat
+```
+
+WSL version 1 is not supported because it does not provide the Linux kernel features that `bubblewrap` requires.
+
+On Windows, install the update that applies to your Windows version:
+
+* Windows 11 24H2 or 25H2: [KB5124008](<https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5124008-windows-11-24h2-25h2-security-update>).
+* Windows 11 26H1: [KB5124012](<https://support.microsoft.com/en-us/servicing/os/windows-11/2026/09/kb5124012-windows-11-26h1-security-update>).
+
+> [!NOTE]
+> Windows support is Experimental. The separate MCP server sandboxing feature outside the Agent Host is not available on Windows.
+
+## Turn on sandboxing on the execution host
+
+The `setting(chat.agent.sandbox.enabled)` setting controls Agent Host sandboxing on all platforms. It accepts `off` or `on` and defaults to `off`.
+
+For a local Agent Host, the execution host is your local machine. For a connected remote Agent Host, its platform determines the sandbox implementation and prerequisites. Settings are resolved on that host, and all configured paths refer to its file system, not the client machine.
+
+> [!NOTE]
+> Legacy sandbox device policies are deprecated for Agent Host enforcement. Administrators should use [{% data variables.product.prodname_copilot_short %} managed settings](<https://github.com/docs/enterprise/manage-ai-settings.md#deploy-copilot-managed-sandbox-settings>) to require sandboxing.
+
+1. Meet the [platform prerequisites](<#check-platform-availability>) on the execution host.
+1. Set `setting(chat.agent.sandbox.enabled)` to `on` in the settings for that host.
+1. Start a new Agent Host session.
+1. [Inspect the effective sandbox policy](<#inspect-the-effective-sandbox-policy>) to verify the session's restrictions.
+
+To enable sandboxing in your settings JSON:
+
+```json
+{
+    "chat.agent.sandbox.enabled": "on"
+}
+```
+
+If an operating system dependency is unavailable, the Agent Host does not silently run the command without the sandbox. Follow the notification to install the missing dependency.
+
+### Control sandboxing for the current session
+
+In an Agent Host session, open **Permissions** and select **Sandboxing for terminal** to change sandboxing for that session. This control does not update User or Workspace settings, change other sessions, or set the default for new sessions.
+
+A new session inherits the effective configuration of its execution host. An explicit session selection persists when you restore the session unless an organization-managed restriction overrides it.
+
+Sandboxing is independent of the selected [permission level](<https://github.com/docs/agents/run/approvals.md#permission-levels>). For example, the sandbox continues to restrict processes when you select **Allow all**.
+
+### Configure sandboxing for an Agent Host session
+
+{% data variables.product.prodname_copilot_short %} Agent Host sessions are available in both the [{% data variables.copilot.agents_window %}](<https://github.com/docs/agents/run/agents-window.md>) and an editor window. They use the {% data variables.copilot.copilot_sdk_short %} built-in shell by default. You do not need to change terminal implementations to use sandboxing.
+
+For a remote Agent Host, use the [session toggle](<#control-sandboxing-for-the-current-session>) to change the current session's sandbox state. Defaults for new sessions come from the connected host's sandbox configuration, not from the client machine's settings.
+
+## Agent Host sandbox settings
+
+The following settings configure the Agent Host sandbox. Shared setting names do not imply that other chat harnesses use the same behavior.
+
+| Setting | Default | Purpose |
+|---|---|---|
+| `setting(chat.agent.sandbox.enabled)` | `off` | Enable sandboxing on all supported platforms. |
+| `setting(chat.agent.sandbox.network.allowNetwork)` | `true` | Permit outbound network access, subject to configured hostname restrictions. |
+| `setting(chat.agent.sandbox.network.allowLocalNetwork)` | `false` | Permit access to hosts on the local network. |
+| `setting(chat.agent.sandbox.network.allowedDomains)` | `[]` | Configure allowed network destinations. |
+| `setting(chat.agent.sandbox.network.deniedDomains)` | `[]` | Configure blocked network destinations. |
+| `setting(chat.agent.sandbox.fileSystem.userConfiguredPaths)` | Empty path lists | Customize read and write, read-only, and denied paths. |
+| `setting(chat.agent.sandbox.fileSystem.allowDevToolAccess)` | `true` | Grant access to common developer tools, configuration, and caches. |
+| `setting(chat.agent.sandbox.mcpServers)` | `true` | Run locally launched MCP servers in the sandbox when sandboxing is enabled. |
+| `setting(chat.agent.sandbox.lspServers)` | `true` | Run language servers in the sandbox when sandboxing is enabled. |
+| `setting(chat.agent.sandbox.credentials.authenticategit)` | `true` | Use your credentials for HTTPS Git operations inside the sandbox. |
+| `setting(chat.agent.sandbox.credentials.authenticategh)` | `true` | Use your GitHub account for `gh` commands inside the sandbox. |
+| `setting(chat.agent.sandbox.allowUnsandboxedCommands)` | `true` | Permit requests to run outside the sandbox after confirmation. |
+
+## Inspect the effective sandbox policy
+
+The `/sandbox policy` slash command is available only in Agent Host sessions. Run it to verify whether sandboxing is active or investigate why a process is blocked.
+
+* Enter `/sandbox policy` in the chat input and submit it. The report opens automatically in the editor as a Markdown preview. Select **Open Sandbox Policy** in the response to reopen it.
+
+The generated `sandbox-policy.md` report describes the execution host, whether sandboxing is enabled, the operating system's sandbox implementation, and the effective file system and network policy. You can also run the command when sandboxing is off. In that case, the report indicates that sandbox restrictions are not active.
+
+The command does not start a model turn or change your sandbox settings.
+
+Run `/sandbox policy` again after a change to refresh the report. The command updates the same report for the session, so earlier links also open the latest generated report. To check the defaults for new sessions, start a new session before running the command.
+
+## Configure file system access
+
+The sandbox automatically grants read and write access to the current working directory. Use `setting(chat.agent.sandbox.fileSystem.userConfiguredPaths)` to customize path permissions on all supported platforms:
+
+| Property | Access |
+|---|---|
+| `readwritePaths` | Read and write access. |
+| `readonlyPaths` | Read access without write access. |
+| `deniedPaths` | No access. |
+
+For a path listed in more than one property, `deniedPaths` takes precedence over `readonlyPaths`, which takes precedence over `readwritePaths`. Paths refer to the machine where the agent runs, including for remote Agent Host sessions.
+
+The following example grants read and write access to a build output folder, read access to shared source, and prevents access to sensitive data:
+
+```jsonc
+{
+    "chat.agent.sandbox.fileSystem.userConfiguredPaths": {
+        "readwritePaths": ["/path/to/build-output"],
+        "readonlyPaths": ["/path/to/shared-source"],
+        "deniedPaths": ["/path/to/sensitive-data"]
+    }
+}
+```
+
+The arrays default to empty.
+
+The `setting(chat.agent.sandbox.fileSystem.allowDevToolAccess)` setting defaults to `true`. It grants read access to tool directories on `PATH`, toolchain directories, developer-tool configuration and caches, including registry tokens, and read and write access to shared build caches. Set it to `false` to remove these automatic developer-tool grants, and add narrower paths if necessary.
+
+Use `/sandbox policy` to inspect the effective permissions, including runtime defaults and organization-managed restrictions.
+
+## Configure managed servers and credentials
+
+When sandboxing is on, these settings determine whether processes managed by the Agent Host run with specific sandbox access:
+
+* `setting(chat.agent.sandbox.mcpServers)` defaults to `true` and applies sandboxing to MCP servers launched or managed by the Agent Host.
+* `setting(chat.agent.sandbox.lspServers)` defaults to `true` and applies sandboxing to language servers launched or managed by the Agent Host.
+* `setting(chat.agent.sandbox.credentials.authenticategit)` defaults to `true` and provides Git authentication to sandboxed processes.
+* `setting(chat.agent.sandbox.credentials.authenticategh)` defaults to `true` and provides GitHub CLI authentication to sandboxed processes.
+
+Turning off MCP or language server sandboxing leaves those Agent Host-managed server processes outside the sandbox. Servers that you start independently are also outside the Agent Host's management. Turn off credential access that a task does not need. A process with credentials can act with the permissions of the associated account.
+
+## Configure network access
+
+File system and network isolation are separate controls:
+
+* `setting(chat.agent.sandbox.network.allowNetwork)` defaults to `true` and permits outbound network access. Set it to `false` to block outbound access, including for the integrated browser.
+* `setting(chat.agent.sandbox.network.allowLocalNetwork)` defaults to `false` and controls access to hosts on the local network.
+* `setting(chat.agent.sandbox.network.allowedDomains)` and `setting(chat.agent.sandbox.network.deniedDomains)` restrict destinations when outbound access is enabled. The Agent Host forwards these hostname restrictions to the sandbox runtime.
+
+Allow local network access only when the task must connect to a service on the execution host or private network. Use `/sandbox policy` to inspect the effective network policy for the current Agent Host session.
+
+To enable outbound access subject to domain filtering:
+
+```jsonc
+{
+    "chat.agent.sandbox.network.allowNetwork": true,
+    "chat.agent.sandbox.network.allowedDomains": [
+        "api.github.com"
+    ],
+    "chat.agent.sandbox.network.deniedDomains": [
+        "example.com"
+    ]
+}
+```
+
+> [!IMPORTANT]
+> On Windows, a proxy, hostname restrictions, or credential masking requires `setting(chat.agent.sandbox.network.allowLocalNetwork)` to be `true`. The sandbox uses host loopback to reach a local listener. If local-network access is disabled in that configuration, the sandboxed command does not launch. Enable this setting only when you accept the additional local-network access.
+
+> [!CAUTION]
+> A process can perform actions on an allowed network destination, not only read data. Network access can also expose credentials or workspace content. Grant only the destinations that the task requires.
+
+Your organization can enforce network restrictions that you cannot relax with a local setting. See [{% data variables.product.prodname_copilot_short %} managed sandbox settings](<https://github.com/docs/enterprise/manage-ai-settings.md#deploy-copilot-managed-sandbox-settings>).
+
+## Control approval and fallback behavior
+
+If a command is blocked, check the applicable [file system](<#configure-file-system-access>) or [network](<#configure-network-access>) restriction first. Grant only the access needed for the task rather than turning off the sandbox.
+
+If a command cannot run inside the sandbox, the agent can ask for confirmation to run it outside the sandbox. The `setting(chat.agent.sandbox.allowUnsandboxedCommands)` setting controls this fallback:
+
+* `true` (default): the agent can request permission to run outside the sandbox. For Agent Host sessions, a supported prompt can offer approval for one operation or for the current session. Approve only if you trust the command to run without the sandbox's file system and network restrictions.
+* `false`: **Allow Outside Sandbox** is not offered, and requests to run outside the sandbox fail instead of prompting for approval. Commands that comply with the sandbox policy can still run.
+
+The agent requests approval when a sandboxed command fails or sandbox restrictions would block it. Rejecting the confirmation prevents the command from running outside the sandbox.
+
+![Screenshot showing a prompt to run a command outside the agent sandbox.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/agent-sandboxing/sandbox-prompt.png>)
+
+> [!CAUTION]
+> Approval to run outside the sandbox removes file system and network restrictions for that operation. If you approve a session-wide bypass, subsequent terminal commands in that session also run without those restrictions until you turn sandboxing back on.
+
+## Legacy Local and custom terminal behavior
+
+Legacy Local sessions and custom terminal implementations don't use all Agent Host settings in the same way. The following compatibility settings don't configure the standard Agent Host sandbox:
+
+* The removed `chat.agent.sandbox.enabledWindows` setting is replaced by the unified `setting(chat.agent.sandbox.enabled)` setting on Windows.
+* The former `setting(chat.agent.sandbox.allowNetwork)` setting migrates to `setting(chat.agent.sandbox.network.allowNetwork)`.
+* `setting(chat.agent.sandbox.retryWithAllowNetworkRequests)` is a deprecated Local terminal setting. It can offer a network-enabled retry inside the legacy sandbox and does not apply to Agent Host.
+* `setting(chat.agent.sandbox.allowAutoApprove)` controls legacy Local terminal approval behavior. It is not an Agent Host sandbox setting.
+* `setting(chat.agent.sandbox.fileSystem.mac)`, `setting(chat.agent.sandbox.fileSystem.linux)`, and `setting(chat.agent.sandbox.fileSystem.windows)` are deprecated platform-specific settings. Agent Host ignores them.
+
+Domain allow and deny controls remain public for compatible terminal implementations. Their capabilities differ by implementation and platform, so don't use legacy behavior to infer the effective Agent Host policy.
+
+## When your organization manages sandboxing
+
+Managed sandbox enforcement is in Preview. Your organization can require sandboxing, prevent bypass, or restrict network access. Enforced controls are locked, but you can select a more restrictive value where a control remains editable.
+
+If a setting is locked or you need access that policy denies, contact your administrator. For policy details, see [enterprise agent sandboxing](<https://github.com/docs/enterprise/manage-ai-settings.md#configure-agent-sandboxing>).
+
+## Related resources
+
+* [Manage approvals and permissions](<https://github.com/docs/agents/run/approvals.md>)
+* [Understand trust and safety for AI agents](<https://github.com/docs/agents/concepts/trust-and-safety.md>)
+* [Review AI settings](<https://github.com/docs/agents/reference/ai-settings.md#sandboxing-and-network-access>)
+
+
+</details>

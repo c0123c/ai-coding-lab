@@ -1,0 +1,422 @@
+# Copilot 云端与本地沙箱概览
+
+说明沙箱如何隔离代码、命令、文件和网络，比较本地与云端执行方式；涵盖启用、配置、平台支持、代理和企业策略。
+
+- 来源：GitHub／Copilot
+- 资料类型：文档源码（含未展开模板）
+- 存档版本：`be38ec5d78e2`。
+- 文档时间：源码提交（存档版）：[2026-10-08](<https://github.com/github/docs/commit/64d77f5e0fcfbf066edde6b2ffea81a897693841>)；发表/更新：官方未公开；本地归档批次：2026-10-10
+- 阅读状态：中文源码译文，由 Google 翻译；源码中的模板未展开，不等同于官网渲染后的完整文章。代码、命令与配置保留原样，未逐句人工校对。
+
+[原文发布页](<https://github.com/github/docs/blob/main/content/copilot/concepts/security-governance-and-network-settings/about-cloud-and-local-sandboxes.md>) · [原始文件](<../../../../原始抓取备份/原文/官方/GitHub/Copilot/Copilot 云端与本地沙箱概览（存档be38ec5d-464）.md>) · [返回资料总览](<../../../资料总览.md>)
+
+
+<details>
+<summary>源码自带的配置与元数据（保留原样）</summary>
+
+~~~yaml
+---
+title: About cloud and local sandboxes for {% data variables.product.prodname_copilot %}
+shortTitle: Cloud and local sandboxes
+allowTitleToDifferFromFilename: true
+intro: 'Cloud and local sandboxes provide isolated execution environments that let {% data variables.product.prodname_copilot_short %} safely interact with code, tools, filesystem, and network resources securely on your local machine or in fully isolated cloud environments.'
+versions:
+  feature: copilot
+redirect_from:
+  - /copilot/concepts/about-github-sandbox
+  - /copilot/concepts/about-cloud-and-local-sandboxes
+contentType: concepts
+category:
+  - Learn about Copilot
+  - Learn about Copilot CLI
+docsTeamMetrics:
+  - copilot-cli
+---
+~~~
+
+</details>
+
+[查看原文对照](#原文对照)
+
+## 中文全文
+
+> [!NOTE]
+> {% data reusables.cli.public-preview-cloud-sandbox %}
+
+## 简介
+
+{% data variables.product.prodname_copilot_short %} 云和本地沙箱是为 {% data variables.copilot.copilot_cli %} 和 {% data variables.copilot.github_copilot_app %} 提供安全沙箱体验的执行平台。随着 {% data variables.product.prodname_copilot_short %} 代表您执行更多操作（运行工具、执行命令和修改文件），沙箱提供了安全采用代理工作流程所需的隔离、可移植性和策略控制。
+
+沙盒在 {% data variables.copilot.copilot_cli %} 和 {% data variables.copilot.github_copilot_app %} 中均可用，但两个表面的暴露方式不同：
+
+* 在 {% data variables.copilot.copilot_cli_short %} 中，您可以使用本文中描述的命令和设置来控制本地沙箱和云沙箱。
+* 在 {% data variables.copilot.github_copilot_app %} 中，您可以在云沙箱中运行会话，或者对本地存储库和工作树会话使用本地沙箱。项目设置定义新本地会话的默认设置，您可以更改活动本地会话的沙箱。欲了解更多信息，请参阅[AUTOTITLE](<https://github.com/copilot/how-tos/github-copilot-app/agent-sessions#using-cloud-and-local-sandboxes>)。
+
+本地沙箱设置在{% data variables.copilot.copilot_cli_short %}和{% data variables.copilot.github_copilot_app %}中单独配置。在一个表面中启用或配置本地沙箱不会在另一表面中更改它。
+
+通过沙箱，您可以选择 {% data variables.product.prodname_copilot_short %} 的运行位置：
+
+* **本地沙箱**：在您自己的计算机上安全地运行{% data variables.product.prodname_copilot_short %}。 {% data variables.product.prodname_copilot_short %} 运行的命令对您的文件系统、网络和系统功能的访问受到限制。您可以免费使用本地沙箱。
+* **云沙箱**：在由{% data variables.product.github %}托管的完全隔离的临时Linux环境中远程运行整个{% data variables.product.prodname_copilot_short %}会话。云沙盒根据使用情况计费。
+
+## 本地沙箱
+
+本地沙箱允许 {% data variables.product.prodname_copilot_short %} 直接在您的计算机上的沙箱环境中运行，并且对文件系统、网络连接和系统功能的访问受到限制。您可以在{% data variables.copilot.copilot_cli_short %}或{% data variables.copilot.github_copilot_app %}中配置本地沙箱。
+
+默认情况下，本地沙箱处于关闭状态。在您启用它之前，{% data variables.product.prodname_copilot_short %} 运行的 shell 命令会直接在您的计算机上执行，具有与您的用户帐户相同的访问权限：它们可以在任何位置读取、写入和删除，访问您的计算机可以访问的任何网络，并不受限制地使用您的凭据。启用本地沙箱会限制对您控制的策略的访问。
+
+### 本地沙箱如何工作
+
+本地沙箱由 Microsoft eXecution Container (MXC) 提供支持，这是一种跨平台技术，为每个操作系统上可用的隔离机制提供通用接口。 {% data variables.copilot.copilot_cli_short %} 声明它想要强制执行的沙箱策略 — 哪些路径可读或可写、是否允许网络访问等等 — 并且 MXC 使用适合您的操作系统的适当隔离后端来应用该策略。
+
+隔离技术存在多种范围，从强隔离（例如完整的虚拟机管理程序或容器）到轻量级隔离（例如 OS- 级进程和文件系统遏制）。本地沙箱目前处于该范围的轻量级一端：它限制进程可以在网络上读取、写入和访问的内容，但它不会在单独的虚拟机或容器内运行命令。如果您想评估此隔离级别是否满足您的安全要求，请参阅 [microsoft/mxc 存储库 ](<https://github.com/microsoft/mxc>) 了解实现详细信息。
+
+欲了解更多信息，请参阅[AUTOTITLE](<https://github.com/copilot/concepts/agents/copilot-cli/understanding-local-sandboxing>)。
+
+### 启用本地沙箱
+
+要在 {% data variables.copilot.copilot_cli_short %} 会话中启用本地沙箱，请运行：
+
+```shell copy
+/sandbox enable
+```
+
+启用本地沙箱后，agent 代表您运行的命令和工具将在操作系统级沙箱内运行，从而限制其对您系统的访问。其中包括 shell 命令、文件搜索以及默认情况下任何本地 MCP 和语言 (LSP) 服务器。 {% data variables.product.prodname_copilot_short %} 继续使用本地沙箱，包括在未来的会话中，直到您运行 `/sandbox disable` 将其禁用。
+
+如果企业托管设置需要沙箱，则普通设置和启动选项无法将其关闭。如果有效策略允许沙箱绕过，您仍然可以通过绕过权限提示或运行 `/sandbox disable` 来禁用当前会话的其余部分的沙箱。这不会更改已保存的策略。
+
+CLI 的内置文件工具（属于 CLI 的第一方命令，而不是像 `sed` 这样的 shell 命令）在 CLI 中进程内运行。由于 CLI 本身没有沙箱，因此操作系统沙箱永远看不到这些工具执行的文件操作，也无法限制它们。相反，内置工具经过编码以检查沙盒策略本身并尽最大努力遵守您配置的设置。
+
+在 {% data variables.copilot.github_copilot_app %} 中，项目设置定义新本地存储库和工作树会话的本地沙箱默认值。您还可以更改活动本地会话的沙箱，而无需更改项目默认值。
+
+有关在 {% data variables.copilot.copilot_cli_short %} 和 {% data variables.copilot.github_copilot_app_short %} 中启用本地沙箱的更多信息，请参阅 [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/using-local-sandboxing>)。
+
+### 配置本地沙箱
+
+您可以使用默认的本地沙箱行为，或修改 {% data variables.product.prodname_copilot_short %} 可以访问的内容。可用的控件取决于您使用的表面。
+
+在{% data variables.copilot.copilot_cli_short %}中，您可以控制访问的多个维度：
+
+* **文件系统**：授予对特定路径的只读或read/write访问权限，或拒绝路径。
+* **网络**：控制出站互联网访问和本地网络访问，或允许和拒绝特定主机。可用的限制取决于您的操作系统。
+* **凭据**：启用 Git 和 {% data variables.product.prodname_cli %} (`gh`) 身份验证，或屏蔽其他环境变量。沙盒工具接收占位符，本地代理仅向批准的 HTTPS 目的地提供真实凭据。
+* **子进程**：选择本地MCP服务器和语言服务器是否也在沙箱内运行。远程 MCP 服务器从未被沙箱化。
+* **钥匙串（macOS）**：选择是否可以从沙箱内部访问系统钥匙串。
+* **每命令异常**：当单个命令需要更广泛的访问权限时，允许或阻止它们在沙箱外部运行。
+
+在 {% data variables.copilot.github_copilot_app %} 中，项目设置公开了这些控件的子集：
+
+* **文件系统**：授予对特定路径的附加只读或read/write访问权限，或拒绝路径。
+* **网络**：允许或阻止出站互联网和本地网络访问。
+* **凭据**：选择您的 Git 和 {% data variables.product.prodname_cli %} 凭据是否在沙箱内可用。
+
+该应用程序还可以要求您批准在沙箱外运行的单个命令。您无法在项目设置中配置是否允许绕过请求。有关在应用程序或 CLI 中配置本地沙箱的更多信息，请参阅 [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/configuring-local-sandbox-settings>)。
+
+### 跨平台支持
+
+本地沙箱可在 macOS、Linux 和最新的 Windows 11 版本上使用。每个操作系统使用不同的隔离后端，因此要求也不同：
+
+* **macOS** 使用安全带后端。 {% data variables.copilot.copilot_cli_short %} 将进程范围的配置文件应用于每个沙盒命令。使用 macOS 15 (Sequoia) 或更高版本。 {% data variables.copilot.copilot_cli_short %} 不会阻止较旧的 macOS，但后端未在那里进行测试。
+* **Linux** 使用 bubblewrap 后端。安装 bubblewrap 0.5.0 或更高版本，并确保 `bwrap` 位于您的 `PATH` 上。如果 `/sandbox` 报告您的 `bwrap` 太旧，请升级软件包。当沙箱策略允许出站流量时，您还必须具有：
+  * `slirp4netns` 在您的 `PATH` 上。
+  * 来自 util-linux 2.35 或更高版本的 `unshare` 和 `nsenter`，支持 `--map-current-user` 和 `--keep-caps`。
+  * `iptables`、`ip6tables` 及其恢复二进制文件。使用 `nf_tables` 后端。旧后端也可以运行，但前提是您可以写入 `/run/xtables.lock`。
+  * 访问 `/dev/net/tun`。
+* **Windows** 需要支持沙箱的最新 Windows 11 更新。对拒绝路径、本地主机连接和代理等功能的支持也取决于您的 Windows 版本。如果您的主机无法支持请求的功能，{% data variables.copilot.copilot_cli_short %} 会报告该要求，而不是运行限制较弱的命令。请参阅 [有关 Copilot 沙箱 ](<https://aka.ms/ghcp-sandbox-os-support>) 的 Windows 更新信息。
+
+#### 代理支持
+
+在 {% data variables.copilot.copilot_cli_short %} 中，主机规则和 HTTP 代理设置使用内置本地代理。它们的执行因操作系统而异：
+
+* **macOS 和 Linux**：沙箱限制与本地代理的出站连接。忽略代理设置的程序无法直接连接。配置代理时，[跨平台支持](<#跨平台支持>)中列出的 Linux 出站流量要求也适用。
+* **Windows**：代理和主机规则需要受支持的 Windows 版本，并且 **允许打开本地网络 **。在 Windows 上，沙箱依赖于遵循代理设置的程序。因此，这些控件无法提供与 macOS 和 Linux 上相同的针对直接连接的保护。
+
+在{% data variables.copilot.github_copilot_app %}中，您可以在项目设置中保存拒绝的路径。如果活动的 BaseContainer 功能无法强制执行被拒绝的路径，则沙盒命令将失败，而不是使用较弱的策略或没有沙盒运行。
+
+在 Linux 上，bubblewrap 无法独立控制生成进程的本地网络访问，包括 shell 命令和本地 MCP 或 LSP 服务器。本地网络设置仍然适用于 CLI 和应用程序中的进程内操作，例如 Web 请求和远程 MCP 连接。
+
+#### 如果您的主机不支持本地沙箱
+
+在 {% data variables.copilot.copilot_cli_short %} 中，如果主机不支持，则当前会话将关闭用于启用沙箱的已保存用户首选项。通知解释说 shell 命令和服务将在没有沙箱的情况下运行。您保存的 `sandbox.enabled` 设置保持不变。在不受支持的主机上运行 `/sandbox enable` 被拒绝。
+
+企业设置可以更改此行为。在不受支持的主机上，服务器管理的启用沙箱的请求将被拒绝，除非有效的托管设置也将 `sandbox.failIfUnavailable` 设置为 `true`。即使在不受支持的主机上，设备管理的设置也可能需要沙箱。需要沙箱的命令和服务会失败，而不是在没有沙箱的情况下运行。当有效的托管设置将 `sandbox.enabled` 和 `sandbox.failIfUnavailable` 设置为 `true` 时，如果 CLI 无法强制实施沙盒，则会阻止会话的模型请求和工具执行。这些要求可以来自服务器管理的设置、设备管理的设置或两者的组合。
+
+对于 {% data variables.copilot.github_copilot_app %}，在不支持本地沙箱的主机上，配置为使用本地沙箱的会话可能会正常启动，但当 {% data variables.product.prodname_copilot_short %} 尝试启动它们时，shell 命令和其他沙箱进程会失败。 {% data variables.copilot.github_copilot_app %} 保留已保存的首选项，失败的操作报告平台不支持沙箱。设备管理的设置可能需要这种故障关闭行为，并且可能会阻止模型和工具执行。
+
+### 企业政策执行
+
+企业可以要求本地沙箱并通过服务器管理、MDM-管理或基于文件的管理设置强制执行其配置。参见[AUTOTITLE](<https://github.com/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/get-started>)。
+
+## 云沙箱
+
+云沙盒允许您在由 {% data variables.product.github %} 托管的完全隔离的临时 Linux 环境中运行会话。您可以从 {% data variables.copilot.copilot_cli_short %} 和 {% data variables.copilot.github_copilot_app %} 使用云沙箱。每个云沙箱会话都与本地环境和其他会话隔离。
+
+云沙箱基于 Azure 容器应用沙箱构建，{% data variables.product.github %} 提供身份、策略和计费层。
+
+> [!NOTE]
+> 如果您通过组织获取 {% data variables.product.prodname_copilot_short %}，对云沙盒的访问取决于组织或企业设置中启用它，默认情况下它是禁用的。欲了解更多信息，请参阅[AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/enabling-or-disabling-cloud-sandboxes-for-your-organization>)。
+
+### 启动云沙箱会话
+
+要启动云支持的会话，请运行以下命令：
+
+```shell copy
+copilot ‑‑cloud ‑‑experimental
+```
+
+> [！NOTE]
+> 云沙盒目前是一项实验性功能。要使用它，您必须为 {% data variables.copilot.copilot_cli_short %} 启用实验性功能 - 例如，在启动 CLI 会话时使用 `‑‑experimental` 命令行选项，如上所示。
+
+`‑‑cloud` 命令行选项在云沙箱内启动交互式 {% data variables.copilot.copilot_cli_short %} 会话。您可以提示 {% data variables.product.prodname_copilot_short %} 执行任务、运行 shell 命令以及迭代代码，就像在本地会话中一样。 {% data variables.product.prodname_copilot_short %} 运行的命令在云环境中执行，而不是在本地计算机上执行。
+
+运行 `copilot ‑‑cloud` 将在云沙箱中启动单个 {% data variables.copilot.copilot_cli_short %} 会话。它不会影响将来的 {% data variables.product.prodname_copilot_short %} 会话。每次您想要在云沙箱中运行新会话时，必须使用 `‑‑cloud` 选项启动 CLI。
+
+> [！NOTE]
+> 云沙盒仅适用于交互式 {% data variables.copilot.copilot_cli_short %} 会话。您无法在云沙箱中以编程方式运行 CLI，即无法将 `‑‑cloud` 选项与 `-p` 或 `-i` 选项组合使用。
+
+在 {% data variables.copilot.github_copilot_app %} 中，您不使用命令来启动云沙箱会话。相反，在创建新会话时选择云沙箱选项。欲了解更多信息，请参阅[AUTOTITLE](<https://github.com/copilot/how-tos/github-copilot-app/agent-sessions#starting-a-session>)。
+
+### Continue 跨设备会话
+
+由于云沙箱会话在 {% data variables.product.github %} 托管的基础设施中运行，因此您可以在任何设备上拾取 {% data variables.product.prodname_copilot_short %} 会话，无论会话最初在何处启动。这可以实现更灵活的工作流程，而无需复制文件或重新安装依赖项。
+
+### 卸载计算密集型工作流程
+
+您可以在云端并行运行多个{% data variables.product.prodname_copilot_short %}任务，而不消耗本地资源。这可以使您的本地环境保持轻量级和响应灵敏，同时扩展 agent 驱动的工作。
+
+### 统一治理
+
+云沙盒策略与 {% data variables.copilot.copilot_cloud_agent %} 策略共享相同的配置，将现有安全控制扩展到云沙盒执行，无需额外设置。
+
+### 会话生命周期
+
+云沙箱会话具有三个主要状态：
+
+* **活动**：会话正在运行，并且您正在从{% data variables.copilot.copilot_cli_short %}或{% data variables.copilot.github_copilot_app %}与其交互。
+* **已停止**：会话当前未运行，但其状态已保存。当您恢复它时，您的文件、环境变量和正在进行的工作都会恢复。
+* **已删除**：会话及其保存的状态已删除且无法恢复。
+
+当您停止会话时，云沙箱会创建其状态快照，以便您稍后可以从上次中断的地方继续。删除会话时，运行环境和快照都会被删除。
+
+## 身份验证和访问
+
+沙盒使用您现有的 {% data variables.product.prodname_copilot_short %} 身份验证。如果您可以登录 {% data variables.copilot.copilot_cli_short %} 或 {% data variables.copilot.github_copilot_app %} 并有权访问 {% data variables.product.prodname_copilot_short %}，则无需为该界面中可用的沙盒选项配置单独的身份验证。您无需配置单独的云提供商、管理 API 密钥或设置基础设施。
+
+组织或企业所有者必须在组织或企业设置中启用 **云沙盒访问 ** 策略，成员才能使用云沙盒。
+
+有关为组织成员启用或禁用云沙箱的信息，请参阅 [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/enabling-or-disabling-cloud-sandboxes-for-your-organization>)。
+
+## 计费
+
+本地沙箱包含在标准 {% data variables.product.prodname_copilot %} 席位中，无需额外付费。
+
+云沙盒根据使用情况计费。 {% data variables.product.github %} 测量三米范围内的云沙箱使用情况：
+
+|米|描述|单位|价格（USD）|
+| --- | --- | --- |------------|
+|计算|云沙盒会话运行的时间。|计算第二个| $0.000024 |
+|内存|运行时分配给云沙箱会话的内存。|GiB第二| $0.000003 |
+|存储|已停止会话的快照存储。|GiB 月| $0.005  |
+
+有关如何衡量和计费云沙箱使用情况的更多信息，请参阅 [AUTOTITLE](<https://github.com/billing/concepts/product-billing/cloud-and-local-sandboxes>)。
+
+## 进一步阅读
+
+* [AUTOTITLE](<https://github.com/copilot/concepts/copilot-surfaces/copilot-cli>)
+* [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/using-local-sandboxing>)
+* [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/configuring-local-sandbox-settings>)
+
+
+## 原文对照
+
+<details>
+<summary>展开完整原文</summary>
+
+> [!NOTE]
+> {% data reusables.cli.public-preview-cloud-sandbox %}
+
+## Introduction
+
+{% data variables.product.prodname_copilot_short %} cloud and local sandboxes are the execution platform powering secure sandboxed experiences for {% data variables.copilot.copilot_cli %} and the {% data variables.copilot.github_copilot_app %}. As {% data variables.product.prodname_copilot_short %} takes more actions on your behalf—running tools, executing commands, and modifying files—sandboxing provides the isolation, portability, and policy controls needed to adopt agentic workflows safely.
+
+Sandboxing is available in both {% data variables.copilot.copilot_cli %} and the {% data variables.copilot.github_copilot_app %}, but the two surfaces expose it differently:
+
+* In {% data variables.copilot.copilot_cli_short %}, you control both local and cloud sandboxing with the commands and settings described in this article.
+* In the {% data variables.copilot.github_copilot_app %}, you can run a session in a cloud sandbox or use local sandboxing for local repository and working tree sessions. Project settings define the default for new local sessions, and you can change sandboxing for an active local session. For more information, see [AUTOTITLE](<https://github.com/copilot/how-tos/github-copilot-app/agent-sessions#using-cloud-and-local-sandboxes>).
+
+Local sandbox settings are configured separately in {% data variables.copilot.copilot_cli_short %} and the {% data variables.copilot.github_copilot_app %}. Enabling or configuring local sandboxing in one surface does not change it in the other.
+
+With sandboxing, you can choose where {% data variables.product.prodname_copilot_short %} runs:
+
+* **Local sandboxing**: Run {% data variables.product.prodname_copilot_short %} securely on your own machine. The commands that {% data variables.product.prodname_copilot_short %} runs have restricted access to your filesystem, network, and system capabilities. You can use local sandboxing at no extra charge.
+* **Cloud sandboxing**: Run an entire {% data variables.product.prodname_copilot_short %} session remotely, inside a fully isolated, ephemeral Linux environment hosted by {% data variables.product.github %}. Cloud sandboxing is billed based on usage.
+
+## Local sandboxing
+
+Local sandboxing lets {% data variables.product.prodname_copilot_short %} run in a sandboxed environment directly on your machine, with restricted access to your filesystem, network connectivity, and system capabilities. You can configure local sandboxing in {% data variables.copilot.copilot_cli_short %} or the {% data variables.copilot.github_copilot_app %}.
+
+Local sandboxing is turned off by default. Until you enable it, the shell commands that {% data variables.product.prodname_copilot_short %} runs execute directly on your machine with the same access as your user account: they can read, write, and delete wherever you can, reach any network your machine can reach, and use your credentials without restriction. Enabling local sandboxing constrains this access to a policy that you control.
+
+### How local sandboxing works
+
+Local sandboxing is powered by Microsoft eXecution Container (MXC), a cross-platform technology that provides a common interface to the isolation mechanisms available on each operating system. {% data variables.copilot.copilot_cli_short %} declares the sandbox policy it wants to enforce—which paths are readable or writable, whether network access is allowed, and so on—and MXC applies that policy using the appropriate isolation backend for your operating system.
+
+Isolation technologies exist on a spectrum, from strong isolation such as full hypervisors or containers, to lighter-weight isolation such as OS-level process and filesystem containment. Local sandboxing currently sits at the lighter-weight end of this spectrum: it restricts what a process can read, write, and reach on the network, but it does not run your commands inside a separate virtual machine or container. If you want to evaluate whether this level of isolation meets your security requirements, see the [microsoft/mxc repository](<https://github.com/microsoft/mxc>) for implementation details.
+
+For more information, see [AUTOTITLE](<https://github.com/copilot/concepts/agents/copilot-cli/understanding-local-sandboxing>).
+
+### Enabling local sandboxing
+
+To enable local sandboxing inside a {% data variables.copilot.copilot_cli_short %} session, run:
+
+```shell copy
+/sandbox enable
+```
+
+After you enable local sandboxing, the commands and tools that an agent runs on your behalf run inside an operating-system-level sandbox that limits their access to your system. These include shell commands, file search, and, by default, any local MCP and language (LSP) servers. {% data variables.product.prodname_copilot_short %} continues to use local sandboxing, including in future sessions, until you run `/sandbox disable` to disable it.
+
+If enterprise managed settings require sandboxing, ordinary settings and startup options cannot turn it off. If the effective policy permits sandbox bypass, you can still disable sandboxing for the rest of the current session, either from a bypass permission prompt or by running `/sandbox disable`. This does not change the saved policy.
+
+The CLI's built-in file tools—first-party commands that are part of the CLI, rather than shell commands like `sed`—run in-process in the CLI. Because the CLI itself is not sandboxed, the operating-system sandbox never sees the file operations these tools perform and cannot constrain them. Instead, the built-in tools are coded to check the sandbox policy themselves and honor your configured settings on a best-effort basis.
+
+In the {% data variables.copilot.github_copilot_app %}, project settings define the local sandboxing default for new local repository and working tree sessions. You can also change sandboxing for an active local session without changing the project default.
+
+For more information about enabling local sandboxing in {% data variables.copilot.copilot_cli_short %} and {% data variables.copilot.github_copilot_app_short %}, see [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/using-local-sandboxing>).
+
+### Configuring local sandboxing
+
+You can use the default local sandboxing behavior, or modify what {% data variables.product.prodname_copilot_short %} can access. The available controls depend on the surface you use.
+
+In {% data variables.copilot.copilot_cli_short %}, you can control several dimensions of access:
+
+* **Filesystem**: Grant read-only or read/write access to specific paths, or deny paths.
+* **Network**: Control outbound internet access and local network access, or allow and deny specific hosts. The restrictions available depend on your operating system.
+* **Credentials**: Enable Git and {% data variables.product.prodname_cli %} (`gh`) authentication, or mask additional environment variables. Sandboxed tools receive placeholders, and a local proxy supplies the real credentials only to approved HTTPS destinations.
+* **Subprocesses**: Choose whether local MCP servers and language servers also run inside the sandbox. Remote MCP servers are never sandboxed.
+* **Keychain (macOS)**: Choose whether the system keychain is reachable from inside the sandbox.
+* **Per-command exceptions**: Allow or prevent individual commands from running outside the sandbox when they need broader access.
+
+In the {% data variables.copilot.github_copilot_app %}, project settings expose a subset of these controls:
+
+* **Filesystem**: Grant additional read-only or read/write access to specific paths, or deny paths.
+* **Network**: Allow or block outbound internet and local network access.
+* **Credentials**: Choose whether your Git and {% data variables.product.prodname_cli %} credentials are available inside the sandbox.
+
+The app can also ask you to approve an individual command to run outside the sandbox. You cannot configure whether bypass requests are allowed in the project settings. For more information about configuring local sandboxing in the app or CLI, see [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/configuring-local-sandbox-settings>).
+
+### Cross-platform support
+
+Local sandboxing is available on macOS, on Linux, and on recent Windows 11 builds. Each operating system uses a different isolation backend, so the requirements are different:
+
+* **macOS** uses the Seatbelt backend. {% data variables.copilot.copilot_cli_short %} applies a process-scoped profile to each sandboxed command. Use macOS 15 (Sequoia) or later. {% data variables.copilot.copilot_cli_short %} does not block an older macOS, but the backend is not tested there.
+* **Linux** uses the bubblewrap backend. Install bubblewrap 0.5.0 or later, and make sure `bwrap` is on your `PATH`. If `/sandbox` reports that your `bwrap` is too old, upgrade the package. When the sandbox policy permits outbound traffic, you must also have:
+  * `slirp4netns` on your `PATH`.
+  * `unshare` and `nsenter` from util-linux 2.35 or later, with `--map-current-user` and `--keep-caps` support.
+  * `iptables`, `ip6tables`, and their restore binaries. Use the `nf_tables` backend. The legacy backend also operates, but only if you can write to `/run/xtables.lock`.
+  * Access to `/dev/net/tun`.
+* **Windows** requires a recent Windows 11 update that supports sandboxing. Support for features such as denied paths, localhost connections, and proxying also depends on your Windows version. If your host cannot support a requested feature, {% data variables.copilot.copilot_cli_short %} reports the requirement instead of running the command with weaker restrictions. See [Windows update information for Copilot sandboxing](<https://aka.ms/ghcp-sandbox-os-support>).
+
+#### Proxy support
+
+In {% data variables.copilot.copilot_cli_short %}, host rules and HTTP proxy settings use a built-in local proxy. Their enforcement differs by operating system:
+
+* **macOS and Linux**: The sandbox restricts outbound connections to the local proxy. Programs that ignore proxy settings cannot connect directly instead. The Linux requirements for outbound traffic listed in [Cross-platform support](<#cross-platform-support>) also apply when you configure a proxy.
+* **Windows**: Proxying and host rules require a supported Windows version and **Allow local network** to be turned on. On Windows, the sandbox relies on programs honoring the proxy settings. As a result, these controls do not provide the same protection against direct connections as on macOS and Linux.
+
+In the {% data variables.copilot.github_copilot_app %}, you can save denied paths in the project settings. If the active BaseContainer capabilities cannot enforce a denied path, the sandboxed command fails instead of running with a weaker policy or without a sandbox.
+
+On Linux, bubblewrap cannot control local network access independently for spawned processes, including shell commands and local MCP or LSP servers. The local network setting still applies to in-process operations, such as web requests and remote MCP connections, in both the CLI and the app.
+
+#### If your host does not support local sandboxing
+
+In {% data variables.copilot.copilot_cli_short %}, a saved user preference to enable sandboxing is turned off for the current session if the host does not support it. A notice explains that shell commands and services will run without a sandbox. Your saved `sandbox.enabled` setting remains unchanged. Running `/sandbox enable` on an unsupported host is refused.
+
+Enterprise settings can change this behavior. On an unsupported host, a server-managed request to enable sandboxing is declined unless effective managed settings also set `sandbox.failIfUnavailable` to `true`. Device-managed settings can require sandboxing even on an unsupported host. Commands and services that require sandboxing then fail rather than running without it. When effective managed settings set both `sandbox.enabled` and `sandbox.failIfUnavailable` to `true`, the CLI blocks model requests and tool execution for the session if it cannot enforce sandboxing. These requirements can come from server-managed settings, device-managed settings, or a combination of both.
+
+For the {% data variables.copilot.github_copilot_app %}, on a host that does not support local sandboxing, a session configured to use local sandboxing may start normally, but shell commands and other sandboxed processes fail when {% data variables.product.prodname_copilot_short %} attempts to launch them. The {% data variables.copilot.github_copilot_app %} preserves the saved preference, and the failed operation reports that sandboxing is not supported on the platform. Device-managed settings may require this fail-closed behavior and can block model and tool execution.
+
+### Enterprise policy enforcement
+
+Enterprises can require local sandboxing and enforce its configuration through server-managed, MDM-managed, or file-based managed settings. See [AUTOTITLE](<https://github.com/copilot/how-tos/administer-copilot/manage-for-enterprise/use-managed-settings/get-started>).
+
+## Cloud sandboxing
+
+Cloud sandboxing lets you run sessions inside fully isolated, ephemeral Linux environments hosted by {% data variables.product.github %}. You can use cloud sandboxing from both {% data variables.copilot.copilot_cli_short %} and the {% data variables.copilot.github_copilot_app %}. Each cloud sandbox session is isolated from your local environment and from other sessions.
+
+Cloud sandboxing is built on Azure Container Apps Sandboxes, with {% data variables.product.github %} providing the identity, policy, and billing layer.
+
+> [!NOTE]
+> If you get {% data variables.product.prodname_copilot_short %} through an organization, access to cloud sandboxing depends on it being enabled in the organization or enterprise settings, where it is disabled by default. For more information, see [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/enabling-or-disabling-cloud-sandboxes-for-your-organization>).
+
+### Starting a cloud sandbox session
+
+To start a cloud-backed session, run the following command:
+
+```shell copy
+copilot ‑‑cloud ‑‑experimental
+```
+
+> [!NOTE]
+> Cloud sandboxing is currently an experimental feature. To use it, you must have experimental features enabled for {% data variables.copilot.copilot_cli_short %}—for example, by using the `‑‑experimental` command line option when starting a CLI session, as shown above.
+
+The `‑‑cloud` command line option launches an interactive {% data variables.copilot.copilot_cli_short %} session inside a cloud sandbox. You can prompt {% data variables.product.prodname_copilot_short %} to perform tasks, run shell commands, and iterate on code, the same way you would in a local session. The commands that {% data variables.product.prodname_copilot_short %} runs execute in the cloud environment, not on your local machine.
+
+Running `copilot ‑‑cloud` starts a single {% data variables.copilot.copilot_cli_short %} session in a cloud sandbox. It does not affect future {% data variables.product.prodname_copilot_short %} sessions. Each time you want to run a new session in a cloud sandbox, you must start the CLI with the `‑‑cloud` option.
+
+> [!NOTE]
+> Cloud sandboxing is only available for interactive {% data variables.copilot.copilot_cli_short %} sessions. You can't run the CLI programmatically in a cloud sandbox—that is, you can't combine the `‑‑cloud` option with the `-p` or `-i` options.
+
+In the {% data variables.copilot.github_copilot_app %}, you don't use a command to start a cloud sandbox session. Instead, choose the cloud sandbox option when you create a new session. For more information, see [AUTOTITLE](<https://github.com/copilot/how-tos/github-copilot-app/agent-sessions#starting-a-session>).
+
+### Continue sessions across devices
+
+Because cloud sandbox sessions run in {% data variables.product.github %}-hosted infrastructure, you can pick up a {% data variables.product.prodname_copilot_short %} session on any device, regardless of where the session was originally started. This enables more flexible workflows without needing to copy files or reinstall dependencies.
+
+### Offload compute-intensive workflows
+
+You can run multiple {% data variables.product.prodname_copilot_short %} tasks in parallel in the cloud without consuming local resources. This keeps your local environment lightweight and responsive while scaling agent-driven work.
+
+### Unified governance
+
+Cloud sandbox policies share the same configuration as {% data variables.copilot.copilot_cloud_agent %} policies, extending existing security controls to cloud sandboxed execution without additional setup.
+
+### Session lifecycle
+
+A cloud sandbox session has three main states:
+
+* **Active**: The session is running, and you are interacting with it from {% data variables.copilot.copilot_cli_short %} or the {% data variables.copilot.github_copilot_app %}.
+* **Stopped**: The session is not currently running, but its state is saved. When you resume it, your files, environment variables, and in-progress work are restored.
+* **Deleted**: The session and its saved state are removed and cannot be recovered.
+
+When you stop a session, the cloud sandbox creates a snapshot of its state so you can pick up where you left off later. When you delete a session, both the running environment and the snapshot are removed.
+
+## Authentication and access
+
+Sandboxing uses your existing {% data variables.product.prodname_copilot_short %} authentication. If you can sign in to {% data variables.copilot.copilot_cli_short %} or the {% data variables.copilot.github_copilot_app %} and have access to {% data variables.product.prodname_copilot_short %}, you don't need to configure separate authentication for the sandboxing options available in that surface. You don't need to configure a separate cloud provider, manage API keys, or set up infrastructure.
+
+An organization or enterprise owner must enable the **Cloud Sandbox access** policy in the organization or enterprise settings before members can use cloud sandboxes.
+
+For information about enabling or disabling cloud sandboxes for members of your organization, see [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/enabling-or-disabling-cloud-sandboxes-for-your-organization>).
+
+## Billing
+
+Local sandboxing is included in the standard {% data variables.product.prodname_copilot %} seat at no additional cost.
+
+Cloud sandboxing is billed based on usage. {% data variables.product.github %} measures cloud sandbox usage across three meters:
+
+| Meter | Description | Unit | Price (USD) |
+| --- | --- | --- |------------|
+| Compute | Time that a cloud sandbox session is running. | Compute second | $0.000024 |
+| Memory | Memory allocated to a cloud sandbox session while it is running. | GiB second | $0.000003 |
+| Storage | Snapshot storage for stopped sessions. | GiB month | $0.005  |
+
+For more information about how cloud sandbox usage is measured and billed, see [AUTOTITLE](<https://github.com/billing/concepts/product-billing/cloud-and-local-sandboxes>).
+
+## Further reading
+
+* [AUTOTITLE](<https://github.com/copilot/concepts/copilot-surfaces/copilot-cli>)
+* [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/using-local-sandboxing>)
+* [AUTOTITLE](<https://github.com/copilot/how-tos/cloud-and-local-sandboxes/configuring-local-sandbox-settings>)
+
+
+</details>

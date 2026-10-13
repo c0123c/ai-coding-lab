@@ -1,0 +1,113 @@
+---
+vendor: "Microsoft"
+repository: "microsoft/vscode-docs"
+path: "docs/agents/concepts/agent-host.md"
+source_url: "https://github.com/microsoft/vscode-docs/blob/main/docs/agents/concepts/agent-host.md"
+raw_url: "https://raw.githubusercontent.com/microsoft/vscode-docs/main/docs/agents/concepts/agent-host.md"
+resolved_url: "https://raw.githubusercontent.com/microsoft/vscode-docs/main/docs/agents/concepts/agent-host.md"
+tree_snapshot_sha: "7dde535199826fdb8e278bdf6f0c3bff0aae0138"
+sha256_body: "fa40c83d0397bcd23a0e3543692b8706454571efbc374d6dd4b65fa829fee377"
+archive: "01_资料来源/官方资料/审计记录/官方GitHub相关正文_2026-10-10/official-github-pages-0006.jsonl.gz:56"
+---
+
+---
+ContentId: 9c358671-d18a-4c50-beab-e69beb997ea2
+DateApproved: 10/7/2026
+MetaDescription: Understand how the {% data variables.product.prodname_vscode_shortname %} Agent Host runs local, remote, and Dev Container sessions.
+MetaSocialImage: ../images/shared/github-copilot-social.png
+Keywords:
+- agent host
+- agent host protocol
+- ahp
+- ai agents
+- architecture
+- remote agents
+- headless agents
+- multi-client
+---
+
+# Understand the {% data variables.product.prodname_vscode_shortname %} Agent Host
+
+{% data variables.product.prodname_vscode_shortname %} runs AI coding agents in a dedicated process called the Agent Host, which it communicates with through the Agent Host Protocol (AHP). The host owns agent sessions independently of the clients that display and control them.
+
+> [!NOTE]
+> The Agent Host and AHP are under active development, and new capabilities continue to roll out.
+
+## Why a dedicated Agent Host?
+
+A dedicated Agent Host process for agents provides the following capabilities:
+
+* **Shared sessions**: multiple clients can observe and control the same session, staying in sync.
+* **Remote execution**: the host can run next to the workspace on another machine while clients connect from elsewhere.
+* **Independent execution**: an agent session can continue when no editor or other client is connected.
+* **Multiple agent implementations**: different agent runtimes plug into one host-facing interface and present common session concepts to clients.
+* **Dedicated process**: agents run in their own process, where they won't be blocked by busy extensions.
+
+Earlier versions ran agent logic in the extension host, alongside the Copilot Chat extension. The extension host remains important for extensibility, but it is designed around the lifecycle and APIs of extensions, and long-running autonomous work has different needs. Extensions can still contribute chat customizations such as tools, MCP servers, and custom agents, but the agent runtime itself runs in the Agent Host process. By default, tools from extensions are only available in chats in an editor window where the extension is running.
+
+![Screenshot showing {% data variables.product.prodname_vscode_shortname %} communicating with extension-host customizations and the Agent Host, which contains adapters for Copilot, Claude, and Codex.](../images/concepts/agent-host-transition.svg)
+
+## Process architecture
+
+The Agent Host can run as a local utility process or as a standalone server on a remote machine. {% data variables.product.prodname_vscode_shortname %} uses a message port for local IPC and AHP JSON-RPC over WebSocket for remote connections.
+
+The first-party agent adapters run inside the Agent Host process. An adapter translates between its agent runtime and the common AHP session model.
+
+The Agent Host lives next to the workspace. It can run on your machine, inside a Dev Container, or on a remote machine. File edits and commands run in the environment that contains the host.
+
+## Agent Host Protocol
+
+[Agent Host Protocol](https://microsoft.github.io/agent-host-protocol/) is an open, agent-agnostic protocol between a host and its clients. It uses JSON-RPC for communication and immutable state with pure reducers for synchronized session data.
+
+The host is the source of truth. Each client subscribes to URI-addressed channels for resources such as sessions, chats, terminals, and changesets. The client receives an initial state snapshot followed by ordered actions. If the connection drops, the client reconnects and receives missed actions or a fresh snapshot.
+
+## Self-contained, with optional client tools
+
+The defining Agent Host principle is that the agent can run without a client. A client is a viewer and controller that can come and go. The host therefore includes the baseline capabilities needed to manage sessions and work with the workspace.
+
+Agent sessions are not tied to the lifetime of the window for their workspace. You can close the window and reopen the session later from another window. While the Agent Host remains running, an active turn can continue without a connected client.
+
+Connected clients can also contribute tools. For example, {% data variables.product.prodname_vscode_shortname %} can advertise tools that are provided by the client (like the browser tools) or by installed extensions. The Agent Host adds those definitions to the active session and routes a tool call back to the client that contributed it.
+
+## Local and remote hosts
+
+The desktop {% data variables.copilot.agents_window %} can connect to an Agent Host on the same machine or on a connected SSH, Tunnel, or WSL host. The [browser-based {% data variables.copilot.agents_window %}](/docs/agents/run/remote-agent-sessions.md#use-the-agents-window-in-the-browser) connects to your development machine through a dev tunnel. The browser is a client, not the host that runs the session.
+
+![Screenshot showing desktop and browser clients connecting to Agent Hosts. The desktop client can use a host workspace or a Dev Container, while the browser connects to a development machine through a dev tunnel.](../images/concepts/agent-host-deployment.svg)
+
+Clients display and control sessions. The Agent Host owns them. Desktop and browser clients can connect to the same tunnel host.
+
+`feature(agent-host-dev-containers)`
+
+For a Dev Container session, the Agent Host runs inside the project's container. The container can run on your machine or on a supported SSH, Tunnel, or WSL host, while the desktop {% data variables.copilot.agents_window %} remains on your machine. Workspace file edits and commands use the tools and dependencies inside the container, rather than those installed directly on the source host.
+
+Dev Container execution is an environment choice, not a different harness. See the [session execution options diagram](/docs/agents/concepts/agent-harnesses.md#relate-execution-environments-and-code-isolation) for how local, connected-host, container, and cloud execution relate. For setup steps, see [Run an agent session in a Dev Container](/docs/agents/run/agents-window.md#run-a-session-in-a-dev-container).
+
+Like [{% data variables.product.prodname_vscode_shortname %} Remote Development](/docs/remote/remote-overview.md), the user interface stays on the client while workspace operations run close to the source code and development tools.
+
+To run your own standalone Agent Host, use `code agent host`. By default, the command starts a server on localhost and protects it with a connection token. Use the `--tunnel` option to expose it through a dev tunnel.
+
+## Behavior on the extension host
+
+Agent sessions that don't run on the Agent Host run in the extension host. Existing extension-host sessions continue to run there.
+
+There are some differences in behavior for agent sessions that run on the extension host:
+
+| Behavior | Difference |
+|----------|------------|
+| Reviewing changes | Agent Host sessions apply edits directly to the session folder or worktree. Review the resulting diffs and then commit, merge, or discard the changes. Extension-host sessions track edits as pending until you keep or undo them. Learn more about [reviewing AI-generated code edits](/docs/agents/run/review-code-edits.md). |
+| Customizations | The Agent Host reads user-level customizations from harness-agnostic folders like `~/.copilot` and `~/.claude`. Customizations stored only in your {% data variables.product.prodname_vscode_shortname %} profile user data are a legacy location that the Copilot agent doesn't read. Learn how to [migrate agent customizations](/docs/agent-customization/migrate-customizations.md). |
+| Hooks | Agent Host does not define one shared hook schema for every agent. The selected Copilot, Claude, or Codex harness executes its provider hook implementation. Extension-host sessions use the Local hook implementation and Local settings. Learn how to [choose the hook implementation for a session](/docs/agent-customization/hooks.md#choose-the-hook-implementation-for-your-session). |
+| Autopilot | On the Agent Host, [Autopilot](/docs/agents/run/approvals.md#how-autopilot-works) is an agent mode. On the extension host, it's a permission level. |
+| Assisted permissions `feature(assisted-permissions)` | The [Assisted permissions](/docs/agents/run/approvals.md#permission-levels) level is available only for supported Agent Host sessions and is off by default in Stable. |
+| Session capabilities | Shared multi-window sessions, multiple chats per session, quick chats, and remote hosting are available only on the Agent Host. |
+| Extension-provided tools | Tools from extensions are only available in chats in an editor window where the extension is running. |
+| MCP configuration | The Agent Host reads harness-agnostic MCP config from `.mcp.json` (workspace) and `~/.copilot/mcp-config.json` (user). It doesn't read `.vscode/mcp.json` directly, but {% data variables.product.prodname_vscode_shortname %} forwards servers you configure in {% data variables.product.prodname_vscode_shortname %} to the Agent Host, except servers that require interactive input (for example, `${input:...}` variables). Learn more about [configuring MCP servers](/docs/agent-customization/mcp-servers.md). |
+
+## Related resources
+
+* [Agent Host Protocol documentation](https://microsoft.github.io/agent-host-protocol/)
+* [Agent Host Protocol source repository](https://github.com/microsoft/agent-host-protocol)
+* [Agents in {% data variables.product.prodname_vscode_shortname %}](/docs/agents/concepts/agents.md)
+* [Remote agent sessions](/docs/agents/run/remote-agent-sessions.md)
+* [{% data variables.product.prodname_vscode_shortname %} Remote Development architecture](/docs/remote/remote-overview.md)

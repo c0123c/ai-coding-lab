@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Adopting Spec Kit in an Existing Project | Spec Kit Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Adopting Spec Kit in an Existing Project | Spec Kit Documentation ">
+      
+      
+      <link rel="icon" href="../images/spec-kit-logo.webp">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/github/spec-kit/blob/main/docs/guides/existing-projects.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../images/spec-kit-logo.webp" alt="Spec Kit">
+            Spec Kit
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="adopting-spec-kit-in-an-existing-project">Adopting Spec Kit in an Existing Project</h1>
+
+<p>You do not need to recreate an existing system from specifications before using
+Spec Kit. Initialize the repository in place, capture the rules that matter,
+and use the workflow for the next bounded change.</p>
+<h2 id="1-start-from-a-reviewable-baseline">1. Start from a Reviewable Baseline</h2>
+<p>Before initialization, commit or stash existing work and create a branch for the
+adoption. This makes every generated file visible in a normal code review.</p>
+<p>Choose the <a href="../reference/integrations.html">integration key</a> for the coding agent
+you use. Then run the command from the repository root:</p>
+<pre><code class="lang-bash">specify init --here --force --integration &lt;key&gt;
+</code></pre>
+<p><code>--here</code> targets the current directory. <code>--force</code> allows initialization in a
+non-empty directory and may replace files at conflicting managed paths, so use
+it only after creating a reviewable baseline. It does not delete the rest of
+your application.</p>
+<p>Review the resulting diff before continuing. Initialization adds the shared
+<code>.specify/</code> project files and the command or skill files required by your
+selected integration. It does not rewrite your application or infer
+specifications for existing behavior.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Git initialization and feature branches are optional and are managed by the
+<strong>git</strong> extension. Add it with <code>specify extension add git</code> if you want that
+workflow.</p>
+</div>
+<h2 id="2-capture-project-guardrails">2. Capture Project Guardrails</h2>
+<p>The remaining steps illustrate adopting <strong>SDD</strong> for a bounded feature. If your
+first task is a repair, you can instead follow the
+<a href="bugfix.html">bug-fixing quickstart</a> after initialization; to evaluate a proposal,
+use the <a href="assessment.html">idea assessment quickstart</a>. Neither process requires
+completing the SDD steps below first.</p>
+<p>Run <code>/speckit.constitution</code> with principles that are already true for the
+repository or that the team has explicitly agreed to adopt:</p>
+<pre><code class="lang-text">/speckit.constitution Preserve public API compatibility. Follow the existing
+service boundaries. Every database migration must include a rollback plan.
+Run the repository's established unit and integration test suites.
+</code></pre>
+<p>Use the repository's README, architecture decisions, contribution guide, and
+CI configuration as evidence. Do not invent standards merely to fill the
+constitution template. The constitution governs later planning and analysis,
+so unrealistic rules create noise instead of useful constraints.</p>
+<h2 id="3-choose-a-bounded-first-change">3. Choose a Bounded First Change</h2>
+<p>Start with a feature or modernization slice that can be reviewed
+independently. Do not make &quot;document the entire existing system&quot; your first
+feature unless that inventory is itself the intended deliverable.</p>
+<p>Describe both the requested outcome and the compatibility boundaries that must
+remain intact:</p>
+<pre><code class="lang-text">/speckit.specify Add CSV export to the existing orders page. Preserve current
+filters and authorization behavior. Export only the rows visible to the signed-in
+user, and do not change the existing JSON API response.
+</code></pre>
+<p>The codebase remains implementation context. The new <code>spec.md</code> defines the
+change you intend to make, not a retroactive specification of every existing
+behavior.</p>
+<h2 id="4-plan-against-the-repository">4. Plan Against the Repository</h2>
+<p>Continue through the normal workflow:</p>
+<ol>
+<li>Run <code>/speckit.clarify</code> to resolve uncertain behavior and compatibility
+requirements.</li>
+<li>Run <code>/speckit.plan</code> and verify that the proposed design reuses the existing
+architecture, dependencies, and test conventions.</li>
+<li>Run <code>/speckit.tasks</code>, then <code>/speckit.analyze</code> to check consistency before
+implementation.</li>
+<li>Run <code>/speckit.implement</code> and review code and artifact changes together.</li>
+<li>Run <code>/speckit.converge</code> to find remaining gaps. If it adds tasks, repeat
+implementation and convergence until the feature is complete.</li>
+</ol>
+<p>For command details and optional quality gates, see the
+<a href="../quickstart.html">Quick Start Guide</a> and
+<a href="../reference/agentic-sdd.html">Agentic SDD reference</a>.</p>
+<h2 id="5-decide-how-specs-will-age">5. Decide How Specs Will Age</h2>
+<p>After the first change, agree on how the team will maintain completed feature
+artifacts:</p>
+<ul>
+<li>Keep each feature directory as an immutable historical record.</li>
+<li>Maintain <code>spec.md</code> as a living contract and regenerate downstream artifacts.</li>
+<li>Allow discoveries to flow back from code, tasks, or plans, then reconcile the
+full artifact set.</li>
+</ul>
+<p>The <a href="../concepts/spec-persistence.html">Spec Persistence Models</a> page compares
+these choices. The <a href="evolving-specs.html">Evolving Specs guide</a> provides the
+maintenance loop for each model.</p>
+<h2 id="existing-project-examples">Existing-Project Examples</h2>
+<p>The <a href="../community/walkthroughs.html">community walkthroughs</a> include brownfield
+examples across .NET, Java, and Go/React codebases. Community extensions for
+architecture discovery and brownfield bootstrapping are listed in the
+<a href="../community/extensions.html">extension catalog</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/github/spec-kit/blob/main/docs/guides/existing-projects.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Spec Kit - A specification-driven development toolkit
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

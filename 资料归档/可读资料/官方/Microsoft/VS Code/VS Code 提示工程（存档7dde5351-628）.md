@@ -1,0 +1,249 @@
+# VS Code 提示工程
+
+介绍文件、代码注释、命名、任务范围和对话背景如何改善代码建议与聊天结果，并给出迭代提示的方法。
+
+- 来源：Microsoft／VS Code
+- 资料类型：文档源码（含未展开模板）
+- 存档版本：`7dde53519982`。
+- 文档时间：官方审核：[2026-10-07](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/guides/prompt-engineering-guide.md>)；源码提交（存档版）：[2026-10-06](<https://github.com/microsoft/vscode-docs/commit/4fe6b03408632f2e9338a970d26afa480e4a022d>)；本地归档批次：2026-10-10
+- 阅读状态：中文源码译文，由 Google 翻译；源码中的模板未展开，不等同于官网渲染后的完整文章。代码、命令与配置保留原样，未逐句人工校对。
+
+[原文发布页](<https://github.com/microsoft/vscode-docs/blob/main/docs/agents/guides/prompt-engineering-guide.md>) · [原始文件](<../../../../原始抓取备份/原文/官方/Microsoft/VS Code/VS Code 提示工程（存档7dde5351-628）.md>) · [返回资料总览](<../../../资料总览.md>)
+
+
+<details>
+<summary>源码自带的配置与元数据（保留原样）</summary>
+
+~~~yaml
+---
+ContentId: 5dfd207f-fcee-42c3-b7fe-622b42b3397c
+DateApproved: 10/7/2026
+MetaDescription: Optimize your development experience with chat in {% data variables.product.prodname_vscode_shortname %} with best practices for crafting chat prompts and providing context.
+MetaSocialImage: ../images/shared/github-copilot-social.png
+---
+~~~
+
+</details>
+
+[查看原文对照](#原文对照)
+
+## 中文全文
+
+# {% data variables.product.prodname_vscode_shortname %} 中的提示工程
+
+本文介绍了编写提示的技巧，以便从 {% data variables.product.prodname_vscode %} 中的 AI 获得更好、更相关的回复。 _提示工程_或_提示制作_是您在讨论AI时会听到的常用短语，指的是如何以及什么信息被打包并发送到AI API 端点。
+
+[！[在 YouTube 上观看 GitHub Copilot 提示工程的核心原理（在新选项卡中打开）。](<https://github.com/microsoft/vscode-docs/blob/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/guides/images/prompt-engineering-guide/youtube-hh1nOX14TyY.jpg>)](<https://www.youtube.com/watch?v=hh1nOX14TyY>)
+
+如果您是新手 {% data variables.product.prodname_vscode_shortname %} 或 AI，您可能想查看 [AI 在 {% data variables.product.prodname_vscode_shortname %} 概述](<https://github.com/docs/agent-native/overview.md>) 首先阅读文章或直接进入 [开始使用](<https://github.com/docs/agents/agents-tutorial.md>) 教程。
+
+## 充分利用内联建议
+
+内联建议通过自动提供完成代码、注释、测试等的建议来帮助您更有效地编码。您可以采取一些措施来帮助（“提示”）AI 为您提供最佳建议。
+
+### 提供背景信息
+
+当 AI 有足够的上下文来了解您正在做什么以及您需要什么帮助时，它的效果最好。正如您在寻求特定编程任务帮助时向同事提供上下文一样，您也可以对 AI 执行相同的操作。
+
+#### 打开文件
+
+对于内联建议，{% data variables.product.prodname_vscode_shortname %} 会查看编辑器中当前和打开的文件以分析上下文并创建适当的建议。使用内联建议时在 {% data variables.product.prodname_vscode_shortname %} 中打开相关文件有助于设置此上下文，并让 AI 查看项目的更大情况。
+
+#### 顶级评论
+
+正如您向同事进行简短的高级介绍一样，您正在处理的文件中的顶级注释可以帮助 AI 了解您正在创建的作品的整体背景。
+
+#### 适当的包含和参考
+
+最好手动设置工作所需的包含或模块引用。 AI 可以提出建议，但您可能最清楚需要包含哪些依赖项。这还可以帮助 AI 了解您在制定建议时希望使用哪些框架、库及其版本。
+
+在下面的 TypeScript 示例中，我们想要记录 `add` 方法的输出。当我们没有任何包含时，AI建议使用`console.log`：
+
+![AI 内联建议建议在文件中没有导入时使用 Console.log。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/copilot-suggestion-console-log.png>)
+另一方面，当您添加对 `Log4js` 的引用时，AI 建议使用该框架来记录输出：
+
+![AI 内联建议建议使用导入的日志框架进行日志记录。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/copilot-suggestion-framework-log.png>)
+
+#### 有意义的函数名称
+
+正如名为 `fetchData()` 的方法对同事（或几个月后的您）没有多大意义一样，`fetchData()` 也不会帮助 AI。使用有意义的函数名称有助于 AI 提供一个执行您想要的操作的函数体。
+
+#### 具体且范围明确的功能注释
+
+函数名只能具有描述性，但不能太长。函数注释可以帮助填写 AI 可能需要了解的详细信息。
+<!-- Example of a meaningful function/method comment -->
+
+#### Prime AI 包含示例代码
+
+在正确的页面上获取 AI 的一个技巧是将与您要查找的内容接近的示例代码复制并粘贴到打开的编辑器中。提供一个小示例可以帮助 AI 生成与您想要实现的语言和任务相匹配的建议。一旦 AI 开始向您提供您想要且实际使用的代码，您就可以从文件中删除示例代码。当它默认提供较旧的代码建议时，这对于快速启动 AI 到较新的库版本特别有帮助。
+
+### 保持一致并保持高质量标准
+
+AI 将锁定您的代码以生成遵循现有模式的建议，因此谚语“垃圾输入，垃圾输出”适用。
+始终保持高质量的条形可以接受纪律。特别是当您快速而宽松地编码以使某些内容正常工作时，您可能希望在“黑客”模式下禁用完成功能。要暂时暂停内联建议，请选择状态栏中的 Copilot 菜单，然后选择 ** 暂停 ** 按钮将暂停时间增加五分钟。要恢复内联建议，请选择 Copilot 菜单中的 ** 取消暂停 ** 按钮。
+
+![状态栏中Copilot菜单的屏幕截图，其中包含贪睡和取消贪睡按钮。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/inline-suggestions/snooze-code-completions.png>)
+
+## 充分利用聊天
+
+当您使用聊天时，您可以采取多种措施来优化您的体验。
+
+### 添加相关上下文
+
+您可以通过键入 `#` 后跟要提及的上下文项来显式向提示添加上下文。 {% data variables.product.prodname_vscode_shortname %} 支持不同类型的上下文项：文件、文件夹、代码符号、工具、终端输出、源代码控制更改等。
+
+在聊天输入字段中键入 `#` 符号以查看可用上下文项目的列表，或选择 {% data variables.copilot.chat_view %} 中的 **添加上下文 ** 以打开上下文选择器。
+
+例如，使用 `#<file name>` 或 `#<folder name>`，您可以在聊天提示中引用工作区中的特定文件或文件夹。通过提供有关您正在使用的文件的上下文，这有助于使 Copilot Chat 中的答案与您的代码更加相关。您可以提出诸如“您能否对 #package.json 提出改进建议？”之类的问题。或“如何在 #devcontainer.json 中添加扩展名？”。
+
+您可以使用 `#codebase` 让 {% data variables.product.prodname_vscode_shortname %} 自动从代码库中找到正确的文件，而不是手动添加单个文件。当您不知道哪些文件与您的问题相关时，这会很有用。
+
+![{% data variables.copilot.chat_view %} 的屏幕截图，显示“附加上下文”按钮和上下文快速选择。](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/copilot-chat-view-attach-context.png>)
+
+详细了解 [ 在聊天中使用上下文 ](<https://github.com/docs/chat/copilot-chat-context.md>)。
+
+### 具体并保持简单
+
+当您要求聊天室做某事时，请具体说明您的要求，并将大任务分解为单独的小任务。例如，不要要求聊天创建 Express 应用程序，该应用程序使用 TypeScript 和 Pug，并且具有从 MongoDB 数据库检索数据的产品页面。相反，首先要求使用 TypeScript 和 Pug 创建 Express 应用程序。接下来，要求添加产品页面，最后要求从数据库检索客户数据。
+
+当您要求聊天执行特定任务时，请具体说明您要使用的输入、输出、API 或框架。你的提示越具体，结果就越好。例如，不要“从数据库读取产品数据”，而是使用“按类别读取所有产品，以JSON格式返回数据，并使用Mongoose库”。
+
+### 迭代您的解决方案
+
+当向聊天寻求帮助时，您不会被第一个响应所困扰。您可以迭代并提示聊天来改进解决方案。聊天既有生成代码的上下文，也有您当前对话的上下文。
+以下是使用内联聊天创建计算斐波那契数的函数的示例：
+
+![来自 AI 的第一个响应，用于计算斐波那契数的函数 ](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/fibonacci-first.png>)
+
+也许您更喜欢不使用递归的解决方案：
+
+![要求AI不要使用递归和新结果](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/fibonacci-second.png>)
+
+您甚至可以要求 AI 遵循编码约定或改进变量名称：
+
+![要求AI使用更好的变量名称和新结果](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/fibonacci-third.png>)
+
+即使您已经接受了结果，您也可以随时要求 AI 稍后迭代代码。
+
+## 有关提示 Copilot 的更多资源
+
+如果您想了解有关高效使用 GitHub Copilot 的更多信息，您可以关注以下视频和博客文章：
+
+* [GitHub Copilot](<https://www.youtube.com/watch?v=ImWfIDTxn7E>)有效提示
+* [充分利用GitHub Copilot](<https://www.youtube.com/watch?v=CwAzIpc4AnA>)的实用技巧
+* [在{% data variables.product.prodname_vscode_shortname %}](<https://www.linkedin.com/pulse/best-practices-prompting-github-copilot-vs-code-pamela-fox>)中提示GitHub Copilot的最佳实践
+* [如何使用GitHub Copilot：提示、技巧和用例](<https://github.blog/2023-06-20-how-to-write-better-prompts-for-github-copilot/>)
+
+
+## 原文对照
+
+<details>
+<summary>展开完整原文</summary>
+
+# Prompt engineering in {% data variables.product.prodname_vscode_shortname %}
+
+This article covers tips to write prompts to get better and more relevant responses from AI in {% data variables.product.prodname_vscode %}. _Prompt engineering_ or _prompt crafting_ is a common phrase you'll hear when discussing AI and refers to how and what information is packaged and sent to an AI API endpoint.
+
+[![Watch Core principles of prompt engineering with GitHub Copilot on YouTube (opens in new tab).](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/guides/images/prompt-engineering-guide/youtube-hh1nOX14TyY.jpg>)](<https://www.youtube.com/watch?v=hh1nOX14TyY>)
+
+If you are new to {% data variables.product.prodname_vscode_shortname %} or AI, you might want to review the [AI in {% data variables.product.prodname_vscode_shortname %} Overview](<https://github.com/docs/agent-native/overview.md>) article first or dive straight into the [Getting started](<https://github.com/docs/agents/agents-tutorial.md>) tutorial.
+
+## Getting the most out of inline suggestions
+
+Inline suggestions help you code more efficiently by automatically offering suggestions to complete your code, comments, tests, and more. There are things you can do to help ("prompt") the AI to give you the best possible suggestions.
+
+### Provide context
+
+The AI works best when it has sufficient context to know what you're doing and what you want help with. Just as you would provide a colleague with the context when asking for help with a specific programming task, you can do the same with AI.
+
+#### Open files
+
+For inline suggestions, {% data variables.product.prodname_vscode_shortname %} looks at the current and open files in your editor to analyze the context and create appropriate suggestions. Having related files open in {% data variables.product.prodname_vscode_shortname %} while using inline suggestions helps set this context and lets the AI see a bigger picture of your project.
+
+#### Top level comment
+
+Just as you would give a brief, high-level introduction to a coworker, a top level comment in the file you're working in can help the AI understand the overall context of the pieces you are creating.
+
+#### Appropriate includes and references
+
+It's best to manually set the includes or module references you need for your work. The AI can make suggestions, but you likely know best what dependencies you need to include. This can also help let the AI know what frameworks, libraries, and their versions you'd like it to use when crafting suggestions.
+
+In the following TypeScript example, we want to log the output of the `add` method. When we don't have any includes, the AI suggests using `console.log`:
+
+![AI inline suggestion proposes Console.log when no imports in the file.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/copilot-suggestion-console-log.png>)
+On the other hand, when you add a reference to `Log4js`, the AI suggests using that framework for logging the output:
+
+![AI inline suggestion proposes logging using the imported logging framework.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/copilot-suggestion-framework-log.png>)
+
+#### Meaningful function names
+
+Just as a method called `fetchData()` won't mean much to a coworker (or you after several months), `fetchData()` won't help the AI either. Using meaningful function names helps the AI provide a body that does what you want.
+
+#### Specific and well-scoped function comments
+
+A function name can only be so descriptive without being overly long. Function comments can help fill in details that the AI might need to know.
+<!-- Example of a meaningful function/method comment -->
+
+#### Prime AI with sample code
+
+One trick to get AI on the right page, is to copy and paste sample code that is close to what you are looking for into your open editor. Providing a small example can help AI generate suggestions that match the language and tasks you want to achieve. Once AI begins providing you with the code you want and will actually use, you can delete the sample code from the file. This can be especially helpful to jumpstart AI to a newer library version when it defaults to providing older code suggestions.
+
+### Be consistent and keep the quality bar high
+
+The AI is going to latch on to your code to generate suggestions that follow the existing pattern, so the adage "garbage in, garbage out" applies.
+Always keeping a high quality bar can take discipline. Especially when you're coding fast and loose to get something working, you might want to disable completions while in "hacking" mode. To snooze inline suggestions temporarily, select the Copilot menu in the Status Bar, and then select the **Snooze** button to increment the snooze time by five minutes. To resume inline suggestions, select the **Cancel Snooze** button in the Copilot menu.
+
+![Screenshot of the Copilot menu in the Status Bar with Snooze and Cancel Snooze buttons.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/inline-suggestions/snooze-code-completions.png>)
+
+## Getting the most out of chat
+
+When you're using chat, there are several things you can do to optimize your experience.
+
+### Add relevant context
+
+You can explicitly add context to your prompt by typing `#` followed by the context item you want to mention. {% data variables.product.prodname_vscode_shortname %} supports different types of context items: files, folders, code symbols, tools, terminal output, source control changes, and more.
+
+Type the `#` symbol in the chat input field to see a list of available context items, or select **Add Context** in the {% data variables.copilot.chat_view %} to open the context picker.
+
+For example, with `#<file name>` or `#<folder name>` you can reference specific files or folders from your workspace in your chat prompt. This helps make the answers from Copilot Chat more relevant to your code by providing context about the file you are working with. You can ask questions like "Can you suggest improvements to #package.json?" or "How do I add an extension in #devcontainer.json?".
+
+Instead of adding individual files manually, you can let {% data variables.product.prodname_vscode_shortname %} find the right files from your codebase automatically by using `#codebase`. This can be useful when you don't know which files are relevant to your question.
+
+![Screenshot of {% data variables.copilot.chat_view %}, showing the Attach context button and context Quick Pick.](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/copilot-chat-view-attach-context.png>)
+
+Learn more about [using context in chat](<https://github.com/docs/chat/copilot-chat-context.md>).
+
+### Be specific and keep it simple
+
+When you ask chat to do something, be specific in your ask and break down a large task into separate, smaller tasks. For example, don't ask chat to create an Express app, that uses TypeScript and Pug, and that has a products page that retrieves data from a MongoDB database. Instead, first ask to create the Express app with TypeScript and Pug. Next, ask to add a products page, and finally ask to retrieve the customer data from a database.
+
+When you ask chat to do a specific task, be specific about the inputs, outputs, APIs, or frameworks you want to use. The more specific your prompt is, the better the outcome will be. For example, instead of "read product data from the database", use "read all products by category, return the data in JSON format, and use the Mongoose library".
+
+### Iterate on your solution
+
+When asking chat for help, you aren't stuck with the first response. You can iterate and prompt chat to improve the solution. Chat has both the context of the generated code and also your current conversation.
+Here's an example using Inline Chat to create a function to calculate Fibonacci numbers:
+
+![First response from AI for a function to calculate Fibonacci numbers](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/fibonacci-first.png>)
+
+Maybe you prefer a solution that doesn't use recursion:
+
+![Ask AI to not use recursion and new result](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/fibonacci-second.png>)
+
+You can even ask AI to follow coding conventions or improve variable names:
+
+![Ask AI to use better variable names and new result](<https://raw.githubusercontent.com/microsoft/vscode-docs/7dde535199826fdb8e278bdf6f0c3bff0aae0138/docs/agents/images/prompt-engineering-guide/fibonacci-third.png>)
+
+Even if you've already accepted a result, you can always ask AI to iterate on the code later.
+
+## More resources about prompting for Copilot
+
+If you'd like to learn more about productively using GitHub Copilot, you can follow up with these videos and blog posts:
+
+* [Effective Prompting for GitHub Copilot](<https://www.youtube.com/watch?v=ImWfIDTxn7E>)
+* [Pragmatic techniques to get the most out of GitHub Copilot](<https://www.youtube.com/watch?v=CwAzIpc4AnA>)
+* [Best practices for prompting GitHub Copilot in {% data variables.product.prodname_vscode_shortname %}](<https://www.linkedin.com/pulse/best-practices-prompting-github-copilot-vs-code-pamela-fox>)
+* [How to use GitHub Copilot: Prompts, tips, and use cases](<https://github.blog/2023-06-20-how-to-write-better-prompts-for-github-copilot/>)
+
+
+</details>
